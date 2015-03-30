@@ -2,7 +2,6 @@
 {
     using Microsoft.ApplicationInsights.AspNet.Implementation;
     using Microsoft.ApplicationInsights.AspNet.TelemetryInitializers;
-    using Microsoft.ApplicationInsights.AspNet.DataCollection;
     using Microsoft.ApplicationInsights.DataContracts;
     using Microsoft.ApplicationInsights.Extensibility;
     using Microsoft.AspNet.Builder;
