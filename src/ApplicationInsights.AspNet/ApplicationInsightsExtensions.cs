@@ -12,7 +12,7 @@
         public static IApplicationBuilder UseApplicationInsightsRequestTelemetry(this IApplicationBuilder app)
         {
             // TODO: Register if customer did not register
-            app.UseRequestServices();
+            //app.UseRequestServices();
 
             app.UseMiddleware<ApplicationInsightsRequestMiddleware>();
             return app;

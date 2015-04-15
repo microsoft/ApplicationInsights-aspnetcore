@@ -5,7 +5,6 @@
     using Microsoft.AspNet.Hosting;
     using Microsoft.Framework.ConfigurationModel;
     using Microsoft.Framework.DependencyInjection;
-    using Microsoft.Framework.DependencyInjection.Fallback;
     using System.IO;
     using Xunit;
 
@@ -16,11 +15,9 @@
         {
             try
             {
-                var serviceCollection = HostingServices.Create(null);
-
                 //Empty configuration that doesn't have instrumentation key
                 IConfiguration config = new Configuration();
-
+                var serviceCollection = new ServiceCollection();
                 serviceCollection.AddApplicationInsightsTelemetry(config);
             }
             finally
@@ -34,7 +31,7 @@
         {
             try
             {
-                var serviceCollection = HostingServices.Create(null);
+                var serviceCollection = new ServiceCollection();
                 IConfiguration config = new Configuration().AddJsonFile("content\\config.json");
 
                 serviceCollection.AddApplicationInsightsTelemetry(config);
@@ -52,7 +49,7 @@
         {
             try
             {
-                var serviceCollection = HostingServices.Create(null);
+                var serviceCollection = new ServiceCollection();
                 IConfiguration config = new Configuration()
                     .AddJsonFile("content\\config.json");
 
