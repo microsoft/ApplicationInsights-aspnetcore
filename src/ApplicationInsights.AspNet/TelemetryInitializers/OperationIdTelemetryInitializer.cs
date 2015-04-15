@@ -1,21 +1,23 @@
 ﻿namespace Microsoft.ApplicationInsights.AspNet.TelemetryInitializers
 {
-    using System;
     using Microsoft.ApplicationInsights.Channel;
     using Microsoft.ApplicationInsights.DataContracts;
-    using Microsoft.AspNet.Http;
-    using Microsoft.AspNet.Hosting;
+    using Microsoft.ApplicationInsights.Extensibility;
 
-    public class OperationIdTelemetryInitializer : TelemetryInitializerBase
+    public class OperationIdTelemetryInitializer : ITelemetryInitializer
     {
-        public OperationIdTelemetryInitializer(IHttpContextAccessor httpContextAccessor) : base(httpContextAccessor)
-        { }
+        private readonly RequestTelemetry request;
 
-        protected override void OnInitializeTelemetry(HttpContext platformContext, RequestTelemetry requestTelemetry, ITelemetry telemetry)
+        public OperationIdTelemetryInitializer(RequestTelemetry request)
+        {
+            this.request = request;
+        }
+
+        public void Initialize(ITelemetry telemetry)
         {
             if (string.IsNullOrEmpty(telemetry.Context.Operation.Id))
             {
-                telemetry.Context.Operation.Id = requestTelemetry.Id;
+                telemetry.Context.Operation.Id = request.Id;
             }
         }
     }
