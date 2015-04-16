@@ -16,14 +16,22 @@
 
     public static class ApplicationInsightsExtensionsTests
     {
+        public static ServiceCollection GetServiceCollectionWithContextAccessor()
+        {
+            var services = new ServiceCollection();
+            IHttpContextAccessor contextAccessor = new HttpContextAccessor();
+            services.AddInstance<IHttpContextAccessor>(contextAccessor);
+            return services;
+        }
+
         public static class SetApplicationInsightsTelemetryDeveloperMode
         {
-        [Fact]
+            [Fact]
             public static void ChangesDeveloperModeOfTelemetryChannelInTelemetryConfigurationInContainerToTrue()
-        {
+            {
                 var telemetryChannel = new FakeTelemetryChannel();
                 var telemetryConfiguration = new TelemetryConfiguration { TelemetryChannel = telemetryChannel };
-                var services = new ServiceCollection();
+                var services = ApplicationInsightsExtensionsTests.GetServiceCollectionWithContextAccessor();
                 services.AddInstance(telemetryConfiguration);
                 var app = new ApplicationBuilder(services.BuildServiceProvider());
 
@@ -34,7 +42,7 @@
         }
 
         public static class AddApplicationInsightsTelemetry
-            {
+        {
             [Theory]
             [InlineData(typeof(IContextInitializer), typeof(DomainNameRoleInstanceContextInitializer), ServiceLifetime.Singleton)]
             [InlineData(typeof(ITelemetryInitializer), typeof(ClientIpHeaderTelemetryInitializer), ServiceLifetime.Singleton)]
@@ -47,7 +55,7 @@
             [InlineData(typeof(TelemetryClient), typeof(TelemetryClient), ServiceLifetime.Scoped)]
             public static void RegistersExpectedServices(Type serviceType, Type implementationType, ServiceLifetime lifecycle)
             {
-                var services = new ServiceCollection();
+                var services = ApplicationInsightsExtensionsTests.GetServiceCollectionWithContextAccessor();
 
                 services.AddApplicationInsightsTelemetry(new Configuration());
 
@@ -58,7 +66,7 @@
             [Fact]
             public static void DoesNotThrowWithoutInstrumentationKey()
             {
-                var services = new ServiceCollection();
+                var services = ApplicationInsightsExtensionsTests.GetServiceCollectionWithContextAccessor();
 
                 //Empty configuration that doesn't have instrumentation key
                 IConfiguration config = new Configuration();
@@ -69,7 +77,7 @@
             [Fact]
             public static void RegistersTelemetryConfigurationFactoryMethodThatCreatesDefaultInstance()
             {
-                var services = new ServiceCollection();
+                var services = ApplicationInsightsExtensionsTests.GetServiceCollectionWithContextAccessor();
 
                 services.AddApplicationInsightsTelemetry(new Configuration());
 
@@ -81,21 +89,21 @@
             [Fact]
             public static void RegistersTelemetryConfigurationFactoryMethodThatReadsInstrumentationKeyFromConfiguration()
             {
-                var services = new ServiceCollection();
-                var config = new Configuration().AddJsonFile("content\\config.json");
+                var services = ApplicationInsightsExtensionsTests.GetServiceCollectionWithContextAccessor();
+                var config = new Configuration(".").AddJsonFile("content\\config.json");
 
                 services.AddApplicationInsightsTelemetry(config);
 
                 IServiceProvider serviceProvider = services.BuildServiceProvider();
                 var telemetryConfiguration = serviceProvider.GetRequiredService<TelemetryConfiguration>();
                 Assert.Equal("11111111-2222-3333-4444-555555555555", telemetryConfiguration.InstrumentationKey);
-        }
+            }
 
-        [Fact]
+            [Fact]
             public static void RegistersTelemetryConfigurationFactoryMethodThatPopulatesItWithContextInitializersFromContainer()
-        {
+            {
                 var contextInitializer = new FakeContextInitializer();
-                var services = new ServiceCollection();
+                var services = ApplicationInsightsExtensionsTests.GetServiceCollectionWithContextAccessor();
                 services.AddInstance<IContextInitializer>(contextInitializer);
 
                 services.AddApplicationInsightsTelemetry(new Configuration());
@@ -109,7 +117,7 @@
             public static void RegistersTelemetryConfigurationFactoryMethodThatPopulatesItWithTelemetryInitializersFromContainer()
             {
                 var telemetryInitializer = new FakeTelemetryInitializer();
-                var services = new ServiceCollection();
+                var services = ApplicationInsightsExtensionsTests.GetServiceCollectionWithContextAccessor();
                 services.AddInstance<ITelemetryInitializer>(telemetryInitializer);
 
                 services.AddApplicationInsightsTelemetry(new Configuration());
@@ -117,13 +125,13 @@
                 IServiceProvider serviceProvider = services.BuildServiceProvider();
                 var telemetryConfiguration = serviceProvider.GetRequiredService<TelemetryConfiguration>();
                 Assert.Contains(telemetryInitializer, telemetryConfiguration.TelemetryInitializers);
-        }
+            }
 
-        [Fact]
+            [Fact]
             public static void RegistersTelemetryConfigurationFactoryMethodThatPopulatesItWithTelemetryChannelFromContainer()
             {
                 var telemetryChannel = new FakeTelemetryChannel();
-                var services = new ServiceCollection();
+                var services = ApplicationInsightsExtensionsTests.GetServiceCollectionWithContextAccessor();
                 services.AddInstance<ITelemetryChannel>(telemetryChannel);
 
                 services.AddApplicationInsightsTelemetry(new Configuration());
@@ -136,7 +144,7 @@
             [Fact]
             public static void DoesNotOverrideDefaultTelemetryChannelIfTelemetryChannelServiceIsNotRegistered()
             {
-                var services = new ServiceCollection();
+                var services = ApplicationInsightsExtensionsTests.GetServiceCollectionWithContextAccessor();
 
                 services.AddApplicationInsightsTelemetry(new Configuration());
 
@@ -148,7 +156,7 @@
             [Fact]
             public static void RegistersTelemetryClientToGetTelemetryConfigurationFromContainerAndNotGlobalInstance()
             {
-                var services = new ServiceCollection();
+                var services = ApplicationInsightsExtensionsTests.GetServiceCollectionWithContextAccessor();
 
                 services.AddApplicationInsightsTelemetry(new Configuration());
 
@@ -162,26 +170,26 @@
 
         public static class ApplicationInsightsJavaScriptSnippet
         {
-        [Fact]
+            [Fact]
             public static void DoesNotThrowWithoutInstrumentationKey()
-        {
-            var helper = new HtmlHelperMock();
-            helper.ApplicationInsightsJavaScriptSnippet(null);
-            helper.ApplicationInsightsJavaScriptSnippet("");
-        }
-
-        [Fact]
-            public static void UsesInstrumentationKey()
-        {
-            var key = "1236543";
-            HtmlHelperMock helper = new HtmlHelperMock();
-            var result = helper.ApplicationInsightsJavaScriptSnippet(key);
-            using (StringWriter sw = new StringWriter())
             {
-                result.WriteTo(sw);
-                Assert.Contains(key, sw.ToString());
+                var helper = new HtmlHelperMock();
+                helper.ApplicationInsightsJavaScriptSnippet(null);
+                helper.ApplicationInsightsJavaScriptSnippet("");
             }
-        }
+
+            [Fact]
+            public static void UsesInstrumentationKey()
+            {
+                var key = "1236543";
+                HtmlHelperMock helper = new HtmlHelperMock();
+                var result = helper.ApplicationInsightsJavaScriptSnippet(key);
+                using (StringWriter sw = new StringWriter())
+                {
+                    result.WriteTo(sw);
+                    Assert.Contains(key, sw.ToString());
+                }
+            }
         }
     }
 }
