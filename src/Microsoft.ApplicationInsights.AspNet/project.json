@@ -23,11 +23,6 @@
             "dependencies": {
                 "Microsoft.ApplicationInsights": "0.13.4-build00460"
             }
-        },
-        "dnxcore50": {
-            "compilationOptions": {
-                "define": [ "fakeportable" ]
-            }
         }
     }
 }

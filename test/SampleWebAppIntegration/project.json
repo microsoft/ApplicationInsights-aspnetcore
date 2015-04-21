@@ -39,11 +39,6 @@
                 "Microsoft.ApplicationInsights": "0.13.4-build00460",
                 "System.Runtime": "4.0.20-beta-*"
             }
-        },
-        "dnxcore50": {
-            "dependencies": {
-                "Microsoft.ApplicationInsights.AspNet": "0.30.0.1-beta"
-            }
         }
     },
     "exclude": [
