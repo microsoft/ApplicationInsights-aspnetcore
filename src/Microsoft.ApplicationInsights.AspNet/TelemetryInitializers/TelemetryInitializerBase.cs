@@ -9,6 +9,7 @@
     using Microsoft.AspNet.Hosting;
     using Microsoft.AspNet.Http;
     using Microsoft.Framework.DependencyInjection;
+    using Microsoft.ApplicationInsights.AspNet.Tracing;
 
     public abstract class TelemetryInitializerBase : ITelemetryInitializer
     {
@@ -32,7 +33,7 @@
 
                 if (context == null)
                 {
-                    //TODO: Diagnostics!
+                    Aspnet5EventSource.Log.TelemetryInitializerNotEnabledOnHttpContextNull();
                     return;
                 }
 
