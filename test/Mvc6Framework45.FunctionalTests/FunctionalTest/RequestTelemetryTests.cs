@@ -85,5 +85,30 @@
                 Assert.NotNull(traceTelemetry);
             }
         }
+
+        [Fact]
+        public void TestMixedTelemetryItemsUseRequestServicesRecieved()
+        {
+            using (var server = new InProcessServer(assemblyName))
+            {
+                for (int i = 0; i < 2; i++)
+                {
+                    var httpClient = new HttpClient();
+                    var task = httpClient.GetAsync(server.BaseHost + "/UseRequestServices/");
+                    task.Wait(TestTimeoutMs * 2);
+
+                    var request = server.BackChannel.Buffer.OfType<RequestTelemetry>().Single();
+                    var eventTelemetry = server.BackChannel.Buffer.OfType<EventTelemetry>().Single();
+                    var metricTelemetry = server.BackChannel.Buffer.OfType<MetricTelemetry>().Single();
+
+                    Assert.Equal(3, server.BackChannel.Buffer.Count);
+                    Assert.NotNull(request);
+                    Assert.NotNull(eventTelemetry);
+                    Assert.NotNull(metricTelemetry);
+
+                    server.BackChannel.Buffer.Clear();
+                }
+            }
+        }
     }
 }
