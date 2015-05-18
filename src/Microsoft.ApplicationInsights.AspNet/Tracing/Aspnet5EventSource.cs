@@ -1,23 +1,15 @@
 ﻿namespace Microsoft.ApplicationInsights.AspNet.Tracing
 {
-    using System;
-    using System.Collections.Generic;
     using System.Diagnostics.Tracing;
-    using System.Linq;
-    using System.Threading.Tasks;
 
-    internal class Aspnet5EventSource : EventSource
+    [EventSource(Name = "Microsoft-ApplicationInsights-AspNet5")]
+    public class AspNet5EventSource : EventSource
     {
-        /// <summary>
-        /// Instance of the Aspnet5EventSource class.
-        /// </summary>
-        public static readonly Aspnet5EventSource Log = new Aspnet5EventSource();
-
-        private Aspnet5EventSource()
+        public AspNet5EventSource()
         {
         }
 
-        [Event(1, Message = "TelemetryInitializerNotEnabledOnHttpContextNull", Level = EventLevel.Verbose)]
+        [Event(1, Message = "Telemetry Initializer is not enabled when HttpContext is null", Level = EventLevel.Verbose)]
         public void TelemetryInitializerNotEnabledOnHttpContextNull()
         {
             this.WriteEvent(1);

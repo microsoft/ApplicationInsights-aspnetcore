@@ -15,7 +15,9 @@
     {
         private IHttpContextAccessor httpContextAccessor;
 
-        public TelemetryInitializerBase(IHttpContextAccessor httpContextAccessor)
+        private readonly AspNet5EventSource eventSource;
+
+        public TelemetryInitializerBase(IHttpContextAccessor httpContextAccessor, AspNet5EventSource eventSource)
         {
             if (httpContextAccessor == null)
             {
@@ -23,6 +25,9 @@
             }
 
             this.httpContextAccessor = httpContextAccessor;
+
+            //Event source may never be null as it will be injected by DI.
+            this.eventSource = eventSource;
         }
 
         public void Initialize(ITelemetry telemetry)
@@ -30,10 +35,10 @@
             try
             {
                 var context = this.httpContextAccessor.HttpContext;
-
+                this.eventSource.TelemetryInitializerNotEnabledOnHttpContextNull();
                 if (context == null)
                 {
-                    Aspnet5EventSource.Log.TelemetryInitializerNotEnabledOnHttpContextNull();
+                    this.eventSource.TelemetryInitializerNotEnabledOnHttpContextNull();
                     return;
                 }
 

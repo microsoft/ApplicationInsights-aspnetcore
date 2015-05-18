@@ -15,7 +15,7 @@
         [Fact]
         public void InitializeThrowIfHttpContextAccessorIsNull()
         {
-            Assert.Throws<ArgumentNullException>(() => { var initializer = new UserAgentTelemetryInitializer(null); });
+            Assert.Throws<ArgumentNullException>(() => { var initializer = new UserAgentTelemetryInitializer(null, null); });
         }
 
         [Fact]
@@ -23,7 +23,7 @@
         {
             var ac = new HttpContextAccessor() { HttpContext = null };
 
-            var initializer = new UserAgentTelemetryInitializer(ac);
+            var initializer = new UserAgentTelemetryInitializer(ac, null);
 
             initializer.Initialize(new RequestTelemetry());
         }
@@ -33,7 +33,7 @@
         {
             var ac = new HttpContextAccessor() { HttpContext = new DefaultHttpContext() };
 
-            var initializer = new UserAgentTelemetryInitializer(ac);
+            var initializer = new UserAgentTelemetryInitializer(ac, null);
 
             initializer.Initialize(new RequestTelemetry());
         }
@@ -44,7 +44,7 @@
             var requestTelemetry = new RequestTelemetry();
             var contextAccessor = HttpContextAccessorHelper.CreateHttpContextAccessor(requestTelemetry);
             contextAccessor.HttpContext.Request.Headers.Add("User-Agent", new[] { "test" });
-            var initializer = new UserAgentTelemetryInitializer(contextAccessor);
+            var initializer = new UserAgentTelemetryInitializer(contextAccessor, null);
 
             initializer.Initialize(requestTelemetry);
 
@@ -58,7 +58,7 @@
             requestTelemetry.Context.User.UserAgent = "Inline";
             var contextAccessor = HttpContextAccessorHelper.CreateHttpContextAccessor(requestTelemetry);
             contextAccessor.HttpContext.Request.Headers.Add("User-Agent", new[] { "test" });
-            var initializer = new UserAgentTelemetryInitializer(contextAccessor);
+            var initializer = new UserAgentTelemetryInitializer(contextAccessor, null);
 
             initializer.Initialize(requestTelemetry);
 

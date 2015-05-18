@@ -9,6 +9,8 @@
     using Microsoft.ApplicationInsights.DataContracts;
     using Microsoft.AspNet.Hosting;
     using Microsoft.AspNet.Http;
+    using Microsoft.ApplicationInsights.AspNet.Tracing;
+
 
 
     /// <summary>
@@ -25,8 +27,8 @@
         private readonly ICollection<string> headerNames;
 
 
-        public ClientIpHeaderTelemetryInitializer(IHttpContextAccessor httpContextAccessor)
-             : base(httpContextAccessor)
+        public ClientIpHeaderTelemetryInitializer(IHttpContextAccessor httpContextAccessor, AspNet5EventSource eventSource)
+             : base(httpContextAccessor, eventSource)
         {
             this.headerNames = new List<string>();
             this.HeaderNames.Add(HeaderNameDefault);

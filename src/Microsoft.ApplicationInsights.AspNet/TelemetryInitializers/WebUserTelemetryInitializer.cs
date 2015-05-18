@@ -6,13 +6,14 @@
     using Microsoft.ApplicationInsights.DataContracts;
     using Microsoft.AspNet.Hosting;
     using Microsoft.AspNet.Http;
+    using Microsoft.ApplicationInsights.AspNet.Tracing;
 
     public class WebUserTelemetryInitializer : TelemetryInitializerBase
     {
         private const string WebUserCookieName = "ai_user";
 
-        public WebUserTelemetryInitializer(IHttpContextAccessor httpContextAccessor)
-             : base(httpContextAccessor)
+        public WebUserTelemetryInitializer(IHttpContextAccessor httpContextAccessor, AspNet5EventSource eventSource)
+             : base(httpContextAccessor, eventSource)
         {
         }
 

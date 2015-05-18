@@ -10,10 +10,12 @@
     using Microsoft.AspNet.Mvc;
     using Microsoft.AspNet.Mvc.Routing;
     using Microsoft.Framework.DependencyInjection;
+    using Microsoft.ApplicationInsights.AspNet.Tracing;
 
     public class OperationNameTelemetryInitializer : TelemetryInitializerBase
     {
-        public OperationNameTelemetryInitializer(IHttpContextAccessor httpContextAccessor) : base(httpContextAccessor)
+        public OperationNameTelemetryInitializer(IHttpContextAccessor httpContextAccessor, AspNet5EventSource eventSource)
+             : base(httpContextAccessor, eventSource)
         { }
 
         protected override void OnInitializeTelemetry(HttpContext platformContext, RequestTelemetry requestTelemetry, ITelemetry telemetry)

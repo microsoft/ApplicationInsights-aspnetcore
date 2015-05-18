@@ -5,13 +5,14 @@
     using Microsoft.ApplicationInsights.DataContracts;
     using Microsoft.AspNet.Hosting;
     using Microsoft.AspNet.Http;
+    using Microsoft.ApplicationInsights.AspNet.Tracing;
 
     public class WebSessionTelemetryInitializer : TelemetryInitializerBase
     {
         private const string WebSessionCookieName = "ai_session";
 
-        public WebSessionTelemetryInitializer(IHttpContextAccessor httpContextAccessor)
-             : base(httpContextAccessor)
+        public WebSessionTelemetryInitializer(IHttpContextAccessor httpContextAccessor, AspNet5EventSource eventSource)
+             : base(httpContextAccessor, eventSource)
         {
         }
 

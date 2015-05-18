@@ -14,7 +14,7 @@
         [Fact]
         public void InitializeThrowIfHttpContextAccessorIsNull()
         {
-            Assert.Throws<ArgumentNullException>(() => { var initializer = new WebUserTelemetryInitializer(null); });
+            Assert.Throws<ArgumentNullException>(() => { var initializer = new WebUserTelemetryInitializer(null, null); });
         }
 
         [Fact]
@@ -22,7 +22,7 @@
         {
             var ac = new HttpContextAccessor() { HttpContext = null };
 
-            var initializer = new WebUserTelemetryInitializer(ac);
+            var initializer = new WebUserTelemetryInitializer(ac, null);
 
             initializer.Initialize(new RequestTelemetry());
         }
@@ -32,7 +32,7 @@
         {
             var ac = new HttpContextAccessor() { HttpContext = new DefaultHttpContext() };
 
-            var initializer = new WebUserTelemetryInitializer(ac);
+            var initializer = new WebUserTelemetryInitializer(ac, null);
 
             initializer.Initialize(new RequestTelemetry());
         }
@@ -43,7 +43,7 @@
             var requestTelemetry = new RequestTelemetry();
             var contextAccessor = HttpContextAccessorHelper.CreateHttpContextAccessor(requestTelemetry);
             contextAccessor.HttpContext.Request.Headers["Cookie"] = "ai_user=test|2015-04-09T21:51:59.993Z";
-            var initializer = new WebUserTelemetryInitializer(contextAccessor);
+            var initializer = new WebUserTelemetryInitializer(contextAccessor, null);
 
             initializer.Initialize(requestTelemetry);
 
@@ -58,7 +58,7 @@
             requestTelemetry.Context.User.Id = "Inline";
             var contextAccessor = HttpContextAccessorHelper.CreateHttpContextAccessor(requestTelemetry);
             contextAccessor.HttpContext.Request.Headers["Cookie"] = "ai_user=test|2015-04-09T21:51:59.993Z";
-            var initializer = new WebUserTelemetryInitializer(contextAccessor);
+            var initializer = new WebUserTelemetryInitializer(contextAccessor, null);
 
             initializer.Initialize(requestTelemetry);
 
@@ -71,7 +71,7 @@
             var requestTelemetry = new RequestTelemetry();
             var contextAccessor = HttpContextAccessorHelper.CreateHttpContextAccessor(requestTelemetry);
             contextAccessor.HttpContext.Request.Headers["Cookie"] = "ai_user=test";
-            var initializer = new WebUserTelemetryInitializer(contextAccessor);
+            var initializer = new WebUserTelemetryInitializer(contextAccessor, null);
 
             initializer.Initialize(requestTelemetry);
 
@@ -84,7 +84,7 @@
             var requestTelemetry = new RequestTelemetry();
             var contextAccessor = HttpContextAccessorHelper.CreateHttpContextAccessor(requestTelemetry);
             contextAccessor.HttpContext.Request.Headers["Cookie"] = "ai_user=test|malformeddate";
-            var initializer = new WebUserTelemetryInitializer(contextAccessor);
+            var initializer = new WebUserTelemetryInitializer(contextAccessor, null);
 
             initializer.Initialize(requestTelemetry);
             Assert.Equal(null, requestTelemetry.Context.User.Id);

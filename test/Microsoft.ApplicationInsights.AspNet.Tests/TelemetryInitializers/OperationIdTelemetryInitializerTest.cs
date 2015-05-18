@@ -13,7 +13,7 @@
         [Fact]
         public void InitializeThrowIfHttpContextAccessorIsNull()
         {
-            Assert.Throws<ArgumentNullException>(() => { var initializer = new OperationIdTelemetryInitializer(null); });
+            Assert.Throws<ArgumentNullException>(() => { var initializer = new OperationIdTelemetryInitializer(null, null); });
         }
 
         [Fact]
@@ -21,7 +21,7 @@
         {
             var ac = new HttpContextAccessor() { HttpContext = null };
 
-            var initializer = new OperationIdTelemetryInitializer(ac);
+            var initializer = new OperationIdTelemetryInitializer(ac, null);
 
             initializer.Initialize(new RequestTelemetry());
         }
@@ -31,7 +31,7 @@
         {
             var ac = new HttpContextAccessor() { HttpContext = new DefaultHttpContext() };
 
-            var initializer = new OperationIdTelemetryInitializer(ac);
+            var initializer = new OperationIdTelemetryInitializer(ac, null);
 
             initializer.Initialize(new RequestTelemetry());
         }
@@ -43,7 +43,7 @@
             telemetry.Context.Operation.Id = "123";
             var contextAccessor = HttpContextAccessorHelper.CreateHttpContextAccessor();
 
-            var initializer = new OperationIdTelemetryInitializer(contextAccessor);
+            var initializer = new OperationIdTelemetryInitializer(contextAccessor, null);
 
             initializer.Initialize(telemetry);
 
@@ -57,7 +57,7 @@
             var requestTelemetry = new RequestTelemetry();
             var contextAccessor = HttpContextAccessorHelper.CreateHttpContextAccessor(requestTelemetry);
 
-            var initializer = new OperationIdTelemetryInitializer(contextAccessor);
+            var initializer = new OperationIdTelemetryInitializer(contextAccessor, null);
 
             initializer.Initialize(telemetry);
 
