@@ -51,6 +51,7 @@
                         // Currently SessionContext takes in only SessionId. 
                         // The cookies has SessionAcquisitionDate and SessionRenewDate as well that we are not picking for now.
                         requestTelemetry.Context.Session.Id = sessionCookieParts[0];
+                        cookieWasRead = true;
                     }
                 }
 
