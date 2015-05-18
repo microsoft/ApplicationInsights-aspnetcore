@@ -15,6 +15,12 @@
             this.WriteEvent(1);
         }
 
+        protected virtual void WriteEventEx(int eventId)
+        {
+            this.WriteEvent(eventId);
+        }
+
+
         public sealed class Keywords
         {
             /// <summary>
