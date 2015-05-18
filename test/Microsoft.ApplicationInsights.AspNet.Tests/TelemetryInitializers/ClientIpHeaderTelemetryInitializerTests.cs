@@ -21,7 +21,7 @@
         {
             var ac = new HttpContextAccessor() { HttpContext = null };
             
-            var initializer = new ClientIpHeaderTelemetryInitializer(ac, null);
+            var initializer = new ClientIpHeaderTelemetryInitializer(ac, new Tracing.AspNet5EventSource());
 
             initializer.Initialize(new RequestTelemetry());
         }
@@ -31,7 +31,7 @@
         {
             var ac = new HttpContextAccessor() { HttpContext = new DefaultHttpContext() };
             
-            var initializer = new ClientIpHeaderTelemetryInitializer(ac, null);
+            var initializer = new ClientIpHeaderTelemetryInitializer(ac, new Tracing.AspNet5EventSource());
 
             initializer.Initialize(new RequestTelemetry());
         }

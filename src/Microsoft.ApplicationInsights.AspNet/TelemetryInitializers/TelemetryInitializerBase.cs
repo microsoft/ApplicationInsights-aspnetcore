@@ -35,24 +35,22 @@
             try
             {
                 var context = this.httpContextAccessor.HttpContext;
-                this.eventSource.TelemetryInitializerNotEnabledOnHttpContextNull();
                 if (context == null)
                 {
-                    this.eventSource.TelemetryInitializerNotEnabledOnHttpContextNull();
+                    this.eventSource.VerboseTelemetryInitializerNotEnabledOnHttpContextNull();
                     return;
                 }
 
                 if (context.RequestServices == null)
                 {
-                    //TODO: Diagnostics!
+                    this.eventSource.VerboseTelemetryInitializerNotEnabledOnRequestServicesNull();
                     return;
                 }
 
                 var request = context.RequestServices.GetService<RequestTelemetry>();
-
                 if (request == null)
                 {
-                    //TODO: Diagnostics!
+                    this.eventSource.UserActionableErrorRegisterApplicationInsightsServices();
                     return;
                 }
 
@@ -60,8 +58,7 @@
             }
             catch (Exception exp)
             {
-                //TODO: Diagnostics!
-                Debug.WriteLine(exp);
+                this.eventSource.ErrorTelemetryInitializerFailedToCollectData(exp);
             }
         }
 

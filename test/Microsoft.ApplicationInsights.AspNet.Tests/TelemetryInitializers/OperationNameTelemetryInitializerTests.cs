@@ -24,7 +24,7 @@
         {
             var ac = new HttpContextAccessor() { HttpContext = null };
 
-            var initializer = new OperationNameTelemetryInitializer(ac, null);
+            var initializer = new OperationNameTelemetryInitializer(ac, new Tracing.AspNet5EventSource());
 
             initializer.Initialize(new RequestTelemetry());
         }
@@ -34,7 +34,7 @@
         {
             var ac = new HttpContextAccessor() { HttpContext = new DefaultHttpContext() };
 
-            var initializer = new OperationNameTelemetryInitializer(ac, null);
+            var initializer = new OperationNameTelemetryInitializer(ac, new Tracing.AspNet5EventSource());
 
             initializer.Initialize(new RequestTelemetry());
         }

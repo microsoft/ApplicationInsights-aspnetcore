@@ -22,7 +22,7 @@
         {
             var ac = new HttpContextAccessor() { HttpContext = null };
 
-            var initializer = new WebUserTelemetryInitializer(ac, null);
+            var initializer = new WebUserTelemetryInitializer(ac, new Tracing.AspNet5EventSource());
 
             initializer.Initialize(new RequestTelemetry());
         }
@@ -32,7 +32,7 @@
         {
             var ac = new HttpContextAccessor() { HttpContext = new DefaultHttpContext() };
 
-            var initializer = new WebUserTelemetryInitializer(ac, null);
+            var initializer = new WebUserTelemetryInitializer(ac, new Tracing.AspNet5EventSource());
 
             initializer.Initialize(new RequestTelemetry());
         }
@@ -71,7 +71,7 @@
             var requestTelemetry = new RequestTelemetry();
             var contextAccessor = HttpContextAccessorHelper.CreateHttpContextAccessor(requestTelemetry);
             contextAccessor.HttpContext.Request.Headers["Cookie"] = "ai_user=test";
-            var initializer = new WebUserTelemetryInitializer(contextAccessor, null);
+            var initializer = new WebUserTelemetryInitializer(contextAccessor, new Tracing.AspNet5EventSource());
 
             initializer.Initialize(requestTelemetry);
 
@@ -84,7 +84,7 @@
             var requestTelemetry = new RequestTelemetry();
             var contextAccessor = HttpContextAccessorHelper.CreateHttpContextAccessor(requestTelemetry);
             contextAccessor.HttpContext.Request.Headers["Cookie"] = "ai_user=test|malformeddate";
-            var initializer = new WebUserTelemetryInitializer(contextAccessor, null);
+            var initializer = new WebUserTelemetryInitializer(contextAccessor, new Tracing.AspNet5EventSource());
 
             initializer.Initialize(requestTelemetry);
             Assert.Equal(null, requestTelemetry.Context.User.Id);

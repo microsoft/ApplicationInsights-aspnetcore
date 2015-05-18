@@ -13,7 +13,7 @@
         [Fact]
         public void RoleInstanceNameIsSetToDomainAndHost()
         {
-            var source = new DomainNameRoleInstanceContextInitializer();
+            var source = new DomainNameRoleInstanceContextInitializer(null);
             var telemetryContext = new TelemetryContext();
 
             source.Initialize(telemetryContext);
@@ -34,7 +34,7 @@
         [Fact]
         public void ContextInitializerDoesNotOverrideMachineName()
         {
-            var source = new DomainNameRoleInstanceContextInitializer();
+            var source = new DomainNameRoleInstanceContextInitializer(null);
             var telemetryContext = new TelemetryContext();
             telemetryContext.Device.RoleInstance = "Test";
 
