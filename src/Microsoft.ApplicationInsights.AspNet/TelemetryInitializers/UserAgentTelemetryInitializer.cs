@@ -7,6 +7,8 @@
     using Microsoft.AspNet.Hosting;
     using Microsoft.AspNet.Http;
     using Microsoft.Net.Http.Headers;
+    using Microsoft.ApplicationInsights.AspNet.Tracing;
+
 
     /// <summary>
     /// Telemetry initializer populates user agent (telemetry.Context.User.UserAgent) for 
@@ -14,7 +16,8 @@
     /// </summary>
     public class UserAgentTelemetryInitializer : TelemetryInitializerBase
     {
-        public UserAgentTelemetryInitializer(IHttpContextAccessor httpContextAccessor) : base(httpContextAccessor)
+        public UserAgentTelemetryInitializer(IHttpContextAccessor httpContextAccessor, AspNet5EventSource eventSource)
+             : base(httpContextAccessor, eventSource)
         {
         }
 

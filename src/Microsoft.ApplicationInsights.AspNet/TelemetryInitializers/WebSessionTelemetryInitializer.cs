@@ -5,14 +5,18 @@
     using Microsoft.ApplicationInsights.DataContracts;
     using Microsoft.AspNet.Hosting;
     using Microsoft.AspNet.Http;
+    using Microsoft.ApplicationInsights.AspNet.Tracing;
 
     public class WebSessionTelemetryInitializer : TelemetryInitializerBase
     {
         private const string WebSessionCookieName = "ai_session";
 
-        public WebSessionTelemetryInitializer(IHttpContextAccessor httpContextAccessor)
-             : base(httpContextAccessor)
+        private readonly AspNet5EventSource eventSource;
+
+        public WebSessionTelemetryInitializer(IHttpContextAccessor httpContextAccessor, AspNet5EventSource eventSource)
+             : base(httpContextAccessor, eventSource)
         {
+            this.eventSource = eventSource;
         }
 
         protected override void OnInitializeTelemetry(HttpContext platformContext, RequestTelemetry requestTelemetry, ITelemetry telemetry)
@@ -33,11 +37,12 @@
             }
         }
 
-        private static void UpdateRequestTelemetryFromPlatformContext(RequestTelemetry requestTelemetry, HttpContext platformContext)
+        private void UpdateRequestTelemetryFromPlatformContext(RequestTelemetry requestTelemetry, HttpContext platformContext)
         {
             if (platformContext.Request.Cookies != null && platformContext.Request.Cookies.ContainsKey(WebSessionCookieName))
             {
                 var sessionCookieValue = platformContext.Request.Cookies[WebSessionCookieName];
+                bool cookieWasRead = false;
                 if (!string.IsNullOrEmpty(sessionCookieValue))
                 {
                     var sessionCookieParts = sessionCookieValue.Split('|');
@@ -46,7 +51,13 @@
                         // Currently SessionContext takes in only SessionId. 
                         // The cookies has SessionAcquisitionDate and SessionRenewDate as well that we are not picking for now.
                         requestTelemetry.Context.Session.Id = sessionCookieParts[0];
+                        cookieWasRead = true;
                     }
+                }
+
+                if (!cookieWasRead)
+                {
+                    this.eventSource.MalformedCookie(WebSessionCookieName, sessionCookieValue);
                 }
             }
         }

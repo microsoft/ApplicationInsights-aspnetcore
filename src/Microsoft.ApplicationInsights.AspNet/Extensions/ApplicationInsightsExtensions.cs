@@ -7,6 +7,7 @@
     using Microsoft.ApplicationInsights.AspNet;
     using Microsoft.ApplicationInsights.AspNet.ContextInitializers;
     using Microsoft.ApplicationInsights.AspNet.TelemetryInitializers;
+    using Microsoft.ApplicationInsights.AspNet.Tracing;
     using Microsoft.ApplicationInsights.Channel;
     using Microsoft.ApplicationInsights.DataContracts;
     using Microsoft.ApplicationInsights.Extensibility;
@@ -35,6 +36,8 @@
 
         public static void AddApplicationInsightsTelemetry(this IServiceCollection services, IConfiguration config)
         {
+            services.AddSingleton<AspNet5EventSource>();
+
             services.AddSingleton<IContextInitializer, DomainNameRoleInstanceContextInitializer>();
 
             services.AddSingleton<ITelemetryInitializer, ClientIpHeaderTelemetryInitializer>();

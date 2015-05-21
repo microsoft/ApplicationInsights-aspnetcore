@@ -14,7 +14,7 @@
         [Fact]
         public void InitializeThrowIfHttpContextAccessorIsNull()
         {
-            Assert.Throws<ArgumentNullException>(() => { var initializer = new WebSessionTelemetryInitializer(null); });
+            Assert.Throws<ArgumentNullException>(() => { var initializer = new WebSessionTelemetryInitializer(null, null); });
         }
 
         [Fact]
@@ -22,7 +22,7 @@
         {
             var ac = new HttpContextAccessor() { HttpContext = null };
 
-            var initializer = new WebSessionTelemetryInitializer(ac);
+            var initializer = new WebSessionTelemetryInitializer(ac, new Tracing.AspNet5EventSource());
 
             initializer.Initialize(new RequestTelemetry());
         }
@@ -32,7 +32,7 @@
         {
             var ac = new HttpContextAccessor() { HttpContext = new DefaultHttpContext() };
 
-            var initializer = new WebSessionTelemetryInitializer(ac);
+            var initializer = new WebSessionTelemetryInitializer(ac, new Tracing.AspNet5EventSource());
 
             initializer.Initialize(new RequestTelemetry());
         }
@@ -43,7 +43,7 @@
             var requestTelemetry = new RequestTelemetry();
             var contextAccessor = HttpContextAccessorHelper.CreateHttpContextAccessor(requestTelemetry);
             contextAccessor.HttpContext.Request.Headers["Cookie"] = "ai_session=test|2015-04-10T17:11:38.378Z|2015-04-10T17:11:39.180Z";
-            var initializer = new WebSessionTelemetryInitializer(contextAccessor);
+            var initializer = new WebSessionTelemetryInitializer(contextAccessor, new Tracing.AspNet5EventSource());
 
             initializer.Initialize(requestTelemetry);
 
@@ -57,7 +57,7 @@
             requestTelemetry.Context.Session.Id = "Inline";
             var contextAccessor = HttpContextAccessorHelper.CreateHttpContextAccessor(requestTelemetry);
             contextAccessor.HttpContext.Request.Headers["Cookie"] = "ai_session=test|2015-04-10T17:11:38.378Z|2015-04-10T17:11:39.180Z";
-            var initializer = new WebSessionTelemetryInitializer(contextAccessor);
+            var initializer = new WebSessionTelemetryInitializer(contextAccessor, null);
 
             initializer.Initialize(requestTelemetry);
 

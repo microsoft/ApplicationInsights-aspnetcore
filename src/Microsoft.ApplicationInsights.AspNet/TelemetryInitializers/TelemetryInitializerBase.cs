@@ -9,12 +9,15 @@
     using Microsoft.AspNet.Hosting;
     using Microsoft.AspNet.Http;
     using Microsoft.Framework.DependencyInjection;
+    using Microsoft.ApplicationInsights.AspNet.Tracing;
 
     public abstract class TelemetryInitializerBase : ITelemetryInitializer
     {
         private IHttpContextAccessor httpContextAccessor;
 
-        public TelemetryInitializerBase(IHttpContextAccessor httpContextAccessor)
+        private readonly AspNet5EventSource eventSource;
+
+        public TelemetryInitializerBase(IHttpContextAccessor httpContextAccessor, AspNet5EventSource eventSource)
         {
             if (httpContextAccessor == null)
             {
@@ -22,6 +25,9 @@
             }
 
             this.httpContextAccessor = httpContextAccessor;
+
+            //Event source may never be null as it will be injected by DI.
+            this.eventSource = eventSource;
         }
 
         public void Initialize(ITelemetry telemetry)
@@ -29,24 +35,22 @@
             try
             {
                 var context = this.httpContextAccessor.HttpContext;
-
                 if (context == null)
                 {
-                    //TODO: Diagnostics!
+                    this.eventSource.TelemetryInitializerNotEnabledOnHttpContextNull();
                     return;
                 }
 
                 if (context.RequestServices == null)
                 {
-                    //TODO: Diagnostics!
+                    this.eventSource.TelemetryInitializerNotEnabledOnRequestServicesNull();
                     return;
                 }
 
                 var request = context.RequestServices.GetService<RequestTelemetry>();
-
                 if (request == null)
                 {
-                    //TODO: Diagnostics!
+                    this.eventSource.RegisterApplicationInsightsServices();
                     return;
                 }
 
@@ -54,8 +58,7 @@
             }
             catch (Exception exp)
             {
-                //TODO: Diagnostics!
-                Debug.WriteLine(exp);
+                this.eventSource.TelemetryInitializerFailedToCollectData(exp);
             }
         }
 

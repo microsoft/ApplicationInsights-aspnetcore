@@ -6,6 +6,7 @@
     using System.Net.NetworkInformation;
     using System.Threading;
 
+    using Microsoft.ApplicationInsights.AspNet.Tracing;
     using Microsoft.ApplicationInsights.DataContracts;
     using Microsoft.ApplicationInsights.Extensibility;
 
@@ -16,6 +17,13 @@
     {
         private string roleInstanceName;
 
+        private readonly AspNet5EventSource eventSource;
+
+        public DomainNameRoleInstanceContextInitializer(AspNet5EventSource eventSource)
+        {
+            this.eventSource = eventSource;
+        }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="DomainNameRoleInstanceContextInitializer"/> class.
         /// </summary>
@@ -23,7 +31,8 @@
         {
             if (context == null)
             {
-                // TODO: add diagnostics
+                this.eventSource.TelemetryContextNotAvailableInContextInitializer();
+                return;
             }
 
             if (string.IsNullOrEmpty(context.Device.RoleInstance))

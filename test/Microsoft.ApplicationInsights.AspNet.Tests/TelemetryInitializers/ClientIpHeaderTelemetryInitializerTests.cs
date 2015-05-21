@@ -7,21 +7,22 @@
     using Microsoft.AspNet.Hosting;
     using Microsoft.AspNet.Http.Core;
     using Xunit;
+    using System.Diagnostics.Tracing;
 
     public class ClientIpHeaderTelemetryInitializerTests
     {
         [Fact]
         public void InitializeThrowIfHttpContextAccessorIsNull()
         {
-            Assert.Throws<ArgumentNullException>(() => { var initializer = new ClientIpHeaderTelemetryInitializer(null);  });
+            Assert.Throws<ArgumentNullException>(() => { var initializer = new ClientIpHeaderTelemetryInitializer(null, null);  });
         }
 
         [Fact]
         public void InitializeDoesNotThrowIfHttpContextIsUnavailable()
         {
             var ac = new HttpContextAccessor() { HttpContext = null };
-            
-            var initializer = new ClientIpHeaderTelemetryInitializer(ac);
+
+            var initializer = new ClientIpHeaderTelemetryInitializer(ac, new Tracing.AspNet5EventSource());
 
             initializer.Initialize(new RequestTelemetry());
         }
@@ -30,8 +31,8 @@
         public void InitializeDoesNotThrowIfRequestTelemetryIsUnavailable()
         {
             var ac = new HttpContextAccessor() { HttpContext = new DefaultHttpContext() };
-            
-            var initializer = new ClientIpHeaderTelemetryInitializer(ac);
+
+            var initializer = new ClientIpHeaderTelemetryInitializer(ac, new Tracing.AspNet5EventSource());
 
             initializer.Initialize(new RequestTelemetry());
         }
@@ -43,7 +44,7 @@
             var contextAccessor = HttpContextAccessorHelper.CreateHttpContextAccessor(requestTelemetry);
             contextAccessor.HttpContext.Request.Headers.Add("X-Forwarded-For", new string[] { "127.0.0.3" });
 
-            var initializer = new ClientIpHeaderTelemetryInitializer(contextAccessor);
+            var initializer = new ClientIpHeaderTelemetryInitializer(contextAccessor, null);
 
             initializer.Initialize(requestTelemetry);
 
@@ -57,7 +58,7 @@
             var contextAccessor = HttpContextAccessorHelper.CreateHttpContextAccessor(requestTelemetry);
             contextAccessor.HttpContext.Request.Headers.Add("HEADER", new string[] { "127.0.0.3;127.0.0.4" });
 
-            var initializer = new ClientIpHeaderTelemetryInitializer(contextAccessor);
+            var initializer = new ClientIpHeaderTelemetryInitializer(contextAccessor, null);
             initializer.HeaderNames.Add("HEADER");
             initializer.HeaderValueSeparators = ",;";
 
@@ -75,7 +76,7 @@
             var contextAccessor = HttpContextAccessorHelper.CreateHttpContextAccessor(requestTelemetry);
             contextAccessor.HttpContext.Request.Headers.Add("X-Forwarded-For", new string[] { "127.0.0.3" });
 
-            var initializer = new ClientIpHeaderTelemetryInitializer(contextAccessor);
+            var initializer = new ClientIpHeaderTelemetryInitializer(contextAccessor, null);
 
             initializer.Initialize(requestTelemetry);
 

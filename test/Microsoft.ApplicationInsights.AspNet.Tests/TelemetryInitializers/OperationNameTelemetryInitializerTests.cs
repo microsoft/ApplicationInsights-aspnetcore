@@ -16,7 +16,7 @@
         [Fact]
         public void InitializeThrowIfHttpContextAccessorIsNull()
         {
-            Assert.Throws<ArgumentNullException>(() => { var initializer = new OperationNameTelemetryInitializer(null); });
+            Assert.Throws<ArgumentNullException>(() => { var initializer = new OperationNameTelemetryInitializer(null, null); });
         }
 
         [Fact]
@@ -24,7 +24,7 @@
         {
             var ac = new HttpContextAccessor() { HttpContext = null };
 
-            var initializer = new OperationNameTelemetryInitializer(ac);
+            var initializer = new OperationNameTelemetryInitializer(ac, new Tracing.AspNet5EventSource());
 
             initializer.Initialize(new RequestTelemetry());
         }
@@ -34,7 +34,7 @@
         {
             var ac = new HttpContextAccessor() { HttpContext = new DefaultHttpContext() };
 
-            var initializer = new OperationNameTelemetryInitializer(ac);
+            var initializer = new OperationNameTelemetryInitializer(ac, new Tracing.AspNet5EventSource());
 
             initializer.Initialize(new RequestTelemetry());
         }
@@ -44,7 +44,7 @@
         {
             var contextAccessor = HttpContextAccessorHelper.CreateHttpContextAccessor(new RequestTelemetry(), null);
 
-            var initializer = new OperationNameTelemetryInitializer(contextAccessor);
+            var initializer = new OperationNameTelemetryInitializer(contextAccessor, null);
 
             var telemetry = new EventTelemetry();
             telemetry.Context.Operation.Name = "Name";
@@ -58,7 +58,7 @@
         {
             var contextAccessor = HttpContextAccessorHelper.CreateHttpContextAccessor(new RequestTelemetry(), null);
 
-            var initializer = new OperationNameTelemetryInitializer(contextAccessor);
+            var initializer = new OperationNameTelemetryInitializer(contextAccessor, null);
 
             var telemetry = new EventTelemetry();
             initializer.Initialize(telemetry);
@@ -72,7 +72,7 @@
             var telemetry = new RequestTelemetry();
             var contextAccessor = HttpContextAccessorHelper.CreateHttpContextAccessor(telemetry, null);
 
-            var initializer = new OperationNameTelemetryInitializer(contextAccessor);
+            var initializer = new OperationNameTelemetryInitializer(contextAccessor, null);
 
             initializer.Initialize(telemetry);
 
@@ -88,7 +88,7 @@
 
             var contextAccessor = HttpContextAccessorHelper.CreateHttpContextAccessor(new RequestTelemetry(), actionContext);
 
-            var initializer = new OperationNameTelemetryInitializer(contextAccessor);
+            var initializer = new OperationNameTelemetryInitializer(contextAccessor, null);
 
             var telemetry = new EventTelemetry();
             initializer.Initialize(telemetry);
@@ -106,7 +106,7 @@
 
             var contextAccessor = HttpContextAccessorHelper.CreateHttpContextAccessor(new RequestTelemetry(), actionContext);
 
-            var initializer = new OperationNameTelemetryInitializer(contextAccessor);
+            var initializer = new OperationNameTelemetryInitializer(contextAccessor, null);
 
             var telemetry = new EventTelemetry();
             initializer.Initialize(telemetry);
@@ -125,7 +125,7 @@
 
             var contextAccessor = HttpContextAccessorHelper.CreateHttpContextAccessor(new RequestTelemetry(), actionContext);
 
-            var initializer = new OperationNameTelemetryInitializer(contextAccessor);
+            var initializer = new OperationNameTelemetryInitializer(contextAccessor, null);
 
             var telemetry = new EventTelemetry();
             initializer.Initialize(telemetry);
@@ -146,7 +146,7 @@
 
             var contextAccessor = HttpContextAccessorHelper.CreateHttpContextAccessor(new RequestTelemetry(), actionContext);
 
-            var initializer = new OperationNameTelemetryInitializer(contextAccessor);
+            var initializer = new OperationNameTelemetryInitializer(contextAccessor, null);
 
             var telemetry = new EventTelemetry();
             initializer.Initialize(telemetry);
@@ -165,7 +165,7 @@
             
             var contextAccessor = HttpContextAccessorHelper.CreateHttpContextAccessor(new RequestTelemetry(), actionContext);
 
-            var initializer = new OperationNameTelemetryInitializer(contextAccessor);
+            var initializer = new OperationNameTelemetryInitializer(contextAccessor, null);
 
             var telemetry = new EventTelemetry();
             initializer.Initialize(telemetry);
@@ -181,7 +181,7 @@
             var contextAccessor = HttpContextAccessorHelper.CreateHttpContextAccessor(telemetry);
             contextAccessor.HttpContext.Request.Method = "POST";
 
-            var initializer = new OperationNameTelemetryInitializer(contextAccessor);
+            var initializer = new OperationNameTelemetryInitializer(contextAccessor, null);
 
             initializer.Initialize(telemetry);
 

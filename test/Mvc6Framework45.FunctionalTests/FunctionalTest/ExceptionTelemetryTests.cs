@@ -4,9 +4,15 @@
     using FunctionalTestUtils;
     using Microsoft.ApplicationInsights.DataContracts;
     using Xunit;
+    using Microsoft.ApplicationInsights.AspNet.Tests.Helpers;
+    using Xunit.Abstractions;
 
     public class ExceptionTelemetryTests : TelemetryTestsBase
     {
+        public ExceptionTelemetryTests()
+        {
+        }
+
         private const string assemblyName = "Mvc6Framework45.FunctionalTests";
 
         [Fact]

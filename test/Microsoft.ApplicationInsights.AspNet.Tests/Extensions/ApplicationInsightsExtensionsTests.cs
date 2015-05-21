@@ -12,7 +12,8 @@
     using Microsoft.AspNet.Hosting;
     using Microsoft.Framework.ConfigurationModel;
     using Xunit;
-    
+    using Microsoft.ApplicationInsights.AspNet.Tracing;
+
     public static class ApplicationInsightsExtensionsTests
     {
         public static ServiceCollection GetServiceCollectionWithContextAccessor()
