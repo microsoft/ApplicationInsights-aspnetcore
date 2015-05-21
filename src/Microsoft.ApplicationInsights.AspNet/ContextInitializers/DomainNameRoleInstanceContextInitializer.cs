@@ -31,7 +31,7 @@
         {
             if (context == null)
             {
-                this.eventSource.VerboseTelemetryContextNotAvailableInContextInitializer();
+                this.eventSource.TelemetryContextNotAvailableInContextInitializer();
                 return;
             }
 

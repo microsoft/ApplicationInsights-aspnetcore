@@ -57,7 +57,7 @@
 
                 if (!cookieWasRead)
                 {
-                    this.eventSource.ErrorMalformedCookie(WebSessionCookieName, sessionCookieValue);
+                    this.eventSource.MalformedCookie(WebSessionCookieName, sessionCookieValue);
                 }
             }
         }

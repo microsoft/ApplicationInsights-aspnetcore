@@ -11,44 +11,44 @@
         }
 
         [Event(1, Message = "Telemetry Initializer will not collect data when HttpContext is null.", Level = EventLevel.Verbose)]
-        public void VerboseTelemetryInitializerNotEnabledOnHttpContextNull()
+        public void TelemetryInitializerNotEnabledOnHttpContextNull()
         {
             this.WriteEvent(1);
         }
 
         [Event(2, Message = "Telemetry Initializer will not collect data when RequestServices are not available.", Level = EventLevel.Verbose)]
-        public void VerboseTelemetryInitializerNotEnabledOnRequestServicesNull()
+        public void TelemetryInitializerNotEnabledOnRequestServicesNull()
         {
             this.WriteEvent(2);
         }
 
         [NonEvent]
-        public void ErrorTelemetryInitializerFailedToCollectData(Exception exception)
+        public void TelemetryInitializerFailedToCollectData(Exception exception)
         {
-            this.ErrorTelemetryInitializerFailedToCollectData(exception.ToString());
+            this.TelemetryInitializerFailedToCollectData(exception.ToString());
         }
 
         [Event(3, Message = "Telemetry Initializer failed to collect data. Exception: {0}", Level = EventLevel.Error)]
-        public void ErrorTelemetryInitializerFailedToCollectData(string exception)
+        public void TelemetryInitializerFailedToCollectData(string exception)
         {
             this.WriteEvent(3, exception);
         }
 
         [Event(4, Message = "TelemetryContext is null in context initializer.", Level = EventLevel.Verbose)]
-        public void VerboseTelemetryContextNotAvailableInContextInitializer()
+        public void TelemetryContextNotAvailableInContextInitializer()
         {
             this.WriteEvent(4);
         }
 
         [Event(5, Message ="Malformed cookie {0}: value {1}. This may indicate misconfiguiration of JavaScript SDK.", Level = EventLevel.Error)]
-        public void ErrorMalformedCookie(string cookieName, string cookieValue)
+        public void MalformedCookie(string cookieName, string cookieValue)
         {
             this.WriteEvent(5);
         }
 
         [Event(10, Message = "Application Insights services should be registered. Use method AddApplicationInsightsTelemetry in application startup.", 
             Level = EventLevel.Error, Keywords = Keywords.UserActionable)]
-        public void UserActionableErrorRegisterApplicationInsightsServices()
+        public void RegisterApplicationInsightsServices()
         {
             this.WriteEvent(10);
         }

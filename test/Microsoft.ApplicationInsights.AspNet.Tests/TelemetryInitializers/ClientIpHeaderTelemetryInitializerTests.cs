@@ -7,6 +7,7 @@
     using Microsoft.AspNet.Hosting;
     using Microsoft.AspNet.Http.Core;
     using Xunit;
+    using System.Diagnostics.Tracing;
 
     public class ClientIpHeaderTelemetryInitializerTests
     {
@@ -20,7 +21,7 @@
         public void InitializeDoesNotThrowIfHttpContextIsUnavailable()
         {
             var ac = new HttpContextAccessor() { HttpContext = null };
-            
+
             var initializer = new ClientIpHeaderTelemetryInitializer(ac, new Tracing.AspNet5EventSource());
 
             initializer.Initialize(new RequestTelemetry());
@@ -30,7 +31,7 @@
         public void InitializeDoesNotThrowIfRequestTelemetryIsUnavailable()
         {
             var ac = new HttpContextAccessor() { HttpContext = new DefaultHttpContext() };
-            
+
             var initializer = new ClientIpHeaderTelemetryInitializer(ac, new Tracing.AspNet5EventSource());
 
             initializer.Initialize(new RequestTelemetry());

@@ -1,5 +1,6 @@
 ﻿namespace Microsoft.ApplicationInsights.AspNet.Tests.Helpers
 {
+    using Microsoft.ApplicationInsights.AspNet.Tracing;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
@@ -8,24 +9,28 @@
     using System.Threading.Tasks;
     using Xunit.Abstractions;
 
-    public class Aspnet5EventTestListener : EventListener
+    public class AspNet5EventTestListener : EventListener
     {
-        private readonly List<EventWrittenEventArgs> events = new List<EventWrittenEventArgs>();
+        public class TraceMessage
+        {
+            public string Message { get; set; }
+            public EventLevel Level { get; set;  }
+        }
 
-        private static Func<EventWrittenEventArgs, bool> issueDefinition = (message) => {
+        private readonly List<TraceMessage> events = new List<TraceMessage>();
+
+        private static Func<TraceMessage, bool> issueDefinition = (message) => {
                 return message.Level == EventLevel.Error
                     || message.Level == EventLevel.Critical
                     || message.Level == EventLevel.Warning;
             };
 
-        private ITestOutputHelper output;
-
-        public Aspnet5EventTestListener(ITestOutputHelper output)
+        public AspNet5EventTestListener(AspNet5EventSource eventSource)
         {
-            this.output = output;
+            this.EnableEvents(eventSource, EventLevel.LogAlways, (EventKeywords)(-1));
         }
 
-        public IEnumerable<EventWrittenEventArgs> Events
+        public IList<TraceMessage> Events
         {
             get
             {
@@ -55,19 +60,11 @@
 
         protected override void OnEventWritten(EventWrittenEventArgs eventData)
         {
-            output.WriteLine("Trace: " + eventData.Message);
-            this.events.Add(eventData);
-        }
-
-        protected override void OnEventSourceCreated(EventSource eventSource)
-        {
-            if (eventSource.Name.StartsWith("Microsoft-ApplicationInsights-", StringComparison.Ordinal))
+            this.events.Add(new TraceMessage()
             {
-                this.EnableEvents(eventSource, EventLevel.LogAlways, (EventKeywords)(-1L));
-            }
-
-            base.OnEventSourceCreated(eventSource);
+                Message = eventData.Message,
+                Level = eventData.Level
+            });
         }
-
     }
 }

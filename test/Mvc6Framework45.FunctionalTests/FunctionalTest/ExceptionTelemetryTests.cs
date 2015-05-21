@@ -9,10 +9,8 @@
 
     public class ExceptionTelemetryTests : TelemetryTestsBase
     {
-        private ITestOutputHelper output;
-        public ExceptionTelemetryTests(ITestOutputHelper output)
+        public ExceptionTelemetryTests()
         {
-            this.output = output;
         }
 
         private const string assemblyName = "Mvc6Framework45.FunctionalTests";
@@ -20,21 +18,17 @@
         [Fact]
         public void TestBasicRequestPropertiesAfterRequestingControllerThatThrows()
         {
-            using (var eventListener = new Aspnet5EventTestListener(output))
+            using (var server = new InProcessServer(assemblyName))
             {
-                using (var server = new InProcessServer(assemblyName))
-                {
-                    const string RequestPath = "/Home/Exception";
+                const string RequestPath = "/Home/Exception";
 
-                    var expectedRequestTelemetry = new RequestTelemetry();
-                    expectedRequestTelemetry.HttpMethod = "GET";
-                    expectedRequestTelemetry.Name = "GET Home/Exception";
-                    expectedRequestTelemetry.ResponseCode = "500";
-                    expectedRequestTelemetry.Success = false;
-                    expectedRequestTelemetry.Url = new System.Uri(server.BaseHost + RequestPath);
-                    this.ValidateBasicRequest(server, "/Home/Exception", expectedRequestTelemetry);
-                }
-                Assert.False(eventListener.HasIssues, eventListener.Issues);
+                var expectedRequestTelemetry = new RequestTelemetry();
+                expectedRequestTelemetry.HttpMethod = "GET";
+                expectedRequestTelemetry.Name = "GET Home/Exception";
+                expectedRequestTelemetry.ResponseCode = "500";
+                expectedRequestTelemetry.Success = false;
+                expectedRequestTelemetry.Url = new System.Uri(server.BaseHost + RequestPath);
+                this.ValidateBasicRequest(server, "/Home/Exception", expectedRequestTelemetry);
             }
         }
 
