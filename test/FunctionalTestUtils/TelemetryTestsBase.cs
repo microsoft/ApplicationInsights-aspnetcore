@@ -4,12 +4,16 @@
     using System.Diagnostics;
     using System.Linq;
     using System.Net.Http;
-    using Microsoft.ApplicationInsights.DataContracts;
-    using Xunit;
-#if dnx451
-    using System.Net;
-#endif
+    using System.Reflection;
     using System.Threading;
+    using Microsoft.ApplicationInsights.DataContracts;
+    using Microsoft.Extensions.DependencyInjection;
+    using Xunit;
+#if NET451
+    using System.Net;
+    using Microsoft.ApplicationInsights.Extensibility.PerfCounterCollector;
+    using Microsoft.ApplicationInsights.Extensibility;
+#endif
 
     public abstract class TelemetryTestsBase
     {
@@ -19,7 +23,11 @@
         {
             DateTimeOffset testStart = DateTimeOffset.Now;
             var timer = Stopwatch.StartNew();
-            var httpClient = new HttpClient();
+
+            var httpClientHandler = new HttpClientHandler();
+            httpClientHandler.UseDefaultCredentials = true;
+
+            var httpClient = new HttpClient(httpClientHandler, true);
             var task = httpClient.GetAsync(server.BaseHost + requestPath);
             task.Wait(TestTimeoutMs);
             var result = task.Result;
@@ -39,7 +47,10 @@
         public void ValidateBasicException(InProcessServer server, string requestPath, ExceptionTelemetry expected)
         {
             DateTimeOffset testStart = DateTimeOffset.Now;
-            var httpClient = new HttpClient();
+            var httpClientHandler = new HttpClientHandler();
+            httpClientHandler.UseDefaultCredentials = true;
+
+            var httpClient = new HttpClient(httpClientHandler, true);
             var task = httpClient.GetAsync(server.BaseHost + requestPath);
             task.Wait(TestTimeoutMs);
             var result = task.Result;
@@ -53,22 +64,53 @@
             Assert.NotEmpty(actual.Context.Operation.Id);
         }
 
-#if dnx451
-        public void ValidateBasicDependency(InProcessServer server, string requestPath, DependencyTelemetry expected)
+#if NET451
+        public void ValidateBasicDependency(string assemblyName, string requestPath)
         {
-            DateTimeOffset testStart = DateTimeOffset.Now;
-            var timer = Stopwatch.StartNew();
-            var httpClient = new HttpClient();
-            var task = httpClient.GetAsync(server.BaseHost + requestPath);
-            task.Wait(TestTimeoutMs);
-            var result = task.Result;
+            using (InProcessServer server = new InProcessServer(assemblyName))
+            {
+                DependencyTelemetry expected = new DependencyTelemetry();
+                expected.Name = server.BaseHost + requestPath;
+                expected.ResultCode = "200";
+                expected.Success = true;
 
-            var actual = server.BackChannel.Buffer.OfType<DependencyTelemetry>().Single();
-            timer.Stop();
+                DateTimeOffset testStart = DateTimeOffset.Now;
+                var timer = Stopwatch.StartNew();
+                var httpClient = new HttpClient();
+                var task = httpClient.GetAsync(server.BaseHost + requestPath);
+                task.Wait(TestTimeoutMs);
+                var result = task.Result;
 
-            Assert.Equal(expected.Name, actual.Name);
-            Assert.Equal(expected.Success, actual.Success);
-            Assert.Equal(expected.ResultCode, actual.ResultCode);
+                var actual = server.BackChannel.Buffer.OfType<DependencyTelemetry>().Single();
+                timer.Stop();
+
+                Assert.Equal(expected.Name, actual.Name);
+                Assert.Equal(expected.Success, actual.Success);
+                Assert.Equal(expected.ResultCode, actual.ResultCode);
+            }
+        }
+
+        public void ValidatePerformanceCountersAreCollected(string assemblyName)
+        {
+            using (var server = new InProcessServer(assemblyName))
+            {
+                // Reconfigure the PerformanceCollectorModule timer.
+                Type perfModuleType = typeof(PerformanceCollectorModule);
+                PerformanceCollectorModule perfModule = (PerformanceCollectorModule)server.ApplicationServices.GetServices<ITelemetryModule>().FirstOrDefault(m => m.GetType() == perfModuleType);
+                FieldInfo timerField = perfModuleType.GetField("timer", BindingFlags.NonPublic | BindingFlags.Instance);
+                var timer = timerField.GetValue(perfModule);
+                timerField.FieldType.InvokeMember("ScheduleNextTick", BindingFlags.InvokeMethod | BindingFlags.Public | BindingFlags.Instance, null, timer, new object[] { TimeSpan.FromMilliseconds(10) });
+
+                DateTime timeout = DateTime.Now.AddSeconds(10);
+                int numberOfCountersSent = 0;
+                do
+                {
+                    Thread.Sleep(1000);
+                    numberOfCountersSent = server.BackChannel.Buffer.OfType<PerformanceCounterTelemetry>().Distinct().Count();
+                } while (numberOfCountersSent == 0 && DateTime.Now < timeout);
+
+                Assert.True(numberOfCountersSent > 0);
+            }
         }
 #endif
     }
