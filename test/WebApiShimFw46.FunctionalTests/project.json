@@ -19,7 +19,8 @@
     "Microsoft.Extensions.Configuration.Json": "1.0.0-rc2-final",
     "dotnet-test-xunit": "1.0.0-rc3-*",
     "xunit": "2.1.0",
-    "Microsoft.VisualStudio.Web.CodeGeneration.Utils": "1.0.0-preview1-final"
+    "Microsoft.VisualStudio.Web.CodeGeneration.Utils": "1.0.0-preview1-final",
+    "Microsoft.NETCore.Platforms": "1.0.1-rc2-24027"
   },
   "frameworks": {
     "netcoreapp1.0": {
