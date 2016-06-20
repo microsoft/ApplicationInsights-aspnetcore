@@ -43,7 +43,7 @@
         "portable-dnxcore50+net451+net45+win8+wp8+wpa81"
       ],
       "dependencies": {
-        "System.Net.NameResolution": "4.0.0-rc3-24206-00"
+        "System.Net.NameResolution": "4.0.0"
       }
     }
   }
