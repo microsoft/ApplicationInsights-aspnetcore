@@ -4,12 +4,12 @@
     "dependencies": {
         "Microsoft.AspNet.Server.IIS": "1.0.0-*",
         "Microsoft.AspNet.Mvc": "6.0.0-*",
-        "Microsoft.ApplicationInsights.AspNet": "1.0.0-beta5",
-        "Microsoft.Framework.Configuration.Json": "1.0.0-*",
+        "Microsoft.ApplicationInsights.AspNetCore": "1.0.0-*",
+        "Microsoft.Framework.Configuration.Json": "1.0.0-*"
     },
     "frameworks": {
-        "aspnet50": { },
-        "aspnetcore50": { }
+        "net451": { },
+        "aspnetcore1.5": { }
     },
     "bundleExclude": [
         "node_modules",
