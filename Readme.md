@@ -36,7 +36,7 @@ root\
 Developing
 ----------
 
-**Note: The current version (Microsoft.ApplicationInsights.AspNetCore: 1.0.0) is no longer compatible with DNX runtime and ASP.NET 5 RC1 bits. Please visit [Migration to ASP.NET Core](https://docs.microsoft.com/en-us/dotnet/articles/core/migrating-from-dnx) to upgrade the application to ASP.NET Core 1.0.0.**
+**Note: The current version (Microsoft.ApplicationInsights.AspNetCore: 1.0.0) is no longer compatible with DNX runtime and ASP.NET 5 RC1 bits. Please visit [Migration to ASP.NET Core](https://docs.asp.net/en/latest/migration/index.html) or [Migrating from DNX](https://docs.microsoft.com/en-us/dotnet/articles/core/migrating-from-dnx) to upgrade the application to ASP.NET Core 1.0.0.**
 
 ## Pre-requisites
 - [Visual Studio 2015 Update 3](https://www.visualstudio.com/en-us/downloads/visual-studio-2015-downloads-vs.aspx).
