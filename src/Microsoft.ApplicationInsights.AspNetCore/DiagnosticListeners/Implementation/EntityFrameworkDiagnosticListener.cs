@@ -1,10 +1,9 @@
-﻿using System;
-using System.Diagnostics;
-using Microsoft.ApplicationInsights.DataContracts;
-using Microsoft.Extensions.DiagnosticAdapter;
-
-namespace Microsoft.ApplicationInsights.AspNetCore.DiagnosticListeners.Implementation
+﻿namespace Microsoft.ApplicationInsights.AspNetCore.DiagnosticListeners.Implementation
 {
+    using System;
+    using Microsoft.ApplicationInsights.DataContracts;
+    using Microsoft.Extensions.DiagnosticAdapter;
+
     /// <summary>
     /// <see cref="IApplicationInsightDiagnosticListener"/> implementation that listens for evens specific to EntiryFrameworkCore
     /// </summary>
