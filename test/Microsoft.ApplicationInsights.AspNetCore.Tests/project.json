@@ -28,10 +28,14 @@
         "Microsoft.NETCore.App": {
           "type": "platform",
           "version": "1.0.1"
-        }
+        },
+        "System.Data.Common": "4.1.0" 
       }
     },
     "net451": {
+      "frameworkAssemblies": {
+        "System.Data": "" 
+      }
     }
   }
 }

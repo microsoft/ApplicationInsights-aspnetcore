@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace SampleWebAppIntegration.FunctionalTest
@@ -77,9 +78,12 @@ namespace SampleWebAppIntegration.FunctionalTest
                 }
             }
             var telemetries = server.BackChannel.Buffer;
-#if NET451
+
+            foreach (var dependencyTelemetry in telemetries.OfType<DependencyTelemetry>())
+            {
+                Console.WriteLine(dependencyTelemetry.Name);
+            }
             Assert.Contains(telemetries.OfType<DependencyTelemetry>(), t => t.Name == "/Home/Contact");
-#endif
 
             Assert.True(telemetries.Count >= 4);
             Assert.Contains(telemetries.OfType<RequestTelemetry>(), t => t.Name == "GET Home/Contact");
