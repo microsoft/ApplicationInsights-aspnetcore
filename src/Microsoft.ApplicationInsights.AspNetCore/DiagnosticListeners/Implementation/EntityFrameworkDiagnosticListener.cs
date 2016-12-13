@@ -5,13 +5,14 @@
     using Microsoft.Extensions.DiagnosticAdapter;
 
     /// <summary>
-    /// <see cref="IApplicationInsightDiagnosticListener"/> implementation that listens for evens specific to EntiryFrameworkCore
+    /// <see cref="IApplicationInsightDiagnosticListener"/> implementation that listens for events specific to EntiryFrameworkCore.
     /// </summary>
     public class EntityFrameworkDiagnosticListener : IApplicationInsightDiagnosticListener
     {
         private readonly TelemetryClient client;
         private readonly ContextData<long> beginDependencyTimestamp = new ContextData<long>();
 
+        /// <inheritdoc />
         public string ListenerName { get; } = "Microsoft.EntityFrameworkCore";
 
         /// <summary>
@@ -23,12 +24,18 @@
             this.client = client;
         }
 
+        /// <summary>
+        /// Diagnostic event handler method for 'Microsoft.EntityFrameworkCore.BeforeExecuteCommand' event
+        /// </summary>
         [DiagnosticName("Microsoft.EntityFrameworkCore.BeforeExecuteCommand")]
         public void OnBeginCommand(long timestamp)
         {
             beginDependencyTimestamp.Value = timestamp;
         }
 
+        /// <summary>
+        /// Diagnostic event handler method for 'Microsoft.EntityFrameworkCore.AfterExecuteCommand' event
+        /// </summary>
         [DiagnosticName("Microsoft.EntityFrameworkCore.AfterExecuteCommand")]
         public void OnEndCommand(IDbCommand command, string executeMethod, Guid instanceId, long timestamp, bool isAsync)
         {

@@ -51,6 +51,10 @@
             Assert.Equal(new TimeSpan(100000), sentTelemetry.Duration);
         }
 
+
+        /// <summary>
+        /// Mock class for <see cref="IDbCommand"/> interface.
+        /// </summary>
         public class MockDbCommand : System.Data.IDbCommand
         {
             public string CommandText { get; set; }
@@ -108,6 +112,9 @@
             }
         }
 
+        /// <summary>
+        /// Mock class for <see cref="IDbConnection"/> interface.
+        /// </summary>
         public class MockDbConnection : System.Data.IDbConnection
         {
             public void Dispose()

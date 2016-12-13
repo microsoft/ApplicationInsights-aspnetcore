@@ -4,12 +4,12 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System.Reflection;
 
 namespace Microsoft.ApplicationInsights.AspNetCore.Extensibility.Implementation.Tracing
 {
     using System;
     using System.Diagnostics.Tracing;
+    using System.Reflection;
 
     /// <summary>
     /// Event source for Application Insights ASP.NET Core SDK.

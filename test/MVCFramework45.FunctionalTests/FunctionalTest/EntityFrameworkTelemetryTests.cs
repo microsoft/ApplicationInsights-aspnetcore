@@ -22,7 +22,7 @@
                     task.Wait(TestTimeoutMs);
                 }
             }
-            var telemetries = server.BackChannel.Buffer.OfType<DependencyTelemetry>()
+            DependencyTelemetry[] telemetries = server.BackChannel.Buffer.OfType<DependencyTelemetry>()
                 .Where(t => t.Type == "SQL" && t.Target == "aspnet-MVCFramework45.FunctionalTests-60cfc765-2dc9-454c-bb34-dc379ed92cd0")
                 .ToArray();
 
