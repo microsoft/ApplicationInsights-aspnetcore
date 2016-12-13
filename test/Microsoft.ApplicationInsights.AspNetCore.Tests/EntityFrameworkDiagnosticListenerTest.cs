@@ -1,15 +1,13 @@
-﻿using System;
-using System.Data;
-using System.Diagnostics;
-using Microsoft.ApplicationInsights.AspNetCore.DiagnosticListeners;
-using Microsoft.ApplicationInsights.AspNetCore.DiagnosticListeners.Implementation;
-using Microsoft.ApplicationInsights.AspNetCore.Tests.Helpers;
-using Microsoft.ApplicationInsights.DataContracts;
-using Xunit;
-using IDbCommand = System.Data.IDbCommand;
-
-namespace Microsoft.ApplicationInsights.AspNetCore.Tests
+﻿namespace Microsoft.ApplicationInsights.AspNetCore.Tests
 {
+    using System;
+    using System.Data;
+    using System.Diagnostics;
+    using Microsoft.ApplicationInsights.AspNetCore.DiagnosticListeners.Implementation;
+    using Microsoft.ApplicationInsights.AspNetCore.Tests.Helpers;
+    using Microsoft.ApplicationInsights.DataContracts;
+    using Xunit;
+
     public class EntityFrameworkDiagnosticListenerTest
     {
         private const string TestListenerName = "TestListener";

@@ -1,10 +1,7 @@
 ﻿namespace MVCFramework45.FunctionalTests.FunctionalTest
 {
-    using System;
-    using System.Collections.Generic;
     using System.Linq;
     using System.Net.Http;
-    using System.Threading.Tasks;
     using FunctionalTestUtils;
     using Microsoft.ApplicationInsights.DataContracts;
     using Xunit;
