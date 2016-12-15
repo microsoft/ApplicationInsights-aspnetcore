@@ -7,9 +7,6 @@ namespace Microsoft.ApplicationInsights.AspNetCore.Internal
 {
     public class HostingEventSourceListener : EventListener
     {
-        public const string EventSourceName = "Microsoft-AspNetCore-Hosting";
-        private readonly string EventCountersEventName = $"{EventSourceName}/EventCounters";
-
         private readonly TelemetryClient _telemetryClient;
 
         public HostingEventSourceListener(TelemetryClient telemetryClient)
@@ -19,7 +16,7 @@ namespace Microsoft.ApplicationInsights.AspNetCore.Internal
 
         protected override void OnEventWritten(EventWrittenEventArgs eventData)
         {
-            if (eventData.EventName != EventCountersEventName)
+            if (eventData.EventName != "EventCounters")
             {
                 return;
             }
