@@ -3,10 +3,13 @@
 //     Copyright (c) Microsoft Corporation. All rights reserved.
 // </copyright>
 //-----------------------------------------------------------------------
+
+
 namespace Microsoft.ApplicationInsights.AspNetCore.Extensibility.Implementation.Tracing
 {
     using System;
     using System.Diagnostics.Tracing;
+    using System.Reflection;
 
     /// <summary>
     /// Event source for Application Insights ASP.NET Core SDK.
@@ -28,7 +31,7 @@ namespace Microsoft.ApplicationInsights.AspNetCore.Extensibility.Implementation.
         {
             try
             {
-                this.ApplicationName = Microsoft.Extensions.PlatformAbstractions.PlatformServices.Default.Application.ApplicationName;
+                this.ApplicationName = Assembly.GetEntryAssembly()?.GetName().Name;
             }
             catch (Exception exp)
             {

@@ -6,6 +6,7 @@
     using Microsoft.ApplicationInsights;
     using Microsoft.ApplicationInsights.AspNetCore;
     using Microsoft.ApplicationInsights.AspNetCore.DiagnosticListeners;
+    using Microsoft.ApplicationInsights.AspNetCore.DiagnosticListeners.Implementation;
     using Microsoft.ApplicationInsights.AspNetCore.Extensions;
     using Microsoft.ApplicationInsights.AspNetCore.TelemetryInitializers;
     using Microsoft.ApplicationInsights.Extensibility;
@@ -144,6 +145,7 @@
             services.AddSingleton<ApplicationInsightsInitializer, ApplicationInsightsInitializer>();
             services.AddSingleton<IApplicationInsightDiagnosticListener, HostingDiagnosticListener>();
             services.AddSingleton<IApplicationInsightDiagnosticListener, MvcDiagnosticsListener>();
+            services.AddSingleton<IApplicationInsightDiagnosticListener, EntityFrameworkDiagnosticListener>();
 
             // Using startup filter instead of starting DiagnosticListeners directly because
             // AspNetCoreHostingDiagnosticListener injects TelemetryClient that injects TelemetryConfiguration
