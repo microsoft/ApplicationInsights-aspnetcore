@@ -237,6 +237,7 @@ namespace Microsoft.Extensions.DependencyInjection.Test
                 IServiceProvider serviceProvider = services.BuildServiceProvider();
                 var configuration = serviceProvider.GetTelemetryConfiguration();
                 configuration.InstrumentationKey = Guid.NewGuid().ToString();
+                ITelemetryChannel oldChannel = configuration.TelemetryChannel;
                 configuration.TelemetryChannel = telemetryChannel;
 
                 var telemetryClient = serviceProvider.GetRequiredService<TelemetryClient>();
@@ -245,6 +246,7 @@ namespace Microsoft.Extensions.DependencyInjection.Test
                 // We want to check that configuration from contaier was used but configuration is a private field so we check
                 // instrumentation key instead
                 Assert.Equal(configuration.InstrumentationKey, sentTelemetry.Context.InstrumentationKey);
+                configuration.TelemetryChannel = oldChannel;
             }
 
             [Fact]
