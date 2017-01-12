@@ -17,7 +17,7 @@
             this.EnableAdaptiveSampling = true;
             this.EnableDebugLogger = true;
             this.EnableAuthenticationTrackingJavaScript = false;
-            this.ApplicationVersion = Assembly.GetEntryAssembly().GetName().Version.ToString();
+            this.ApplicationVersion = Assembly.GetEntryAssembly()?.GetName().Version.ToString();
         }
 
         /// <summary>
