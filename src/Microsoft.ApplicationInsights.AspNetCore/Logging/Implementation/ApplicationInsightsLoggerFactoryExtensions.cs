@@ -17,6 +17,8 @@ namespace Microsoft.Extensions.Logging
         /// <summary>
         /// Adds an ApplicationInsights logger that is enabled for <see cref="LogLevel.Warning"/> or higher.
         /// </summary>
+        /// <param name="factory"></param>
+        /// <param name="serviceProvider">The instance of <see cref="IServiceProvider"/> to use for service resolution.</param>
         public static ILoggerFactory AddApplicationInsights(this ILoggerFactory factory, IServiceProvider serviceProvider)
         {
             return factory.AddApplicationInsights(serviceProvider, LogLevel.Warning);
@@ -26,7 +28,7 @@ namespace Microsoft.Extensions.Logging
         /// Adds an ApplicationInsights logger that is enabled for <see cref="LogLevel"/>s of minLevel or higher.
         /// </summary>
         /// <param name="factory"></param>
-        /// <param name="serviceProvider">The instance of <see cref="IServiceProvider"/> to use for logging.</param>
+        /// <param name="serviceProvider">The instance of <see cref="IServiceProvider"/> to use for service resolution.</param>
         /// <param name="minLevel">The minimum <see cref="LogLevel"/> to be logged</param>
         public static ILoggerFactory AddApplicationInsights(
             this ILoggerFactory factory,
@@ -42,7 +44,7 @@ namespace Microsoft.Extensions.Logging
         /// </summary>
         /// <param name="factory"></param>
         /// <param name="filter"></param>
-        /// <param name="serviceProvider">The instance of <see cref="IServiceProvider"/> to use for logging.</param>
+        /// <param name="serviceProvider">The instance of <see cref="IServiceProvider"/> to use for service resolution.</param>
         public static ILoggerFactory AddApplicationInsights(
             this ILoggerFactory factory,
             IServiceProvider serviceProvider,
