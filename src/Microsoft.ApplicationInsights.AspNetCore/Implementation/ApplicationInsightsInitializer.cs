@@ -25,7 +25,7 @@ namespace Microsoft.ApplicationInsights.AspNetCore
             IEnumerable<IApplicationInsightDiagnosticListener> diagnosticListeners,
             ILoggerFactory loggerFactory,
             DebugLoggerControl debugLoggerControl,
-            IServiceProvider serviceProvider)
+            TelemetryClient client)
         {
             this.diagnosticListeners = diagnosticListeners;
             this.subscriptions = new List<IDisposable>();
@@ -33,7 +33,8 @@ namespace Microsoft.ApplicationInsights.AspNetCore
             // Add default logger factory for debug mode only if enabled and instrumentation key not set
             if (options.Value.EnableDebugLogger && string.IsNullOrEmpty(options.Value.InstrumentationKey))
             {
-                loggerFactory.AddApplicationInsights(serviceProvider, (s, level) => debugLoggerControl.EnableDebugLogger && Debugger.IsAttached);
+                // Do not use extension method here or it will disable debug logger we currently adding
+                loggerFactory.AddProvider(new ApplicationInsightsLoggerProvider(client, (s, level) => debugLoggerControl.EnableDebugLogger && Debugger.IsAttached));
             }
         }
 
