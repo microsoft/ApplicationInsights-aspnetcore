@@ -58,8 +58,8 @@
         public bool EnableDebugLogger { get; set; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether a JavaScript to track current authenticated user would be printed along with main
-        /// ApplicationInsight tracking JavaScript.
+        /// Gets or sets a value indicating whether a JavaScript snippet to track the current authenticated user should
+        /// be printed along with the main ApplicationInsights tracking script.
         /// </summary>
         public bool EnableAuthenticationTrackingJavaScript { get; set; }
     }
