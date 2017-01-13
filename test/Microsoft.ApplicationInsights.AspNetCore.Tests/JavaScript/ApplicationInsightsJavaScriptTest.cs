@@ -95,10 +95,16 @@
             };
         }
 
+        /// <summary>
+        /// Class that is used in unit tests and allows to override main IIdentity properties.
+        /// </summary>
         private class IdentityStub : IIdentity
         {
+            /// <inheritdoc />
             public string AuthenticationType { get; set; }
+            /// <inheritdoc />
             public bool IsAuthenticated { get; set; }
+            /// <inheritdoc />
             public string Name { get; set;  }
         }
     }

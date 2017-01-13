@@ -11,21 +11,22 @@
     internal class AspNetCoreEnvironmentTelemetryInitializer: ITelemetryInitializer
     {
         private const string AspNetCoreEnvironmentPropertyName = "AspNetCoreEnvironment";
-        private readonly IHostingEnvironment _environment;
+        private readonly IHostingEnvironment environment;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AspNetCoreEnvironmentTelemetryInitializer"/> class.
         /// </summary>
         public AspNetCoreEnvironmentTelemetryInitializer(IHostingEnvironment environment)
         {
-            _environment = environment;
+            this.environment = environment;
         }
 
+        /// <inheritdoc />
         public void Initialize(ITelemetry telemetry)
         {
-            if (_environment != null && !telemetry.Context.Properties.ContainsKey(AspNetCoreEnvironmentPropertyName))
+            if (environment != null && !telemetry.Context.Properties.ContainsKey(AspNetCoreEnvironmentPropertyName))
             {
-                telemetry.Context.Properties.Add(AspNetCoreEnvironmentPropertyName, _environment.EnvironmentName);
+                telemetry.Context.Properties.Add(AspNetCoreEnvironmentPropertyName, environment.EnvironmentName);
             }
         }
     }
