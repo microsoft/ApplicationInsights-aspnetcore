@@ -46,13 +46,13 @@
             if (this.IsEnabled(logLevel))
             {
                 TraceTelemetry traceTelemetry = new TraceTelemetry(formatter(state, exception), this.GetSeverityLevel(logLevel));
-                var dict = traceTelemetry.Context.Properties;
+                IDictionary<string, string> dict = traceTelemetry.Context.Properties;
                 dict["CategoryName"] = this.categoryName;
                 dict["Exception"] = exception?.ToString();
-                var stateDictionary = state as IReadOnlyList<KeyValuePair<string, object>>;
+                IReadOnlyList<KeyValuePair<string, object>> stateDictionary = state as IReadOnlyList<KeyValuePair<string, object>>;
                 if (stateDictionary != null)
                 {
-                    foreach (var item in stateDictionary)
+                    foreach (KeyValuePair<string, object> item in stateDictionary)
                     {
                         dict[item.Key] = Convert.ToString(item.Value);
                     }
