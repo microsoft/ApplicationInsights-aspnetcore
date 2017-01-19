@@ -2,7 +2,9 @@
 {
     using System;
     using System.Collections.Generic;
+    using Microsoft.ApplicationInsights;
     using Microsoft.ApplicationInsights.DataContracts;
+    using Microsoft.ApplicationInsights.Extensibility.Implementation;
     using Microsoft.Extensions.Logging;
 
     /// <summary>
@@ -13,6 +15,7 @@
         private readonly string categoryName;
         private readonly TelemetryClient telemetryClient;
         private readonly Func<string, LogLevel, bool> filter;
+        private readonly string sdkVersion;
 
         /// <summary>
         /// Creates a new instance of <see cref="ApplicationInsightsLogger"/>
@@ -22,6 +25,7 @@
             this.categoryName = name;
             this.telemetryClient = telemetryClient;
             this.filter = filter;
+            this.sdkVersion = SdkVersionUtils.VersionPrefix + SdkVersionUtils.GetAssemblyVersion();
         }
 
         /// <inheritdoc />
@@ -41,7 +45,8 @@
         {
             if (this.IsEnabled(logLevel))
             {
-                var dict = new Dictionary<string, string>();
+                TraceTelemetry traceTelemetry = new TraceTelemetry(formatter(state, exception), this.GetSeverityLevel(logLevel));
+                var dict = traceTelemetry.Context.Properties;
                 dict["CategoryName"] = this.categoryName;
                 dict["Exception"] = exception?.ToString();
                 var stateDictionary = state as IReadOnlyList<KeyValuePair<string, object>>;
@@ -53,7 +58,8 @@
                     }
                 }
 
-                this.telemetryClient.TrackTrace(formatter(state, exception), this.GetSeverityLevel(logLevel), dict);
+                traceTelemetry.Context.GetInternalContext().SdkVersion = this.sdkVersion;
+                this.telemetryClient.TrackTrace(traceTelemetry);
             }
         }
 
