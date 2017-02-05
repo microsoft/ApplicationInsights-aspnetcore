@@ -118,7 +118,7 @@ namespace Microsoft.ApplicationInsights.AspNetCore.Tests
             Assert.Equal("GET /Test", telemetry.Name);
         }
 
-        [Fact(Skip = "https://github.com/Microsoft/ApplicationInsights-aspnetcore/issues/342")]
+        [Fact]
         public void SimultaneousRequestsGetDifferentOperationIds()
         {
             var context1 = new DefaultHttpContext();
@@ -143,7 +143,7 @@ namespace Microsoft.ApplicationInsights.AspNetCore.Tests
             Assert.Equal(context2.TraceIdentifier, sentTelemetry[1].Context.Operation.Id);
         }
 
-        [Fact(Skip = "https://github.com/Microsoft/ApplicationInsights-aspnetcore/issues/342")]
+        [Fact]
         public void SimultaneousRequestsGetCorrectDurations()
         {
             var context1 = new DefaultHttpContext();

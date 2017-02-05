@@ -13,8 +13,12 @@
     /// </summary>
     internal class HostingDiagnosticListener : IApplicationInsightDiagnosticListener
     {
+        /// <summary>
+        /// Conversion from stopwatch time (ticks since boot) to local time.
+        /// </summary>
+        private static readonly DateTimeOffset stopwatchEpoch = DateTime.Now - TimeSpan.FromTicks(Stopwatch.GetTimestamp());
+
         private readonly TelemetryClient client;
-        private readonly ContextData<long> beginRequestTimestamp = new ContextData<long>();
         private readonly string sdkVersion;
 
         /// <summary>
@@ -38,10 +42,10 @@
         {
             if (this.client.IsEnabled())
             {
-                httpContext.Features.Set(new RequestTelemetry());
-
-                this.beginRequestTimestamp.Value = timestamp;
-                this.client.Context.Operation.Id = httpContext.TraceIdentifier;
+                var requestTelemetry = new RequestTelemetry();
+                requestTelemetry.Context.Operation.Id = httpContext.TraceIdentifier;
+                requestTelemetry.StartTime = stopwatchEpoch + TimeSpan.FromTicks(timestamp);
+                httpContext.Features.Set(requestTelemetry);
             }
         }
 
@@ -93,8 +97,8 @@
                     return;
                 }
 
-                telemetry.Duration = new TimeSpan(timestamp - this.beginRequestTimestamp.Value);
-                telemetry.Timestamp = DateTime.Now - telemetry.Duration;
+                telemetry.Timestamp = telemetry.StartTime;
+                telemetry.Duration = stopwatchEpoch + TimeSpan.FromTicks(timestamp) - telemetry.Timestamp;
                 telemetry.ResponseCode = httpContext.Response.StatusCode.ToString();
 
                 var successExitCode = httpContext.Response.StatusCode < 400;
