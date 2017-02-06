@@ -175,5 +175,19 @@ namespace Microsoft.ApplicationInsights.AspNetCore.Tests
             Assert.Equal(TimeSpan.FromTicks(5), ((RequestTelemetry)sentTelemetry[0]).Duration);
             Assert.Equal(TimeSpan.FromTicks(9), ((RequestTelemetry)sentTelemetry[1]).Duration);
         }
+
+        [Fact(Skip = "https://github.com/Microsoft/ApplicationInsights-aspnetcore/issues/333")]
+        public void RelatedTelemetryShouldSetParentId()
+        {
+            var context = new DefaultHttpContext();
+            context.Request.Scheme = HttpRequestScheme;
+            context.Request.Host = this.httpRequestHost;
+
+            middleware.OnBeginRequest(context, 0);
+            middleware.OnDiagnosticsUnhandledException(context, null);
+            middleware.OnEndRequest(context, 0);
+
+            Assert.Equal(((RequestTelemetry)sentTelemetry[1]).Id, ((ExceptionTelemetry)sentTelemetry[0]).Context.Operation.ParentId);
+        }
     }
 }
