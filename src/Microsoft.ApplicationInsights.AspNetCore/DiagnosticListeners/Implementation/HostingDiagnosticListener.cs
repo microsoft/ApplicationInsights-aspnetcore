@@ -42,9 +42,12 @@
         {
             if (this.client.IsEnabled())
             {
-                var requestTelemetry = new RequestTelemetry();
-                requestTelemetry.Context.Operation.Id = httpContext.TraceIdentifier;
-                requestTelemetry.StartTime = stopwatchEpoch + TimeSpan.FromTicks(timestamp);
+                var requestTelemetry = new RequestTelemetry
+                {
+                    Id = httpContext.TraceIdentifier,
+                    Timestamp = stopwatchEpoch + TimeSpan.FromTicks(timestamp)
+                };
+
                 httpContext.Features.Set(requestTelemetry);
             }
         }
@@ -97,7 +100,6 @@
                     return;
                 }
 
-                telemetry.Timestamp = telemetry.StartTime;
                 telemetry.Duration = stopwatchEpoch + TimeSpan.FromTicks(timestamp) - telemetry.Timestamp;
                 telemetry.ResponseCode = httpContext.Response.StatusCode.ToString();
 

@@ -90,5 +90,23 @@ namespace SampleWebAppIntegration.FunctionalTest
             Assert.Contains(telemetries.OfType<TraceTelemetry>(),
                 t => t.Message == "Fetched contact details." && t.SeverityLevel == SeverityLevel.Information);
         }
+
+        [Fact]
+        public void OperationIdOfRequestIsPropagatedToChildDependency()
+        {
+            InProcessServer server;
+            using (server = new InProcessServer(assemblyName, InProcessServer.UseApplicationInsights))
+            {
+                using (var httpClient = new HttpClient())
+                {
+                    var task = httpClient.GetAsync(server.BaseHost + "/Home/Dependency");
+                    task.Wait(TestTimeoutMs);
+                }
+            }
+            var telemetries = server.BackChannel.Buffer;
+            Assert.Equal(2, telemetries.Count);
+            Assert.Equal(telemetries[0].Context.Operation.Id, telemetries[1].Context.Operation.Id);
+        }
+
     }
 }

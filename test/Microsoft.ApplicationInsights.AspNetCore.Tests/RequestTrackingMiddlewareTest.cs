@@ -119,7 +119,7 @@ namespace Microsoft.ApplicationInsights.AspNetCore.Tests
         }
 
         [Fact]
-        public void SimultaneousRequestsGetDifferentOperationIds()
+        public void SimultaneousRequestsGetDifferentIds()
         {
             var context1 = new DefaultHttpContext();
             context1.Request.Scheme = HttpRequestScheme;
@@ -139,8 +139,11 @@ namespace Microsoft.ApplicationInsights.AspNetCore.Tests
             middleware.OnEndRequest(context2, 0);
 
             Assert.Equal(2, sentTelemetry.Count);
-            Assert.Equal(context1.TraceIdentifier, sentTelemetry[0].Context.Operation.Id);
-            Assert.Equal(context2.TraceIdentifier, sentTelemetry[1].Context.Operation.Id);
+            var id1 = ((RequestTelemetry)sentTelemetry[0]).Id;
+            var id2 = ((RequestTelemetry)sentTelemetry[1]).Id;
+            Assert.Equal(context1.TraceIdentifier, id1);
+            Assert.Equal(context2.TraceIdentifier, id2);
+            Assert.NotEqual(id1, id2);
         }
 
         [Fact]
