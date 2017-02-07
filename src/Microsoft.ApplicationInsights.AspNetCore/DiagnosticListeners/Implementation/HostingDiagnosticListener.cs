@@ -16,7 +16,7 @@
         /// <summary>
         /// Conversion from stopwatch time (ticks since boot) to local time.
         /// </summary>
-        private static readonly DateTimeOffset stopwatchEpoch = DateTime.Now - TimeSpan.FromTicks(Stopwatch.GetTimestamp());
+        private static readonly DateTimeOffset stopwatchEpoch = DateTime.UtcNow - TimeSpan.FromTicks(Stopwatch.GetTimestamp());
 
         private readonly TelemetryClient client;
         private readonly string sdkVersion;
