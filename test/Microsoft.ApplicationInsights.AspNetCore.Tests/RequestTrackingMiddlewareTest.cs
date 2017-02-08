@@ -13,6 +13,7 @@ namespace Microsoft.ApplicationInsights.AspNetCore.Tests
     using Microsoft.ApplicationInsights.Extensibility.Implementation;
     using Microsoft.AspNetCore.Http;
     using Xunit;
+    using System.Diagnostics;
 
     public class RequestTrackingMiddlewareTest
     {
@@ -146,7 +147,7 @@ namespace Microsoft.ApplicationInsights.AspNetCore.Tests
             Assert.NotEqual(id1, id2);
         }
 
-        [Fact]
+        [Fact(Skip = "Disabled until timestamp overloads are supported in OperationTelemetryExtensions.Start/Stop. https://github.com/Microsoft/ApplicationInsights-dotnet/pull/424")]
         public void SimultaneousRequestsGetCorrectDurations()
         {
             var context1 = new DefaultHttpContext();
@@ -161,19 +162,38 @@ namespace Microsoft.ApplicationInsights.AspNetCore.Tests
             context2.Request.Method = "GET";
             context2.Request.Path = "/Test?id=2";
 
-            long startTime = System.Diagnostics.Stopwatch.GetTimestamp();
+            long startTime = Stopwatch.GetTimestamp();
+            long simulatedSeconds = Stopwatch.Frequency;
+
             middleware.OnBeginRequest(context1, timestamp: startTime);
-            middleware.OnBeginRequest(context2, timestamp: startTime + 1);
-            middleware.OnEndRequest(context1, timestamp: startTime + 5);
-            middleware.OnEndRequest(context2, timestamp: startTime + 10);
+            middleware.OnBeginRequest(context2, timestamp: startTime + simulatedSeconds);
+            middleware.OnEndRequest(context1, timestamp: startTime + simulatedSeconds * 5);
+            middleware.OnEndRequest(context2, timestamp: startTime + simulatedSeconds * 10);
 
             Assert.Equal(2, sentTelemetry.Count);
-            // There is an assumption here that TimeSpan ticks are the same as Stopwatch ticks.
-            // That may not hold true on all hardware. The same assumption is made within
-            // HostingDiagnosticListener (i.e. the timestamps passed to OnBeginRequest and
-            // OnEndRequest can be subtracted to get a duration in TimeSpan ticks.)
-            Assert.Equal(TimeSpan.FromTicks(5), ((RequestTelemetry)sentTelemetry[0]).Duration);
-            Assert.Equal(TimeSpan.FromTicks(9), ((RequestTelemetry)sentTelemetry[1]).Duration);
+            Assert.Equal(TimeSpan.FromSeconds(5), ((RequestTelemetry)sentTelemetry[0]).Duration);
+            Assert.Equal(TimeSpan.FromSeconds(9), ((RequestTelemetry)sentTelemetry[1]).Duration);
+        }
+
+        [Fact(Skip = "Disabled until precise durations are supported in OperationTelemetryExtensions.Start/Stop. https://github.com/Microsoft/ApplicationInsights-dotnet/pull/426")]
+        public void OnEndRequestSetsPreciseDurations()
+        {
+            var context = new DefaultHttpContext();
+            context.Request.Scheme = HttpRequestScheme;
+            context.Request.Host = this.httpRequestHost;
+            context.Request.Method = "GET";
+            context.Request.Path = "/Test?id=1";
+
+            long startTime = Stopwatch.GetTimestamp();
+            middleware.OnBeginRequest(context, timestamp: startTime);
+
+            var expectedDuration = TimeSpan.Parse("00:00:01.2345670");
+            double durationInStopwatchTicks = Stopwatch.Frequency * expectedDuration.TotalSeconds;
+
+            middleware.OnEndRequest(context, timestamp: startTime + (long)durationInStopwatchTicks);
+
+            Assert.Equal(1, sentTelemetry.Count);
+            Assert.Equal(expectedDuration, ((RequestTelemetry)sentTelemetry[0]).Duration);
         }
     }
 }
