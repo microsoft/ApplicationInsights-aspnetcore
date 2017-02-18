@@ -9,8 +9,8 @@
     "Microsoft.ApplicationInsights.AspNetCore": {
       "target": "project"
     },
-    "Microsoft.AspNetCore.Server.Kestrel": "1.0.1",
-    "NETStandard.Library": "1.6.0",
+    "Microsoft.AspNetCore.Server.Kestrel": "1.2.0-*",
+    "NETStandard.Library": "1.6.1",
     "xunit": "2.2.0-*"
   },
   "frameworks": {
