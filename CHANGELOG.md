@@ -1,5 +1,9 @@
 # Changelog
 
+## Version 2.1.0-beta1
+
+- Bug fixes
+
 ## Version 2.0.0
 
 - Added a configuration overload for AddApplicationInsightsTelemetry.
