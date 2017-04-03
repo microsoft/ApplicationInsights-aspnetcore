@@ -76,7 +76,12 @@
             StringBuilder builder = new StringBuilder();
             foreach (ITelemetry telemetry in telemetries)
             {
-                builder.AppendLine($"{telemetry.ToString()} - {telemetry.Context?.Operation?.Name}");
+                DependencyTelemetry dependency = telemetry as DependencyTelemetry;
+                if (dependency != null) {
+                    builder.AppendLine($"{dependency.ToString()} - {dependency.Data} - {dependency.Duration} - {dependency.Id} - {dependency.Name} - {dependency.ResultCode} - {dependency.Sequence} - {dependency.Success} - {dependency.Target} - {dependency.Type}");
+                } else {
+                    builder.AppendLine($"{telemetry.ToString()} - {telemetry.Context?.Operation?.Name}");
+                }
             }
 
             return builder.ToString();
