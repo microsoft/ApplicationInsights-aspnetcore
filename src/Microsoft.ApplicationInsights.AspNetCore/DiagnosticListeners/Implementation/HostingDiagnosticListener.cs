@@ -140,6 +140,12 @@
                 var exceptionTelemetry = new ExceptionTelemetry(exception);
                 exceptionTelemetry.HandledAt = ExceptionHandledAt.Platform;
                 exceptionTelemetry.Context.GetInternalContext().SdkVersion = this.sdkVersion;
+
+                if (int.TryParse(telemetry.ResponseCode, out int _responseCode))
+                {
+                    telemetry.Success = !(_responseCode == 200);
+                }
+
                 this.client.Track(exceptionTelemetry);
             }
         }
