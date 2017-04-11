@@ -15,9 +15,9 @@
             // https://github.com/Microsoft/ApplicationInsights-aspnetcore/issues/340
             // Verify operation of OperationIdTelemetryInitializer
             InProcessServer server;
-            using (server = new InProcessServer(assemblyName, InProcessServer.UseApplicationInsights))
+            using (var httpClient = new HttpClient())
             {
-                using (var httpClient = new HttpClient())
+                using (server = new InProcessServer(assemblyName, InProcessServer.UseApplicationInsights))
                 {
                     var task = httpClient.GetAsync(server.BaseHost + "/Home/Dependency");
                     task.Wait(TestTimeoutMs);
@@ -34,9 +34,9 @@
             // https://github.com/Microsoft/ApplicationInsights-aspnetcore/issues/333
             // Verify operation of OperationCorrelationTelemetryInitializer
             InProcessServer server;
-            using (server = new InProcessServer(assemblyName, InProcessServer.UseApplicationInsights))
+            using (var httpClient = new HttpClient())
             {
-                using (var httpClient = new HttpClient())
+                using (server = new InProcessServer(assemblyName, InProcessServer.UseApplicationInsights))
                 {
                     var task = httpClient.GetAsync(server.BaseHost + "/Home/Dependency");
                     task.Wait(TestTimeoutMs);
