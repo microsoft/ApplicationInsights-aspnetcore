@@ -9,12 +9,12 @@ namespace SampleWebAppIntegration.FunctionalTest
     {
         private const string assemblyName = "WebApiShimFw46.FunctionalTests";
 
-        // The NET451 conditional check is wrapped inside the test to make the tests visible in the test explorer. We can move them to the class level once if the issue is resolved.
+        // The NET46 conditional check is wrapped inside the test to make the tests visible in the test explorer. We can move them to the class level once if the issue is resolved.
 
         [Fact]
         public void TestBasicDependencyPropertiesAfterRequestingBasicPage()
         {
-#if NET451
+#if NET46
             this.ValidateBasicDependency(assemblyName, "/api/values");
 #endif
         }
@@ -22,7 +22,7 @@ namespace SampleWebAppIntegration.FunctionalTest
         [Fact]
         public void TestIfPerformanceCountersAreCollected()
         {
-#if NET451
+#if NET46
             ValidatePerformanceCountersAreCollected(assemblyName);
 #endif
         }

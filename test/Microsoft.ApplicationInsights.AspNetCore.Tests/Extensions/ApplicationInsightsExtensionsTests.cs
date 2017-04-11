@@ -21,7 +21,7 @@ namespace Microsoft.Extensions.DependencyInjection.Test
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Options;
 
-#if NET451
+#if NET46
     using ApplicationInsights.DependencyCollector;
     using ApplicationInsights.Extensibility.PerfCounterCollector;
     using ApplicationInsights.WindowsServer.TelemetryChannel;
@@ -298,7 +298,7 @@ namespace Microsoft.Extensions.DependencyInjection.Test
                 }
             }
 
-#if NET451
+#if NET46
             [Fact]
             public static void RegistersTelemetryConfigurationFactoryMethodThatPopulatesItWithModulesFromContainer()
             {
