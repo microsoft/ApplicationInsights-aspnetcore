@@ -21,23 +21,27 @@
     "dotnet-test-xunit": "2.2.0-*",
     "FunctionalTestUtils": { "target": "project" },
     "Microsoft.ApplicationInsights.AspNetCore": { "target": "project" },
-    "Microsoft.AspNetCore.Authentication.Cookies": "1.0.0",
-    "Microsoft.AspNetCore.Diagnostics": "1.0.0",
-    "Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore": "1.0.0",
-    "Microsoft.AspNetCore.Identity": "1.0.0",
-    "Microsoft.AspNetCore.Identity.EntityFrameworkCore": "1.0.0",
-    "Microsoft.AspNetCore.Mvc": "1.0.1",
-    "Microsoft.AspNetCore.Mvc.TagHelpers": "1.0.1",
-    "Microsoft.AspNetCore.Server.IISIntegration": "1.0.0",
-    "Microsoft.AspNetCore.Server.Kestrel": "1.0.1",
-    "Microsoft.AspNetCore.StaticFiles": "1.0.0",
-    "Microsoft.EntityFrameworkCore.SqlServer": "1.0.1",
-    "Microsoft.Extensions.Configuration.FileExtensions": "1.0.0",
-    "Microsoft.Extensions.Configuration.Json": "1.0.0",
-    "Microsoft.Extensions.Configuration.UserSecrets": "1.0.0",
-    "Microsoft.Extensions.Logging": "1.0.0",
-    "Microsoft.Extensions.Logging.Console": "1.0.0",
-    "Microsoft.Extensions.Logging.Debug": "1.0.0",
+    "Microsoft.AspNetCore.Authentication.Cookies": "2.0.0-*",
+    "Microsoft.AspNetCore.DataProtection": "2.0.0-*",
+    "Microsoft.AspNetCore.Diagnostics": "2.0.0-*",
+    "Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore": "2.0.0-*",
+    "Microsoft.AspNetCore.Identity": "2.0.0-*",
+    "Microsoft.AspNetCore.Identity.EntityFrameworkCore": "2.0.0-*",
+    "Microsoft.AspNetCore.Mvc": "2.0.0-*",
+    "Microsoft.AspNetCore.Mvc.TagHelpers": "2.0.0-*",
+    "Microsoft.AspNetCore.Server.IISIntegration": "2.0.0-*",
+    "Microsoft.AspNetCore.Server.Kestrel": "2.0.0-*",
+    "Microsoft.AspNetCore.StaticFiles": "2.0.0-*",
+    "Microsoft.DotNet.InternalAbstractions": "1.0.0",
+    "Microsoft.EntityFrameworkCore.SqlServer": "2.0.0-*",
+    "Microsoft.Extensions.Caching.Memory": "2.0.0-*",
+    "Microsoft.Extensions.Configuration.FileExtensions": "2.0.0-*",
+    "Microsoft.Extensions.Configuration.Json": "2.0.0-*",
+    "Microsoft.Extensions.Configuration.UserSecrets": "2.0.0-*",
+    "Microsoft.Extensions.Logging": "2.0.0-*",
+    "Microsoft.Extensions.Logging.Console": "2.0.0-*",
+    "Microsoft.Extensions.Logging.Debug": "2.0.0-*",
+    "Microsoft.Extensions.WebEncoders": "2.0.0-*",
     "xunit": "2.2.0-*"
   },
   "testRunner": "xunit",
@@ -50,13 +54,13 @@
         }
       }
     },
-    "net451": {
-    }
+    // "net451": {
+    // }
   },
 
   "tools": {
     "Microsoft.AspNetCore.Razor.Tools": {
-      "version": "1.0.0-preview3-final",
+      "version": "1.0.0-preview4-final",
       "imports": [
         "portable-net45+win8+dnxcore50"
       ]

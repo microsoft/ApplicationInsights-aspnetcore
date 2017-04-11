@@ -41,10 +41,11 @@
                 {
                     task = httpClient.GetAsync(server.BaseHost + requestPath);
                     task.Wait(TestTimeoutMs);
+
+                    server.Dispose();
                 }
 
                 timer.Stop();
-                server.Dispose();
 
                 RequestTelemetry actual = server.BackChannel.Buffer.OfType<RequestTelemetry>().Where(t => t.Name == expected.Name).Single();
                 server.BackChannel.Buffer.Clear();
@@ -68,9 +69,10 @@
             {
                 task = httpClient.GetAsync(server.BaseHost + requestPath);
                 task.Wait(TestTimeoutMs);
+
+                server.Dispose();
             }
-            var result = task.Result;
-            server.Dispose();
+
             var actual = server.BackChannel.Buffer.OfType<ExceptionTelemetry>().Single();
 
             Assert.Equal(expected.Exception.GetType(), actual.Exception.GetType());

@@ -91,13 +91,13 @@
     },
 
     "frameworks": {
-        "net451": {
-            "dependencies": {
-                "Microsoft.ApplicationInsights.DependencyCollector": "2.3.0-beta3",
-                "Microsoft.ApplicationInsights.PerfCounterCollector": "2.3.0-beta3",
-                "Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel": "2.3.0-beta3"
-            }
-        },
+        // "net451": {
+        //     "dependencies": {
+        //         "Microsoft.ApplicationInsights.DependencyCollector": "2.3.0-beta3",
+        //         "Microsoft.ApplicationInsights.PerfCounterCollector": "2.3.0-beta3",
+        //         "Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel": "2.3.0-beta3"
+        //     }
+        // },
         "netstandard1.6": {
             "dependencies": {
                 "NETStandard.Library": "1.6.0",
