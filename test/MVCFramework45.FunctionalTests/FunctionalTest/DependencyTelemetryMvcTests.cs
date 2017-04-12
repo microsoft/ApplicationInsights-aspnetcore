@@ -40,6 +40,8 @@
                 {
                     var task = httpClient.GetAsync(server.BaseHost + "/Home/Dependency");
                     task.Wait(TestTimeoutMs);
+
+                    ConditionalTimeout(() => server.BackChannel.Buffer.Count >= 2);
                 }
             }
             var telemetries = server.BackChannel.Buffer;
