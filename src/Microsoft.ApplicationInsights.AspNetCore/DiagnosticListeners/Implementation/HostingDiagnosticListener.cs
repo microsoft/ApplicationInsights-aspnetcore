@@ -31,19 +31,34 @@
         public string ListenerName { get; } = "Microsoft.AspNetCore";
 
         /// <summary>
-        /// Diagnostic event handler method for 'Microsoft.AspNetCore.Hosting.BeginRequest' event.
+        /// Diagnostic event handler method for 'Microsoft.AspNetCore.Hosting.HttpRequestIn' event.
         /// </summary>
-        [DiagnosticName("Microsoft.AspNetCore.Hosting.BeginRequest")]
-        public void OnBeginRequest(HttpContext httpContext, long timestamp)
+        [DiagnosticName("Microsoft.AspNetCore.Hosting.HttpRequestIn")]
+        public void OnHttpRequestIn()
+        {
+            // do nothing, just enable the diagnotic source
+        }
+
+        /// <summary>
+        /// Diagnostic event handler method for 'Microsoft.AspNetCore.Hosting.HttpRequestIn.Start' event.
+        /// </summary>
+        [DiagnosticName("Microsoft.AspNetCore.Hosting.HttpRequestIn.Start")]
+        public void OnHttpRequestInStart(HttpContext httpContext)
         {
             if (this.client.IsEnabled())
             {
-                var requestTelemetry = new RequestTelemetry
+                var requestTelemetry = new RequestTelemetry();
+                var currentActivity = Activity.Current;
+
+                if (currentActivity != null)
                 {
-                    Id = httpContext.TraceIdentifier
-                };
+                    requestTelemetry.Id = currentActivity.Id;
+                    requestTelemetry.Context.Operation.Id = currentActivity.RootId;
+                    requestTelemetry.Context.Operation.ParentId = currentActivity.ParentId;
+                }
+
                 this.client.Initialize(requestTelemetry);
-                requestTelemetry.Start(timestamp);
+                requestTelemetry.Start(Stopwatch.GetTimestamp());
                 httpContext.Features.Set(requestTelemetry);
 
                 IHeaderDictionary responseHeaders = httpContext.Response?.Headers;
@@ -55,12 +70,12 @@
         }
 
         /// <summary>
-        /// Diagnostic event handler method for 'Microsoft.AspNetCore.Hosting.EndRequest' event.
+        /// Diagnostic event handler method for 'Microsoft.AspNetCore.Hosting.HttpRequestIn.Stop' event.
         /// </summary>
-        [DiagnosticName("Microsoft.AspNetCore.Hosting.EndRequest")]
-        public void OnEndRequest(HttpContext httpContext, long timestamp)
+        [DiagnosticName("Microsoft.AspNetCore.Hosting.HttpRequestIn.Stop")]
+        public void OnHttpRequestInStop(HttpContext httpContext)
         {
-            EndRequest(httpContext, timestamp);
+            EndRequest(httpContext);
         }
 
         /// <summary>
@@ -70,7 +85,6 @@
         public void OnHostingException(HttpContext httpContext, Exception exception)
         {
             this.OnException(httpContext, exception);
-            this.EndRequest(httpContext, Stopwatch.GetTimestamp());
         }
 
         /// <summary>
@@ -91,7 +105,7 @@
             this.OnException(httpContext, exception);
         }
 
-        private void EndRequest(HttpContext httpContext, long timestamp)
+        private void EndRequest(HttpContext httpContext)
         {
             if (this.client.IsEnabled())
             {
@@ -102,7 +116,7 @@
                     return;
                 }
 
-                telemetry.Stop(timestamp);
+                telemetry.Stop(Stopwatch.GetTimestamp());
                 telemetry.ResponseCode = httpContext.Response.StatusCode.ToString();
 
                 var successExitCode = httpContext.Response.StatusCode < 400;
