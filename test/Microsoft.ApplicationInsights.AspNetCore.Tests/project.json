@@ -17,9 +17,11 @@
     "Microsoft.AspNetCore.Http.Features": "2.0.0-*",
     "Microsoft.AspNetCore.Mvc.Core": "2.0.0-*",
     "Microsoft.DotNet.InternalAbstractions": "1.0.0",
+    "Microsoft.Extensions.Configuration": "2.0.0-*",
     "Microsoft.Extensions.Configuration.EnvironmentVariables": "2.0.0-*",
     "Microsoft.Extensions.Configuration.Json": "2.0.0-*",
     "Microsoft.Extensions.Logging": "2.0.0-*",
+    "Microsoft.Extensions.Logging.Abstractions": "2.0.0-*",
     "xunit": "2.2.0-*"
   },
   "testRunner": "xunit",
@@ -32,7 +34,7 @@
         }
       }
     },
-    // "net451": {
-    // }
+    "net46": {
+    }
   }
 }

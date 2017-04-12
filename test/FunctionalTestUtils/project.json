@@ -14,7 +14,7 @@
     "xunit": "2.2.0-*"
   },
   "frameworks": {
-    //"net451": { },
+    "net46": { },
     "netstandard1.6": { }
   }
 }

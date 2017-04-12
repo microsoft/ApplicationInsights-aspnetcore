@@ -90,19 +90,20 @@
             expected.Name = requestPath;
 
             InProcessServer server;
-            using (server = new InProcessServer(assemblyName, configureHost))
+            using (var httpClient = new HttpClient())
             {
-                expected.Data = server.BaseHost + requestPath;
-
-                var timer = Stopwatch.StartNew();
-                Task<HttpResponseMessage> task;
-                using (var httpClient = new HttpClient())
+                using (server = new InProcessServer(assemblyName, configureHost))
                 {
+                    expected.Data = server.BaseHost + requestPath;
+
+                    var timer = Stopwatch.StartNew();
+                    Task<HttpResponseMessage> task;
+
                     task = httpClient.GetAsync(server.BaseHost + requestPath);
                     task.Wait(TestTimeoutMs);
+                    var result = task.Result;
+                    timer.Stop();
                 }
-                var result = task.Result;
-                timer.Stop();
             }
 
             Assert.Contains(server.BackChannel.Buffer.OfType<DependencyTelemetry>(),
