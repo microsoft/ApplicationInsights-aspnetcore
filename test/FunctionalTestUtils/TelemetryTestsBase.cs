@@ -129,7 +129,7 @@
                     task.Wait(TestTimeoutMs);
 
                     ConditionalTimeout(() => {
-                        var expectedDependency = server.BackChannel.Buffer.OfType<DependencyTelemetry>().First(
+                        var expectedDependency = server.BackChannel.Buffer.OfType<DependencyTelemetry>().FirstOrDefault(
                             d => d.Name == expected.Name
                                 && d.Data == expected.Data
                                 && d.Success == expected.Success
