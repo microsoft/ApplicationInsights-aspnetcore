@@ -163,6 +163,63 @@ namespace Microsoft.ApplicationInsights.AspNetCore.Tests
         }
 
         [Fact]
+        public void OnHttpRequestInStartInitializeTelemetryIfActivityParentIdIsNotNull()
+        {
+            var context = CreateContext(HttpRequestScheme, HttpRequestHost, "/Test", method: "POST");
+            var activity = new Activity("operation");
+            activity.SetParentId(Guid.NewGuid().ToString());
+            activity.AddBaggage("item1", "value1");
+            activity.AddBaggage("item2", "value2");
+
+            activity.Start();
+
+            middleware.OnHttpRequestInStart(context);
+            middleware.OnHttpRequestInStop(context);
+
+            Assert.Equal(1, sentTelemetry.Count);
+            var requestTelemetry = this.sentTelemetry[0] as RequestTelemetry;
+
+            Assert.Equal(requestTelemetry.Id, activity.Id);
+            Assert.Equal(requestTelemetry.Context.Operation.Id, activity.RootId);
+            Assert.Equal(requestTelemetry.Context.Operation.ParentId, activity.ParentId);
+            Assert.True(requestTelemetry.Context.Properties.Count > activity.Baggage.Count());
+
+            foreach (var prop in activity.Baggage)
+            {
+                Assert.True(requestTelemetry.Context.Properties.ContainsKey(prop.Key));
+                Assert.Equal(requestTelemetry.Context.Properties[prop.Key], prop.Value);
+            }
+        }
+
+        [Fact]
+        public void OnHttpRequestInStartCreateNewActivityIfParentIdIsNullAndHasStandardHeader()
+        {
+            var context = CreateContext(HttpRequestScheme, HttpRequestHost, "/Test", method: "POST");
+            var requestId = Guid.NewGuid().ToString();
+            var requestRootId = Guid.NewGuid().ToString();
+            context.Request.Headers[RequestResponseHeaders.StandardParentIdHeader] = requestId;
+            context.Request.Headers[RequestResponseHeaders.StandardRootIdHeader] = requestRootId;
+
+            var activity = new Activity("operation");
+            activity.Start();
+
+            middleware.OnHttpRequestInStart(context);
+
+            var activityInitializedByStandardHeader = Activity.Current;
+            Assert.NotEqual(activityInitializedByStandardHeader, activity);
+            Assert.Equal(activityInitializedByStandardHeader.ParentId, requestRootId);
+
+            middleware.OnHttpRequestInStop(context);
+
+            Assert.Equal(1, sentTelemetry.Count);
+            var requestTelemetry = this.sentTelemetry[0] as RequestTelemetry;
+
+            Assert.Equal(requestTelemetry.Id, activityInitializedByStandardHeader.Id);
+            Assert.Equal(requestTelemetry.Context.Operation.Id, requestRootId);
+            Assert.Equal(requestTelemetry.Context.Operation.ParentId, requestId);
+        }
+
+        [Fact]
         public void OnEndRequestSetsRequestNameToMethodAndPathForPostRequest()
         {
             HttpContext context = CreateContext(HttpRequestScheme, HttpRequestHost, "/Test", method: "POST");
