@@ -76,7 +76,8 @@ namespace Microsoft.ApplicationInsights.AspNetCore.Tests
                     {
                         this.sentTelemetry.Add(telemetry);
                     }
-                }));
+                }),
+                CommonMocks.MockCorrelationIdLookupHelper());
         }
 
         [Fact]
@@ -87,9 +88,10 @@ namespace Microsoft.ApplicationInsights.AspNetCore.Tests
             middleware.OnHttpRequestInStart(context);
 
             Assert.NotNull(context.Features.Get<RequestTelemetry>());
-            Assert.Equal(context.Response.Headers[RequestResponseHeaders.TargetInstrumentationKeyHeader], CommonMocks.InstrumentationKeyHash);
+            Assert.Equal(HttpHeadersUtilities.GetRequestContextKeyValue(context.Response.Headers, RequestResponseHeaders.RequestContextTargetKey), CorrelationIdLookupHelperStub.AppId);
 
             middleware.OnHttpRequestInStop(context);
+
 
             Assert.Equal(1, sentTelemetry.Count);
             Assert.IsType<RequestTelemetry>(this.sentTelemetry.First());
@@ -114,7 +116,7 @@ namespace Microsoft.ApplicationInsights.AspNetCore.Tests
             middleware.OnHttpRequestInStart(context);
 
             Assert.NotNull(context.Features.Get<RequestTelemetry>());
-            Assert.Equal(context.Response.Headers[RequestResponseHeaders.TargetInstrumentationKeyHeader], CommonMocks.InstrumentationKeyHash);
+            Assert.Equal(HttpHeadersUtilities.GetRequestContextKeyValue(context.Response.Headers, RequestResponseHeaders.RequestContextTargetKey), CorrelationIdLookupHelperStub.AppId);
 
             middleware.OnHttpRequestInStop(context);
 
@@ -141,7 +143,7 @@ namespace Microsoft.ApplicationInsights.AspNetCore.Tests
             middleware.OnHttpRequestInStart(context);
 
             Assert.NotNull(context.Features.Get<RequestTelemetry>());
-            Assert.Equal(context.Response.Headers[RequestResponseHeaders.TargetInstrumentationKeyHeader], CommonMocks.InstrumentationKeyHash);
+            Assert.Equal(HttpHeadersUtilities.GetRequestContextKeyValue(context.Response.Headers, RequestResponseHeaders.RequestContextTargetKey), CorrelationIdLookupHelperStub.AppId);
 
             middleware.OnDiagnosticsUnhandledException(context, null);
             middleware.OnHttpRequestInStop(context);
@@ -227,7 +229,7 @@ namespace Microsoft.ApplicationInsights.AspNetCore.Tests
             middleware.OnHttpRequestInStart(context);
 
             Assert.NotNull(context.Features.Get<RequestTelemetry>());
-            Assert.Equal(context.Response.Headers[RequestResponseHeaders.TargetInstrumentationKeyHeader], CommonMocks.InstrumentationKeyHash);
+            Assert.Equal(HttpHeadersUtilities.GetRequestContextKeyValue(context.Response.Headers, RequestResponseHeaders.RequestContextTargetKey), CorrelationIdLookupHelperStub.AppId);
 
             middleware.OnHttpRequestInStop(context);
 
@@ -254,7 +256,7 @@ namespace Microsoft.ApplicationInsights.AspNetCore.Tests
             middleware.OnHttpRequestInStart(context);
 
             Assert.NotNull(context.Features.Get<RequestTelemetry>());
-            Assert.Equal(context.Response.Headers[RequestResponseHeaders.TargetInstrumentationKeyHeader], CommonMocks.InstrumentationKeyHash);
+            Assert.Equal(HttpHeadersUtilities.GetRequestContextKeyValue(context.Response.Headers, RequestResponseHeaders.RequestContextTargetKey), CorrelationIdLookupHelperStub.AppId);
 
             middleware.OnHttpRequestInStop(context);
 
@@ -277,12 +279,12 @@ namespace Microsoft.ApplicationInsights.AspNetCore.Tests
         public void OnEndRequestFromSameInstrumentationKey()
         {
             HttpContext context = CreateContext(HttpRequestScheme, HttpRequestHost, "/Test", method: "GET");
-            context.Request.Headers.Add(RequestResponseHeaders.SourceInstrumentationKeyHeader, CommonMocks.InstrumentationKeyHash);
+            HttpHeadersUtilities.SetRequestContextKeyValue(context.Request.Headers, RequestResponseHeaders.RequestContextSourceKey, CorrelationIdLookupHelperStub.AppId);
 
             middleware.OnHttpRequestInStart(context);
 
             Assert.NotNull(context.Features.Get<RequestTelemetry>());
-            Assert.Equal(context.Response.Headers[RequestResponseHeaders.TargetInstrumentationKeyHeader], CommonMocks.InstrumentationKeyHash);
+            Assert.Equal(HttpHeadersUtilities.GetRequestContextKeyValue(context.Response.Headers, RequestResponseHeaders.RequestContextTargetKey), CorrelationIdLookupHelperStub.AppId);
 
             middleware.OnHttpRequestInStop(context);
 
@@ -305,12 +307,12 @@ namespace Microsoft.ApplicationInsights.AspNetCore.Tests
         public void OnEndRequestFromDifferentInstrumentationKey()
         {
             HttpContext context = CreateContext(HttpRequestScheme, HttpRequestHost, "/Test", method: "GET");
-            context.Request.Headers.Add(RequestResponseHeaders.SourceInstrumentationKeyHeader, "DIFFERENT_INSTRUMENTATION_KEY_HASH");
+            HttpHeadersUtilities.SetRequestContextKeyValue(context.Request.Headers, RequestResponseHeaders.RequestContextSourceKey, "DIFFERENT_INSTRUMENTATION_KEY_HASH");
 
             middleware.OnHttpRequestInStart(context);
 
             Assert.NotNull(context.Features.Get<RequestTelemetry>());
-            Assert.Equal(context.Response.Headers[RequestResponseHeaders.TargetInstrumentationKeyHeader], CommonMocks.InstrumentationKeyHash);
+            Assert.Equal(HttpHeadersUtilities.GetRequestContextKeyValue(context.Response.Headers, RequestResponseHeaders.RequestContextTargetKey), CorrelationIdLookupHelperStub.AppId);
 
             middleware.OnHttpRequestInStop(context);
 
