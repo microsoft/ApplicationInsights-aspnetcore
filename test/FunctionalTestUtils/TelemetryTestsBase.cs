@@ -12,7 +12,7 @@
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.DependencyInjection;
     using Xunit;
-#if NET451
+#if NET46
     using System.Net;
     using Microsoft.ApplicationInsights.Extensibility.PerfCounterCollector;
     using Microsoft.ApplicationInsights.Extensibility;
@@ -22,6 +22,28 @@
     {
         protected const int TestTimeoutMs = 10000;
         private object noParallelism = new object();
+
+        /// <summary>
+        /// Ideally, when the WebHost sever get disposed, all requests will be finished.
+        /// However, the current behavior is server dispose doesn't wait for the requests to be finished.
+        /// And during server disposing, the injected AI service will also get disposed, which means some telemetry might not be sent after server get disposed.
+        /// So we add this helper funciton to make sure all telemtry are sent before checking anything.
+        /// </summary>
+        /// <param name="condition">The condition to meet</param>
+        /// <param name="timeoutMs">Timeout in ms</param>
+        /// <param name="intervalMs">Sleep interval in ms</param>
+        public static void ConditionalTimeout(Func<bool> condition, int timeoutMs = 10000, int intervalMs = 50)
+        {
+            DateTime timeout = DateTime.Now.AddMilliseconds(timeoutMs);
+            while (DateTime.Now < timeout)
+            {
+                if (condition())
+                {
+                    return;
+                }
+                Thread.Sleep(intervalMs);
+            }
+        }
 
         [MethodImpl(MethodImplOptions.NoOptimization)]
         public void ValidateBasicRequest(InProcessServer server, string requestPath, RequestTelemetry expected)
@@ -41,10 +63,13 @@
                 {
                     task = httpClient.GetAsync(server.BaseHost + requestPath);
                     task.Wait(TestTimeoutMs);
+
+                    ConditionalTimeout(() => server.BackChannel.Buffer.OfType<RequestTelemetry>().Where(t => t.Name == expected.Name).Count() > 0);
+
+                    server.Dispose();
                 }
 
                 timer.Stop();
-                server.Dispose();
 
                 RequestTelemetry actual = server.BackChannel.Buffer.OfType<RequestTelemetry>().Where(t => t.Name == expected.Name).Single();
                 server.BackChannel.Buffer.Clear();
@@ -68,9 +93,12 @@
             {
                 task = httpClient.GetAsync(server.BaseHost + requestPath);
                 task.Wait(TestTimeoutMs);
+
+                ConditionalTimeout(() => server.BackChannel.Buffer.OfType<ExceptionTelemetry>().Count() > 0);
+
+                server.Dispose();
             }
-            var result = task.Result;
-            server.Dispose();
+
             var actual = server.BackChannel.Buffer.OfType<ExceptionTelemetry>().Single();
 
             Assert.Equal(expected.Exception.GetType(), actual.Exception.GetType());
@@ -79,7 +107,7 @@
             Assert.NotEmpty(actual.Context.Operation.Id);
         }
 
-#if NET451
+#if NET46
         public void ValidateBasicDependency(string assemblyName, string requestPath, Func<IWebHostBuilder, IWebHostBuilder> configureHost = null)
         {
             DependencyTelemetry expected = new DependencyTelemetry();
@@ -88,19 +116,29 @@
             expected.Name = requestPath;
 
             InProcessServer server;
-            using (server = new InProcessServer(assemblyName, configureHost))
+            using (var httpClient = new HttpClient())
             {
-                expected.Data = server.BaseHost + requestPath;
-
-                var timer = Stopwatch.StartNew();
-                Task<HttpResponseMessage> task;
-                using (var httpClient = new HttpClient())
+                using (server = new InProcessServer(assemblyName, configureHost))
                 {
+                    expected.Data = server.BaseHost + requestPath;
+
+                    var timer = Stopwatch.StartNew();
+                    Task<HttpResponseMessage> task;
+
                     task = httpClient.GetAsync(server.BaseHost + requestPath);
                     task.Wait(TestTimeoutMs);
+
+                    ConditionalTimeout(() => {
+                        var expectedDependency = server.BackChannel.Buffer.OfType<DependencyTelemetry>().FirstOrDefault(
+                            d => d.Name == expected.Name
+                                && d.Data == expected.Data
+                                && d.Success == expected.Success
+                                && d.ResultCode == expected.ResultCode);
+                        return expectedDependency != null;
+                    });
+
+                    timer.Stop();
                 }
-                var result = task.Result;
-                timer.Stop();
             }
 
             Assert.Contains(server.BackChannel.Buffer.OfType<DependencyTelemetry>(),
@@ -122,14 +160,9 @@
                 var timer = timerField.GetValue(perfModule);
                 timerField.FieldType.InvokeMember("ScheduleNextTick", BindingFlags.InvokeMethod | BindingFlags.Public | BindingFlags.Instance, null, timer, new object[] { TimeSpan.FromMilliseconds(10) });
 
-                DateTime timeout = DateTime.Now.AddSeconds(10);
-                int numberOfCountersSent = 0;
-                do
-                {
-                    Thread.Sleep(1000);
-                    numberOfCountersSent = server.BackChannel.Buffer.OfType<MetricTelemetry>().Distinct().Count();
-                } while (numberOfCountersSent == 0 && DateTime.Now < timeout);
+                ConditionalTimeout(() => server.BackChannel.Buffer.OfType<MetricTelemetry>().Distinct().Count() > 0);
 
+                int numberOfCountersSent = server.BackChannel.Buffer.OfType<MetricTelemetry>().Distinct().Count();
                 Assert.True(numberOfCountersSent > 0);
             }
         }

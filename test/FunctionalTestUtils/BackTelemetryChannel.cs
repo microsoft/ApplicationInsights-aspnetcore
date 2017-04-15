@@ -9,6 +9,7 @@ namespace FunctionalTestUtils
     public class BackTelemetryChannel : ITelemetryChannel
     {
         private IList<ITelemetry> buffer;
+        private string endpointAddress;
 
         public BackTelemetryChannel()
         {
@@ -38,12 +39,12 @@ namespace FunctionalTestUtils
         {
             get
             {
-                return string.Empty;
+                return this.endpointAddress;
             }
 
             set
             {
-                this.EndpointAddress = string.Empty;
+                this.endpointAddress = value;
             }
         }
 

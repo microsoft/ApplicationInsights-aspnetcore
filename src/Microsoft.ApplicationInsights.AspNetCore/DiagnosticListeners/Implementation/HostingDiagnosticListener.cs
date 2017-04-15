@@ -8,6 +8,7 @@
     using Microsoft.AspNetCore.Http;
     using Microsoft.Extensions.DiagnosticAdapter;
     using Microsoft.Extensions.Primitives;
+    using Extensibility.Implementation.Tracing;
 
     /// <summary>
     /// <see cref="IApplicationInsightDiagnosticListener"/> implementation that listens for events specific to AspNetCore hosting layer.
@@ -17,6 +18,7 @@
         private readonly TelemetryClient client;
         private readonly ICorrelationIdLookupHelper correlationIdLookupHelper;
         private readonly string sdkVersion;
+        private const string ActivityInitializedByStandardHeaderName = "ActivityInitializedByStandardHeaderName";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="T:HostingDiagnosticListener"/> class.
@@ -34,19 +36,66 @@
         public string ListenerName { get; } = "Microsoft.AspNetCore";
 
         /// <summary>
-        /// Diagnostic event handler method for 'Microsoft.AspNetCore.Hosting.BeginRequest' event.
+        /// Diagnostic event handler method for 'Microsoft.AspNetCore.Hosting.HttpRequestIn' event.
         /// </summary>
-        [DiagnosticName("Microsoft.AspNetCore.Hosting.BeginRequest")]
-        public void OnBeginRequest(HttpContext httpContext, long timestamp)
+        [DiagnosticName("Microsoft.AspNetCore.Hosting.HttpRequestIn")]
+        public void OnHttpRequestIn()
+        {
+            // do nothing, just enable the diagnotic source
+        }
+
+        /// <summary>
+        /// Diagnostic event handler method for 'Microsoft.AspNetCore.Hosting.HttpRequestIn.Start' event.
+        /// </summary>
+        [DiagnosticName("Microsoft.AspNetCore.Hosting.HttpRequestIn.Start")]
+        public void OnHttpRequestInStart(HttpContext httpContext)
         {
             if (this.client.IsEnabled())
             {
-                var requestTelemetry = new RequestTelemetry
+                var requestTelemetry = new RequestTelemetry();
+
+                if (Activity.Current == null)
                 {
-                    Id = httpContext.TraceIdentifier
-                };
+                    AspNetCoreEventSource.Instance.LogHostingDiagnosticListenerOnHttpRequestInStartActivityNull();
+                }
+                else if (Activity.Current.ParentId != null)
+                {
+                    // The activity is initialized from the new "Request-Id" header
+                    requestTelemetry.Context.Operation.ParentId = Activity.Current.ParentId;
+
+                    foreach (var prop in Activity.Current.Baggage)
+                    {
+                        if (!requestTelemetry.Context.Properties.ContainsKey(prop.Key))
+                        {
+                            requestTelemetry.Context.Properties[prop.Key] = prop.Value;
+                        }
+                    }
+                }
+                else
+                {
+                    // The request doesn't have the new "Request-Id" header but the standard headers,
+                    // we create a new activity and initialize it by the standard headers.
+                    var xmsRequestRootId = httpContext?.Request?.Headers[RequestResponseHeaders.StandardRootIdHeader];
+                    if (xmsRequestRootId.HasValue && xmsRequestRootId.Value.Count > 0)
+                    {
+                        var activity = new Activity(ActivityInitializedByStandardHeaderName);
+                        activity.SetParentId(xmsRequestRootId.Value[0]);
+                        activity.Start();
+                        httpContext.Features.Set(activity);
+                    }
+
+                    var xmsRequestId = httpContext?.Request?.Headers[RequestResponseHeaders.StandardParentIdHeader];
+                    if (xmsRequestId.HasValue && xmsRequestId.Value.Count > 0)
+                    {
+                        requestTelemetry.Context.Operation.ParentId = xmsRequestId.Value[0];
+                    }
+                }
+
+                requestTelemetry.Id = Activity.Current?.Id;
+                requestTelemetry.Context.Operation.Id = Activity.Current?.RootId;
+
                 this.client.Initialize(requestTelemetry);
-                requestTelemetry.Start(timestamp);
+                requestTelemetry.Start(Stopwatch.GetTimestamp());
                 httpContext.Features.Set(requestTelemetry);
                 IHeaderDictionary responseHeaders = httpContext.Response?.Headers;
                 if (responseHeaders != null &&
@@ -63,12 +112,12 @@
         }
 
         /// <summary>
-        /// Diagnostic event handler method for 'Microsoft.AspNetCore.Hosting.EndRequest' event.
+        /// Diagnostic event handler method for 'Microsoft.AspNetCore.Hosting.HttpRequestIn.Stop' event.
         /// </summary>
-        [DiagnosticName("Microsoft.AspNetCore.Hosting.EndRequest")]
-        public void OnEndRequest(HttpContext httpContext, long timestamp)
+        [DiagnosticName("Microsoft.AspNetCore.Hosting.HttpRequestIn.Stop")]
+        public void OnHttpRequestInStop(HttpContext httpContext)
         {
-            EndRequest(httpContext, timestamp);
+            EndRequest(httpContext);
         }
 
         /// <summary>
@@ -78,7 +127,6 @@
         public void OnHostingException(HttpContext httpContext, Exception exception)
         {
             this.OnException(httpContext, exception);
-            this.EndRequest(httpContext, Stopwatch.GetTimestamp());
         }
 
         /// <summary>
@@ -99,7 +147,7 @@
             this.OnException(httpContext, exception);
         }
 
-        private void EndRequest(HttpContext httpContext, long timestamp)
+        private void EndRequest(HttpContext httpContext)
         {
             if (this.client.IsEnabled())
             {
@@ -110,7 +158,7 @@
                     return;
                 }
 
-                telemetry.Stop(timestamp);
+                telemetry.Stop(Stopwatch.GetTimestamp());
                 telemetry.ResponseCode = httpContext.Response.StatusCode.ToString();
 
                 var successExitCode = httpContext.Response.StatusCode < 400;
@@ -132,6 +180,12 @@
                 telemetry.Url = httpContext.Request.GetUri();
                 telemetry.Context.GetInternalContext().SdkVersion = this.sdkVersion;
                 this.client.TrackRequest(telemetry);
+
+                var activity = httpContext?.Features.Get<Activity>();
+                if (activity != null && activity.OperationName == ActivityInitializedByStandardHeaderName)
+                {
+                    activity.Stop();
+                }
             }
         }
 

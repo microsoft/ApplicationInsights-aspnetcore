@@ -17,7 +17,7 @@
     using Microsoft.Extensions.DependencyInjection.Extensions;
     using Microsoft.Extensions.Options;
 
-#if NET451
+#if NET46
     using Microsoft.ApplicationInsights.DependencyCollector;
     using Microsoft.ApplicationInsights.Extensibility.PerfCounterCollector;
 #endif
@@ -136,7 +136,7 @@
             services.AddSingleton<ITelemetryInitializer, WebUserTelemetryInitializer>();
             services.AddSingleton<ITelemetryInitializer, AspNetCoreEnvironmentTelemetryInitializer>();
 
-#if NET451
+#if NET46
             services.AddSingleton<ITelemetryModule, PerformanceCollectorModule>();
             services.AddSingleton<ITelemetryModule, DependencyTrackingTelemetryModule>();
 #endif

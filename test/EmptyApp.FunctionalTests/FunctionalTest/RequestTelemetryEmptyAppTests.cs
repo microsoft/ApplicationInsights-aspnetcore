@@ -58,7 +58,7 @@
             }
 
             var telemetries = server.BackChannel.Buffer;
-#if NET451
+#if NET46
             Assert.Contains(telemetries.OfType<DependencyTelemetry>(), t => t.Name == "/Mixed");
 #endif
 
