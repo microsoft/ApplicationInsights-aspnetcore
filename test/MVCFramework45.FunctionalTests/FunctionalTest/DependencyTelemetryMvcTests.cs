@@ -4,6 +4,7 @@
     using FunctionalTestUtils;
     using Xunit;
     using Microsoft.ApplicationInsights.DataContracts;
+    using System.Threading;
 
     public class DependencyTelemetryMvcTests : TelemetryTestsBase
     {
@@ -41,7 +42,7 @@
                     var task = httpClient.GetAsync(server.BaseHost + "/Home/Dependency");
                     task.Wait(TestTimeoutMs);
 
-                    ConditionalTimeout(() => server.BackChannel.Buffer.Count >= 2);
+                    Assert.True(SpinWait.SpinUntil(() => server.BackChannel.Buffer.Count >= 2, TestTimeoutMs));
                 }
             }
             var telemetries = server.BackChannel.Buffer;

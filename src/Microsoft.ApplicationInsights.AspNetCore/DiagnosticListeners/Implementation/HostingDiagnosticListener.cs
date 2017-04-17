@@ -95,7 +95,7 @@
                 requestTelemetry.Context.Operation.Id = Activity.Current?.RootId;
 
                 this.client.Initialize(requestTelemetry);
-                requestTelemetry.Start(Stopwatch.GetTimestamp());
+                requestTelemetry.Start();
                 httpContext.Features.Set(requestTelemetry);
                 IHeaderDictionary responseHeaders = httpContext.Response?.Headers;
                 if (responseHeaders != null &&
@@ -158,7 +158,7 @@
                     return;
                 }
 
-                telemetry.Stop(Stopwatch.GetTimestamp());
+                telemetry.Stop();
                 telemetry.ResponseCode = httpContext.Response.StatusCode.ToString();
 
                 var successExitCode = httpContext.Response.StatusCode < 400;
