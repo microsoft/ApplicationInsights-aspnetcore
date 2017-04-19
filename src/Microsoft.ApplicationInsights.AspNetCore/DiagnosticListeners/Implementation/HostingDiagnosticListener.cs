@@ -2,6 +2,7 @@
 {
     using System;
     using System.Diagnostics;
+    using System.Net.Http.Headers;
     using Microsoft.ApplicationInsights.AspNetCore.Extensions;
     using Microsoft.ApplicationInsights.DataContracts;
     using Microsoft.ApplicationInsights.Extensibility.Implementation;
@@ -17,6 +18,7 @@
         private readonly TelemetryClient client;
         private readonly ICorrelationIdLookupHelper correlationIdLookupHelper;
         private readonly string sdkVersion;
+        private const string ActivityCreatedByHostingDiagnosticListener = "ActivityCreatedByHostingDiagnosticListener";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="T:HostingDiagnosticListener"/> class.
@@ -41,10 +43,45 @@
         {
             if (this.client.IsEnabled())
             {
-                var requestTelemetry = new RequestTelemetry
+                var requestTelemetry = new RequestTelemetry();
+                var activity = new Activity(ActivityCreatedByHostingDiagnosticListener);
+
+                StringValues requestId;
+                StringValues standardRootId;
+                if (httpContext.Request.Headers.TryGetValue(RequestResponseHeaders.RequestIdHeader, out requestId))
                 {
-                    Id = httpContext.TraceIdentifier
-                };
+                    activity.SetParentId(requestId);
+                    requestTelemetry.Context.Operation.ParentId = requestId;
+
+                    string[] baggage = httpContext.Request.Headers.GetCommaSeparatedValues(RequestResponseHeaders.CorrelationContextHeader);
+                    if (baggage != StringValues.Empty)
+                    {
+                        foreach (var item in baggage)
+                        {
+                            NameValueHeaderValue baggageItem;
+                            if (NameValueHeaderValue.TryParse(item, out baggageItem))
+                            {
+                                activity.AddBaggage(baggageItem.Name, baggageItem.Value);
+                            }
+                        }
+                    }
+                } else if (httpContext.Request.Headers.TryGetValue(RequestResponseHeaders.StandardRootIdHeader, out standardRootId))
+                {
+                    activity.SetParentId(standardRootId);
+
+                    StringValues standardParentId;
+                    if (httpContext.Request.Headers.TryGetValue(RequestResponseHeaders.StandardParentIdHeader, out standardParentId))
+                    {
+                        requestTelemetry.Context.Operation.Id = standardParentId;
+                    }
+                }
+                activity.Start();
+                httpContext.Features.Set(activity);
+
+                requestTelemetry.Id = activity.Id;
+                requestTelemetry.Context.Operation.Id = activity.RootId;
+                requestTelemetry.Context.Operation.ParentId = activity.ParentId;
+
                 this.client.Initialize(requestTelemetry);
                 requestTelemetry.Start(timestamp);
                 httpContext.Features.Set(requestTelemetry);
@@ -132,6 +169,12 @@
                 telemetry.Url = httpContext.Request.GetUri();
                 telemetry.Context.GetInternalContext().SdkVersion = this.sdkVersion;
                 this.client.TrackRequest(telemetry);
+
+                var activity = httpContext?.Features.Get<Activity>();
+                if (activity != null && activity.OperationName == ActivityCreatedByHostingDiagnosticListener)
+                {
+                    activity.Stop();
+                }
             }
         }
 
