@@ -282,8 +282,6 @@ namespace Microsoft.ApplicationInsights.AspNetCore.Tests
             Assert.Equal(2, sentTelemetry.Count);
             var id1 = ((RequestTelemetry)sentTelemetry[0]).Id;
             var id2 = ((RequestTelemetry)sentTelemetry[1]).Id;
-            Assert.Equal(context1.TraceIdentifier, id1);
-            Assert.Equal(context2.TraceIdentifier, id2);
             Assert.NotEqual(id1, id2);
         }
 
