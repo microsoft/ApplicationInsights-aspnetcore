@@ -62,17 +62,22 @@
                             if (NameValueHeaderValue.TryParse(item, out baggageItem))
                             {
                                 activity.AddBaggage(baggageItem.Name, baggageItem.Value);
+                                if (!requestTelemetry.Context.Properties.ContainsKey(baggageItem.Name))
+                                {
+                                    requestTelemetry.Context.Properties[baggageItem.Name] = baggageItem.Value;
+                                }
                             }
                         }
                     }
-                } else if (httpContext.Request.Headers.TryGetValue(RequestResponseHeaders.StandardRootIdHeader, out standardRootId))
+                }
+                else if (httpContext.Request.Headers.TryGetValue(RequestResponseHeaders.StandardRootIdHeader, out standardRootId))
                 {
                     activity.SetParentId(standardRootId);
 
                     StringValues standardParentId;
                     if (httpContext.Request.Headers.TryGetValue(RequestResponseHeaders.StandardParentIdHeader, out standardParentId))
                     {
-                        requestTelemetry.Context.Operation.Id = standardParentId;
+                        requestTelemetry.Context.Operation.ParentId = standardParentId;
                     }
                 }
                 activity.Start();
@@ -80,7 +85,6 @@
 
                 requestTelemetry.Id = activity.Id;
                 requestTelemetry.Context.Operation.Id = activity.RootId;
-                requestTelemetry.Context.Operation.ParentId = activity.ParentId;
 
                 this.client.Initialize(requestTelemetry);
                 requestTelemetry.Start(timestamp);
