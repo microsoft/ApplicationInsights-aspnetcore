@@ -156,7 +156,7 @@ namespace Microsoft.ApplicationInsights.AspNetCore.Tests
         [Fact]
         public void OnBeginRequestCreateNewActivityAndInitializeRequestTelemetry()
         {
-            if (middleware.IsAspNetCore20)
+            if (HostingDiagnosticListener.IsAspNetCore20)
             {
                 return;
             }
@@ -177,7 +177,7 @@ namespace Microsoft.ApplicationInsights.AspNetCore.Tests
         [Fact]
         public void OnBeginRequestCreateNewActivityAndInitializeRequestTelemetryFromStandardHeader()
         {
-            if (middleware.IsAspNetCore20)
+            if (HostingDiagnosticListener.IsAspNetCore20)
             {
                 return;
             }
@@ -202,7 +202,7 @@ namespace Microsoft.ApplicationInsights.AspNetCore.Tests
         [Fact]
         public void OnBeginRequestCreateNewActivityAndInitializeRequestTelemetryFromRequestIdHeader()
         {
-            if (middleware.IsAspNetCore20)
+            if (HostingDiagnosticListener.IsAspNetCore20)
             {
                 return;
             }
@@ -230,7 +230,7 @@ namespace Microsoft.ApplicationInsights.AspNetCore.Tests
         [Fact]
         public void OnHttpRequestInStartInitializeTelemetryIfActivityParentIdIsNotNull()
         {
-            if (!middleware.IsAspNetCore20)
+            if (!HostingDiagnosticListener.IsAspNetCore20)
             {
                 return;
             }
@@ -264,7 +264,7 @@ namespace Microsoft.ApplicationInsights.AspNetCore.Tests
         [Fact]
         public void OnHttpRequestInStartCreateNewActivityIfParentIdIsNullAndHasStandardHeader()
         {
-            if (!middleware.IsAspNetCore20)
+            if (!HostingDiagnosticListener.IsAspNetCore20)
             {
                 return;
             }
@@ -443,7 +443,7 @@ namespace Microsoft.ApplicationInsights.AspNetCore.Tests
         [Fact]
         public void SimultaneousRequestsGetCorrectDurations()
         {
-            if (middleware.IsAspNetCore20)
+            if (HostingDiagnosticListener.IsAspNetCore20)
             {
                 return;
             }
@@ -476,7 +476,7 @@ namespace Microsoft.ApplicationInsights.AspNetCore.Tests
         [Fact]
         public void OnEndRequestSetsPreciseDurations()
         {
-            if (middleware.IsAspNetCore20)
+            if (HostingDiagnosticListener.IsAspNetCore20)
             {
                 return;
             }
@@ -501,7 +501,7 @@ namespace Microsoft.ApplicationInsights.AspNetCore.Tests
 
         private void HandleRequestBegin(HttpContext context, long timestamp)
         {
-            if (middleware.IsAspNetCore20)
+            if (HostingDiagnosticListener.IsAspNetCore20)
             {
                 middleware.OnHttpRequestInStart(context);
             }
@@ -513,7 +513,7 @@ namespace Microsoft.ApplicationInsights.AspNetCore.Tests
 
         private void HandleRequestEnd(HttpContext context, long timestamp)
         {
-            if (middleware.IsAspNetCore20)
+            if (HostingDiagnosticListener.IsAspNetCore20)
             {
                 middleware.OnHttpRequestInStop(context);
             }

@@ -18,10 +18,16 @@
     /// </summary>
     internal class HostingDiagnosticListener : IApplicationInsightDiagnosticListener
     {
+        /// <summary>
+        /// Determine whether the running AspNetCore Hosting version is 2.0 or higher. This will affect what DiagnosticSource events we receive.
+        /// To support AspNetCore 1.0 and 2.0, we listen to both old and new events.
+        /// If the running AspNetCore version is 2.0, both old and new events will be sent. In this case, we will ignore the old events.
+        /// </summary>
+        public static bool IsAspNetCore20 = typeof(WebHostBuilder).GetTypeInfo().Assembly.GetName().Version.Major >= 2;
+
         private readonly TelemetryClient client;
         private readonly ICorrelationIdLookupHelper correlationIdLookupHelper;
         private readonly string sdkVersion;
-        private bool? isAspNetCore20;
         private const string ActivityCreatedByHostingDiagnosticListener = "ActivityCreatedByHostingDiagnosticListener";
 
         /// <summary>
@@ -40,27 +46,6 @@
         public string ListenerName { get; } = "Microsoft.AspNetCore";
 
         /// <summary>
-        /// Determine whether the running AspNetCore Hosting version is 2.0 or higher. This will affect what DiagnosticSource events we receive.
-        /// To support AspNetCore 1.0 and 2.0, we listen to both old and new events.
-        /// If the running AspNetCore version is 2.0, both old and new events will be sent. In this case, we will ignore the old events.
-        /// </summary>
-        public bool IsAspNetCore20
-        {
-            get
-            {
-                if (isAspNetCore20.HasValue)
-                {
-                    return isAspNetCore20.Value;
-                }
-
-                var hostingVersion = typeof(WebHostBuilder).GetTypeInfo().Assembly.GetName().Version;
-                isAspNetCore20 = hostingVersion.Major >= 2;
-
-                return isAspNetCore20.Value;
-            }
-        }
-
-        /// <summary>
         /// Diagnostic event handler method for 'Microsoft.AspNetCore.Hosting.HttpRequestIn' event.
         /// </summary>
         [DiagnosticName("Microsoft.AspNetCore.Hosting.HttpRequestIn")]
@@ -77,6 +62,12 @@
         {
             if (this.client.IsEnabled())
             {
+                if (Activity.Current == null)
+                {
+                    AspNetCoreEventSource.Instance.LogHostingDiagnosticListenerOnHttpRequestInStartActivityNull();
+                    return;
+                }
+
                 var requestTelemetry = InitializeRequestTelemetryOnHttpRequestInStart(httpContext);
                 SetAppIdInResponseHeader(httpContext, requestTelemetry);
             }
@@ -153,17 +144,14 @@
         private RequestTelemetry InitializeRequestTelemetryOnHttpRequestInStart(HttpContext httpContext)
         {
             var requestTelemetry = new RequestTelemetry();
+            var currentActivity = Activity.Current;
 
-            if (Activity.Current == null)
-            {
-                AspNetCoreEventSource.Instance.LogHostingDiagnosticListenerOnHttpRequestInStartActivityNull();
-            }
-            else if (Activity.Current.ParentId != null)
+            if (currentActivity.ParentId != null)
             {
                 // The activity is initialized from the new "Request-Id" header
-                requestTelemetry.Context.Operation.ParentId = Activity.Current.ParentId;
+                requestTelemetry.Context.Operation.ParentId = currentActivity.ParentId;
 
-                foreach (var prop in Activity.Current.Baggage)
+                foreach (var prop in currentActivity.Baggage)
                 {
                     if (!requestTelemetry.Context.Properties.ContainsKey(prop.Key))
                     {
@@ -191,8 +179,9 @@
                 }
             }
 
-            requestTelemetry.Id = Activity.Current?.Id;
-            requestTelemetry.Context.Operation.Id = Activity.Current?.RootId;
+            currentActivity = Activity.Current;
+            requestTelemetry.Id = currentActivity.Id;
+            requestTelemetry.Context.Operation.Id = currentActivity.RootId;
 
             this.client.Initialize(requestTelemetry);
             requestTelemetry.Start();
