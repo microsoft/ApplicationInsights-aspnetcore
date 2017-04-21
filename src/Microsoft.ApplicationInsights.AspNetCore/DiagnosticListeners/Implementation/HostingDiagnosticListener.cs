@@ -68,7 +68,23 @@
                     return;
                 }
 
-                var requestTelemetry = InitializeRequestTelemetryOnHttpRequestInStart(httpContext);
+                var currentActivity = Activity.Current;
+                var isActivityCreatedFromRequestIdHeader = false;
+
+                StringValues xmsRequestRootId;
+                if (currentActivity.ParentId != null)
+                {
+                    isActivityCreatedFromRequestIdHeader = true;
+                }
+                else if (httpContext.Request.Headers.TryGetValue(RequestResponseHeaders.StandardRootIdHeader, out xmsRequestRootId))
+                {
+                    var activity = new Activity(ActivityCreatedByHostingDiagnosticListener);
+                    activity.SetParentId(xmsRequestRootId);
+                    activity.Start();
+                    httpContext.Features.Set(activity);
+                }
+
+                var requestTelemetry = InitializeRequestTelemetryFromActivity(httpContext, Activity.Current, isActivityCreatedFromRequestIdHeader, Stopwatch.GetTimestamp());
                 SetAppIdInResponseHeader(httpContext, requestTelemetry);
             }
         }
@@ -90,7 +106,38 @@
         {
             if (this.client.IsEnabled() && !IsAspNetCore20)
             {
-                var requestTelemetry = InitializeRequestTelemetryOnBeginRequest(httpContext, timestamp);
+                var activity = new Activity(ActivityCreatedByHostingDiagnosticListener);
+                var isActivityCreatedFromRequestIdHeader = false;
+
+                StringValues requestId;
+                StringValues standardRootId;
+                if (httpContext.Request.Headers.TryGetValue(RequestResponseHeaders.RequestIdHeader, out requestId))
+                {
+                    isActivityCreatedFromRequestIdHeader = true;
+                    activity.SetParentId(requestId);
+
+                    string[] baggage = httpContext.Request.Headers.GetCommaSeparatedValues(RequestResponseHeaders.CorrelationContextHeader);
+                    if (baggage != StringValues.Empty)
+                    {
+                        foreach (var item in baggage)
+                        {
+                            NameValueHeaderValue baggageItem;
+                            if (NameValueHeaderValue.TryParse(item, out baggageItem))
+                            {
+                                activity.AddBaggage(baggageItem.Name, baggageItem.Value);
+                            }
+                        }
+                    }
+                }
+                else if (httpContext.Request.Headers.TryGetValue(RequestResponseHeaders.StandardRootIdHeader, out standardRootId))
+                {
+                    activity.SetParentId(standardRootId);
+                }
+
+                activity.Start();
+                httpContext.Features.Set(activity);
+
+                var requestTelemetry = InitializeRequestTelemetryFromActivity(httpContext, activity, isActivityCreatedFromRequestIdHeader, timestamp);
                 SetAppIdInResponseHeader(httpContext, requestTelemetry);
             }
         }
@@ -116,7 +163,7 @@
             this.OnException(httpContext, exception);
 
             // In AspNetCore 1.0, when an exception is unhandled, it will only send UnhandledException event but not EndRequest event, so we need to EndRequest at here.
-            // In AspNetCore 2.0, after sending UnhandledException, it will stop the created activity, which will send HttpRequestIn.Stop event, so we just EndRequest at there.
+            // In AspNetCore 2.0, after sending UnhandledException, it will stop the created activity, which will send HttpRequestIn.Stop event, so we will just end the request there.
             if (!IsAspNetCore20)
             {
                 this.EndRequest(httpContext, Stopwatch.GetTimestamp());
@@ -141,17 +188,16 @@
             this.OnException(httpContext, exception);
         }
 
-        private RequestTelemetry InitializeRequestTelemetryOnHttpRequestInStart(HttpContext httpContext)
+        private RequestTelemetry InitializeRequestTelemetryFromActivity(HttpContext httpContext, Activity activity, bool isActivityCreatedFromRequestIdHeader, long timestamp)
         {
             var requestTelemetry = new RequestTelemetry();
-            var currentActivity = Activity.Current;
 
-            if (currentActivity.ParentId != null)
+            StringValues standardParentId;
+            if (isActivityCreatedFromRequestIdHeader)
             {
-                // The activity is initialized from the new "Request-Id" header
-                requestTelemetry.Context.Operation.ParentId = currentActivity.ParentId;
+                requestTelemetry.Context.Operation.ParentId = activity.ParentId;
 
-                foreach (var prop in currentActivity.Baggage)
+                foreach (var prop in activity.Baggage)
                 {
                     if (!requestTelemetry.Context.Properties.ContainsKey(prop.Key))
                     {
@@ -159,78 +205,10 @@
                     }
                 }
             }
-            else
+            else if (httpContext.Request.Headers.TryGetValue(RequestResponseHeaders.StandardParentIdHeader, out standardParentId))
             {
-                // The request doesn't have the new "Request-Id" header but the standard headers,
-                // we create a new activity and initialize it by the standard headers.
-                StringValues xmsRequestRootId;
-                if (httpContext.Request.Headers.TryGetValue(RequestResponseHeaders.StandardRootIdHeader, out xmsRequestRootId))
-                {
-                    var activity = new Activity(ActivityCreatedByHostingDiagnosticListener);
-                    activity.SetParentId(xmsRequestRootId);
-                    activity.Start();
-                    httpContext.Features.Set(activity);
-                }
-
-                StringValues xmsRequestId;
-                if (httpContext.Request.Headers.TryGetValue(RequestResponseHeaders.StandardParentIdHeader, out xmsRequestId))
-                {
-                    requestTelemetry.Context.Operation.ParentId = xmsRequestId;
-                }
+                requestTelemetry.Context.Operation.ParentId = standardParentId;
             }
-
-            currentActivity = Activity.Current;
-            requestTelemetry.Id = currentActivity.Id;
-            requestTelemetry.Context.Operation.Id = currentActivity.RootId;
-
-            this.client.Initialize(requestTelemetry);
-            requestTelemetry.Start();
-            httpContext.Features.Set(requestTelemetry);
-
-            return requestTelemetry;
-        }
-
-        private RequestTelemetry InitializeRequestTelemetryOnBeginRequest(HttpContext httpContext, long timestamp)
-        {
-            var requestTelemetry = new RequestTelemetry();
-            var activity = new Activity(ActivityCreatedByHostingDiagnosticListener);
-
-            StringValues requestId;
-            StringValues standardRootId;
-            if (httpContext.Request.Headers.TryGetValue(RequestResponseHeaders.RequestIdHeader, out requestId))
-            {
-                activity.SetParentId(requestId);
-                requestTelemetry.Context.Operation.ParentId = requestId;
-
-                string[] baggage = httpContext.Request.Headers.GetCommaSeparatedValues(RequestResponseHeaders.CorrelationContextHeader);
-                if (baggage != StringValues.Empty)
-                {
-                    foreach (var item in baggage)
-                    {
-                        NameValueHeaderValue baggageItem;
-                        if (NameValueHeaderValue.TryParse(item, out baggageItem))
-                        {
-                            activity.AddBaggage(baggageItem.Name, baggageItem.Value);
-                            if (!requestTelemetry.Context.Properties.ContainsKey(baggageItem.Name))
-                            {
-                                requestTelemetry.Context.Properties[baggageItem.Name] = baggageItem.Value;
-                            }
-                        }
-                    }
-                }
-            }
-            else if (httpContext.Request.Headers.TryGetValue(RequestResponseHeaders.StandardRootIdHeader, out standardRootId))
-            {
-                activity.SetParentId(standardRootId);
-
-                StringValues standardParentId;
-                if (httpContext.Request.Headers.TryGetValue(RequestResponseHeaders.StandardParentIdHeader, out standardParentId))
-                {
-                    requestTelemetry.Context.Operation.ParentId = standardParentId;
-                }
-            }
-            activity.Start();
-            httpContext.Features.Set(activity);
 
             requestTelemetry.Id = activity.Id;
             requestTelemetry.Context.Operation.Id = activity.RootId;
