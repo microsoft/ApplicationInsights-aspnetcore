@@ -172,6 +172,7 @@ namespace Microsoft.ApplicationInsights.AspNetCore.Tests
             Assert.Equal(requestTelemetry.Id, Activity.Current.Id);
             Assert.Equal(requestTelemetry.Context.Operation.Id, Activity.Current.RootId);
             Assert.Equal(requestTelemetry.Context.Operation.ParentId, Activity.Current.ParentId);
+            Assert.Null(requestTelemetry.Context.Operation.ParentId);
         }
 
         [Fact]
@@ -183,10 +184,10 @@ namespace Microsoft.ApplicationInsights.AspNetCore.Tests
             }
 
             HttpContext context = CreateContext(HttpRequestScheme, HttpRequestHost, "/Test", method: "POST");
-            var requestId = Guid.NewGuid().ToString();
-            var requestRootId = Guid.NewGuid().ToString();
-            context.Request.Headers[RequestResponseHeaders.StandardParentIdHeader] = requestId;
-            context.Request.Headers[RequestResponseHeaders.StandardRootIdHeader] = requestRootId;
+            var standardRequestId = Guid.NewGuid().ToString();
+            var standardRequestRootId = Guid.NewGuid().ToString();
+            context.Request.Headers[RequestResponseHeaders.StandardParentIdHeader] = standardRequestId;
+            context.Request.Headers[RequestResponseHeaders.StandardRootIdHeader] = standardRequestRootId;
 
             middleware.OnBeginRequest(context, 0);
 
@@ -195,8 +196,8 @@ namespace Microsoft.ApplicationInsights.AspNetCore.Tests
             var requestTelemetry = context.Features.Get<RequestTelemetry>();
             Assert.NotNull(requestTelemetry);
             Assert.Equal(requestTelemetry.Id, Activity.Current.Id);
-            Assert.Equal(requestTelemetry.Context.Operation.Id, requestRootId);
-            Assert.Equal(requestTelemetry.Context.Operation.ParentId, requestId);
+            Assert.Equal(requestTelemetry.Context.Operation.Id, standardRequestRootId);
+            Assert.Equal(requestTelemetry.Context.Operation.ParentId, standardRequestId);
         }
 
         [Fact]
@@ -209,7 +210,11 @@ namespace Microsoft.ApplicationInsights.AspNetCore.Tests
 
             HttpContext context = CreateContext(HttpRequestScheme, HttpRequestHost, "/Test", method: "POST");
             var requestId = Guid.NewGuid().ToString();
+            var standardRequestId = Guid.NewGuid().ToString();
+            var standardRequestRootId = Guid.NewGuid().ToString();
             context.Request.Headers[RequestResponseHeaders.RequestIdHeader] = requestId;
+            context.Request.Headers[RequestResponseHeaders.StandardParentIdHeader] = standardRequestId;
+            context.Request.Headers[RequestResponseHeaders.StandardRootIdHeader] = standardRequestRootId;
             context.Request.Headers[RequestResponseHeaders.CorrelationContextHeader] = "prop1=value1, prop2=value2";
 
             middleware.OnBeginRequest(context, 0);
@@ -222,7 +227,9 @@ namespace Microsoft.ApplicationInsights.AspNetCore.Tests
             Assert.NotNull(requestTelemetry);
             Assert.Equal(requestTelemetry.Id, Activity.Current.Id);
             Assert.Equal(requestTelemetry.Context.Operation.Id, Activity.Current.RootId);
+            Assert.NotEqual(requestTelemetry.Context.Operation.Id, standardRequestRootId);
             Assert.Equal(requestTelemetry.Context.Operation.ParentId, requestId);
+            Assert.NotEqual(requestTelemetry.Context.Operation.ParentId, standardRequestId);
             Assert.Equal(requestTelemetry.Context.Properties["prop1"], "value1");
             Assert.Equal(requestTelemetry.Context.Properties["prop2"], "value2");
         }
@@ -270,10 +277,10 @@ namespace Microsoft.ApplicationInsights.AspNetCore.Tests
             }
 
             var context = CreateContext(HttpRequestScheme, HttpRequestHost, "/Test", method: "POST");
-            var requestId = Guid.NewGuid().ToString();
-            var requestRootId = Guid.NewGuid().ToString();
-            context.Request.Headers[RequestResponseHeaders.StandardParentIdHeader] = requestId;
-            context.Request.Headers[RequestResponseHeaders.StandardRootIdHeader] = requestRootId;
+            var standardRequestId = Guid.NewGuid().ToString();
+            var standardRequestRootId = Guid.NewGuid().ToString();
+            context.Request.Headers[RequestResponseHeaders.StandardParentIdHeader] = standardRequestId;
+            context.Request.Headers[RequestResponseHeaders.StandardRootIdHeader] = standardRequestRootId;
 
             var activity = new Activity("operation");
             activity.Start();
@@ -282,7 +289,7 @@ namespace Microsoft.ApplicationInsights.AspNetCore.Tests
 
             var activityInitializedByStandardHeader = Activity.Current;
             Assert.NotEqual(activityInitializedByStandardHeader, activity);
-            Assert.Equal(activityInitializedByStandardHeader.ParentId, requestRootId);
+            Assert.Equal(activityInitializedByStandardHeader.ParentId, standardRequestRootId);
 
             middleware.OnHttpRequestInStop(context);
 
@@ -290,8 +297,8 @@ namespace Microsoft.ApplicationInsights.AspNetCore.Tests
             var requestTelemetry = this.sentTelemetry[0] as RequestTelemetry;
 
             Assert.Equal(requestTelemetry.Id, activityInitializedByStandardHeader.Id);
-            Assert.Equal(requestTelemetry.Context.Operation.Id, requestRootId);
-            Assert.Equal(requestTelemetry.Context.Operation.ParentId, requestId);
+            Assert.Equal(requestTelemetry.Context.Operation.Id, standardRequestRootId);
+            Assert.Equal(requestTelemetry.Context.Operation.ParentId, standardRequestId);
         }
 
         [Fact]
@@ -503,6 +510,11 @@ namespace Microsoft.ApplicationInsights.AspNetCore.Tests
         {
             if (HostingDiagnosticListener.IsAspNetCore20)
             {
+                if (Activity.Current == null)
+                {
+                    var activity = new Activity("operation");
+                    activity.Start();
+                }
                 middleware.OnHttpRequestInStart(context);
             }
             else
