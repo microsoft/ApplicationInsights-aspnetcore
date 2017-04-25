@@ -111,12 +111,13 @@
 
                 StringValues requestId;
                 StringValues standardRootId;
-                if (httpContext.Request.Headers.TryGetValue(RequestResponseHeaders.RequestIdHeader, out requestId))
+                IHeaderDictionary requestHeaders = httpContext.Request.Headers;
+                if (requestHeaders.TryGetValue(RequestResponseHeaders.RequestIdHeader, out requestId))
                 {
                     isActivityCreatedFromRequestIdHeader = true;
                     activity.SetParentId(requestId);
 
-                    string[] baggage = httpContext.Request.Headers.GetCommaSeparatedValues(RequestResponseHeaders.CorrelationContextHeader);
+                    string[] baggage = requestHeaders.GetCommaSeparatedValues(RequestResponseHeaders.CorrelationContextHeader);
                     if (baggage != StringValues.Empty)
                     {
                         foreach (var item in baggage)
@@ -129,7 +130,7 @@
                         }
                     }
                 }
-                else if (httpContext.Request.Headers.TryGetValue(RequestResponseHeaders.StandardRootIdHeader, out standardRootId))
+                else if (requestHeaders.TryGetValue(RequestResponseHeaders.StandardRootIdHeader, out standardRootId))
                 {
                     activity.SetParentId(standardRootId);
                 }
@@ -162,7 +163,7 @@
         {
             this.OnException(httpContext, exception);
 
-            // In AspNetCore 1.0, when an exception is unhandled, it will only send UnhandledException event but not EndRequest event, so we need to EndRequest at here.
+            // In AspNetCore 1.0, when an exception is unhandled it will only send the UnhandledException event, but not the EndRequest event, so we need to call EndRequest here.
             // In AspNetCore 2.0, after sending UnhandledException, it will stop the created activity, which will send HttpRequestIn.Stop event, so we will just end the request there.
             if (!IsAspNetCore20)
             {
