@@ -134,6 +134,7 @@
             services.AddSingleton<ITelemetryInitializer, WebSessionTelemetryInitializer>();
             services.AddSingleton<ITelemetryInitializer, WebUserTelemetryInitializer>();
             services.AddSingleton<ITelemetryInitializer, AspNetCoreEnvironmentTelemetryInitializer>();
+            services.AddSingleton<ITelemetryInitializer, HttpDependenciesParsingTelemetryInitializer>();
             services.AddSingleton<ITelemetryModule, DependencyTrackingTelemetryModule>();
 
 #if NET451
