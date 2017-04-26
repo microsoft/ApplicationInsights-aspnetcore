@@ -45,7 +45,7 @@ namespace SampleWebAppIntegration.FunctionalTest
                 });
 
                 var request = (RequestTelemetry)telemetries.Single(t => t is RequestTelemetry);
-                Assert.Equal(dependency.Context.Operation.Id, request.Context.Operation.Id);
+                Assert.Equal(request.Context.Operation.Id, dependency.Context.Operation.Id);
             }
             catch (Exception e)
             {
