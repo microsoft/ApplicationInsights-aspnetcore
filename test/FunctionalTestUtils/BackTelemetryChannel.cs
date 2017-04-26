@@ -1,6 +1,4 @@
-﻿using Microsoft.ApplicationInsights.DataContracts;
-
-namespace FunctionalTestUtils
+﻿namespace FunctionalTestUtils
 {
     using System;
     using System.Collections.Generic;

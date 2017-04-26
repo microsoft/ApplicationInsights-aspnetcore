@@ -1,4 +1,6 @@
-﻿namespace SampleWebAppIntegration.FunctionalTest
+﻿using System.Diagnostics;
+
+namespace SampleWebAppIntegration.FunctionalTest
 {
     using System;
     using System.Collections.Generic;
@@ -21,6 +23,7 @@
             // Verify operation of OperationIdTelemetryInitializer
             string path = "Home/Dependency";
             InProcessServer server;
+
             using (server = new InProcessServer(assemblyName, InProcessServer.UseApplicationInsights))
             {
                 using (var httpClient = new HttpClient())
