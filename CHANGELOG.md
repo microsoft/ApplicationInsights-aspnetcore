@@ -1,5 +1,24 @@
 # Changelog
 
+## Version 2.1.0-beta2
+
+- Updated to use the new correlation headers and changed the correlationId to use appId instead of hashed ikey to match other SDKs.
+- Fixed null reference exception for unitialized ILogger.
+- Unit test bug fixes.
+- Upgraded NETStandard.Library dependency to 1.6.1.
+- Updated to reference base SDK 2.4.0-beta2.
+- Included Microsoft.ApplicationInsights.DependencyCollector for .NET Core.
+
+## Version 2.1.0-beta1
+
+- Bug fixes
+- Removed UserAgentTelemetryInitializer and associated tests.
+- Added instrumentation key header
+- [Added OperationCorrelationTelemetryInitializer](https://github.com/Microsoft/ApplicationInsights-aspnetcore/issues/333)
+- [Set Id instead of OperationId for request dependency correlation](https://github.com/Microsoft/ApplicationInsights-aspnetcore/issues/340)
+- [Set Id in thread-safe location](https://github.com/Microsoft/ApplicationInsights-aspnetcore/issues/342)
+- Updated SDK version dependency to 2.3.0-beta3.
+
 ## Version 2.0.0
 
 - Added a configuration overload for AddApplicationInsightsTelemetry.

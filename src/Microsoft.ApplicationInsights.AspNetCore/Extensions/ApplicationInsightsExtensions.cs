@@ -9,6 +9,7 @@
     using Microsoft.ApplicationInsights.AspNetCore.Extensions;
     using Microsoft.ApplicationInsights.AspNetCore.Logging;
     using Microsoft.ApplicationInsights.AspNetCore.TelemetryInitializers;
+    using Microsoft.ApplicationInsights.DependencyCollector;
     using Microsoft.ApplicationInsights.Extensibility;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Http;
@@ -18,7 +19,6 @@
     using Microsoft.Extensions.Options;
 
 #if NET451
-    using Microsoft.ApplicationInsights.DependencyCollector;
     using Microsoft.ApplicationInsights.Extensibility.PerfCounterCollector;
 #endif
 
@@ -51,7 +51,7 @@
         /// <summary>
         /// Adds Application Insights services into service collection.
         /// </summary>
-        /// <param name="services">The <see cref="IServiceCollection"/> insance.</param>
+        /// <param name="services">The <see cref="IServiceCollection"/> instance.</param>
         /// <param name="instrumentationKey">Instrumentation key to use for telemetry.</param>
         /// <returns>The <see cref="IServiceCollection"/>.</returns>
         public static IServiceCollection AddApplicationInsightsTelemetry(this IServiceCollection services, string instrumentationKey)
@@ -63,7 +63,7 @@
         /// <summary>
         /// Adds Application Insights services into service collection.
         /// </summary>
-        /// <param name="services">The <see cref="IServiceCollection"/> insance.</param>
+        /// <param name="services">The <see cref="IServiceCollection"/> instance.</param>
         /// <param name="configuration">Configuration to use for sending telemetry.</param>
         /// <returns>The <see cref="IServiceCollection"/>.</returns>
         public static IServiceCollection AddApplicationInsightsTelemetry(this IServiceCollection services, IConfiguration configuration)
@@ -75,7 +75,7 @@
         /// <summary>
         /// Adds Application Insights services into service collection.
         /// </summary>
-        /// <param name="services">The <see cref="IServiceCollection"/> insance.</param>
+        /// <param name="services">The <see cref="IServiceCollection"/> instance.</param>
         /// <param name="options">The action used to configure the options.</param>
         /// <returns>
         /// The <see cref="IServiceCollection"/>.
@@ -90,7 +90,7 @@
         /// <summary>
         /// Adds Application Insights services into service collection.
         /// </summary>
-        /// <param name="services">The <see cref="IServiceCollection"/> insance.</param>
+        /// <param name="services">The <see cref="IServiceCollection"/> instance.</param>
         /// <param name="options">The options instance used to configure with.</param>
         /// <returns>
         /// The <see cref="IServiceCollection"/>.
@@ -115,7 +115,7 @@
         /// <summary>
         /// Adds Application Insights services into service collection.
         /// </summary>
-        /// <param name="services">The <see cref="IServiceCollection"/> insance.</param>
+        /// <param name="services">The <see cref="IServiceCollection"/> instance.</param>
         /// <param name="options">The action used to configure the options.</param>
         /// <returns>
         /// The <see cref="IServiceCollection"/>.
@@ -128,19 +128,21 @@
             services.AddSingleton<ITelemetryInitializer, DomainNameRoleInstanceTelemetryInitializer>();
             services.AddSingleton<ITelemetryInitializer, ComponentVersionTelemetryInitializer>();
             services.AddSingleton<ITelemetryInitializer, ClientIpHeaderTelemetryInitializer>();
-            services.AddSingleton<ITelemetryInitializer, OperationIdTelemetryInitializer>();
             services.AddSingleton<ITelemetryInitializer, OperationNameTelemetryInitializer>();
             services.AddSingleton<ITelemetryInitializer, ApplicationInsights.AspNetCore.TelemetryInitializers.OperationCorrelationTelemetryInitializer>();
             services.AddSingleton<ITelemetryInitializer, SyntheticTelemetryInitializer>();
             services.AddSingleton<ITelemetryInitializer, WebSessionTelemetryInitializer>();
             services.AddSingleton<ITelemetryInitializer, WebUserTelemetryInitializer>();
             services.AddSingleton<ITelemetryInitializer, AspNetCoreEnvironmentTelemetryInitializer>();
+            services.AddSingleton<ITelemetryInitializer, HttpDependenciesParsingTelemetryInitializer>();
+            services.AddSingleton<ITelemetryModule, DependencyTrackingTelemetryModule>();
 
 #if NET451
             services.AddSingleton<ITelemetryModule, PerformanceCollectorModule>();
-            services.AddSingleton<ITelemetryModule, DependencyTrackingTelemetryModule>();
 #endif
             services.AddSingleton<TelemetryConfiguration>(provider => provider.GetService<IOptions<TelemetryConfiguration>>().Value);
+
+            services.AddSingleton<ICorrelationIdLookupHelper>(provider => new CorrelationIdLookupHelper(() => provider.GetService<IOptions<TelemetryConfiguration>>().Value));
 
             services.AddSingleton<TelemetryClient>();
 
@@ -163,13 +165,13 @@
         }
 
         /// <summary>
-        /// Adds Application Insight specific configuration properties to <see cref="IConfigurationBuilder"/>
+        /// Adds Application Insight specific configuration properties to <see cref="IConfigurationBuilder"/>.
         /// </summary>
         /// <param name="configurationSourceRoot">The <see cref="IConfigurationBuilder"/> instance.</param>
-        /// <param name="developerMode">Enables or disables developer mode</param>
-        /// <param name="endpointAddress">Sets telemetry endpoint address</param>
-        /// <param name="instrumentationKey">Sets instrumentation key</param>
-        /// <returns>The <see cref="IConfigurationBuilder"/></returns>
+        /// <param name="developerMode">Enables or disables developer mode.</param>
+        /// <param name="endpointAddress">Sets telemetry endpoint address.</param>
+        /// <param name="instrumentationKey">Sets instrumentation key.</param>
+        /// <returns>The <see cref="IConfigurationBuilder"/>.</returns>
         public static IConfigurationBuilder AddApplicationInsightsSettings(
             this IConfigurationBuilder configurationSourceRoot,
             bool? developerMode = null,
@@ -221,7 +223,7 @@
         /// Values can also be read from environment variables to support azure web sites configuration:
         /// </summary>
         /// <param name="config">Configuration to read variables from.</param>
-        /// <param name="serviceOptions">Telemetry configuration to populate</param>
+        /// <param name="serviceOptions">Telemetry configuration to populate.</param>
         internal static void AddTelemetryConfiguration(IConfiguration config, ApplicationInsightsServiceOptions serviceOptions)
         {
             string instrumentationKey = config[InstrumentationKeyForWebSites];
