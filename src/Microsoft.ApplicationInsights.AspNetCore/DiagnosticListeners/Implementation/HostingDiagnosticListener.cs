@@ -285,17 +285,15 @@
                 var telemetry = httpContext?.Features.Get<RequestTelemetry>();
                 if (telemetry != null)
                 {
-                    telemetry.Success = false;
+                    if (int.TryParse(telemetry.ResponseCode, out int _responseCode))
+                    {
+                        telemetry.Success = !(_responseCode == 200);
+                    }
                 }
 
                 var exceptionTelemetry = new ExceptionTelemetry(exception);
                 exceptionTelemetry.HandledAt = ExceptionHandledAt.Platform;
                 exceptionTelemetry.Context.GetInternalContext().SdkVersion = this.sdkVersion;
-
-                if (int.TryParse(telemetry.ResponseCode, out int _responseCode))
-                {
-                    telemetry.Success = !(_responseCode == 200);
-                }
 
                 this.client.Track(exceptionTelemetry);
             }
