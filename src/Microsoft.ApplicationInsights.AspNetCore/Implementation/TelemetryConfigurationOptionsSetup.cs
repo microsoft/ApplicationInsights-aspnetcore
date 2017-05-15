@@ -49,7 +49,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 configuration.InstrumentationKey = this.applicationInsightsServiceOptions.InstrumentationKey;
             }
 
-            if (this.telemetryProcessorFactories.Count() > 0)
+            if (this.telemetryProcessorFactories.Any())
             {
                 foreach (Func<ITelemetryProcessor, ITelemetryProcessor> processorFactory in this.telemetryProcessorFactories)
                 {
