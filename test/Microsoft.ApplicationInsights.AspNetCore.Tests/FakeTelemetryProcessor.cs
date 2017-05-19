@@ -16,14 +16,14 @@
             }
 
             this.next = next;
-            this.Initialized = false;
+            this.IsInitialized = false;
         }
 
-        public bool Initialized { get; private set; }
+        public bool IsInitialized { get; private set; }
 
         public void Initialize(TelemetryConfiguration configuration)
         {
-            this.Initialized = true;
+            this.IsInitialized = true;
         }
 
         public void Process(ITelemetry item)
