@@ -31,6 +31,8 @@ namespace Microsoft.ApplicationInsights.AspNetCore.DiagnosticListeners
                 {
                     name = httpContext.Request.Method + " " + name;
                     telemetry.Name = name;
+                    // Append the name to HttpContext.TraceIdentifier so that it can be consumsed by other parties through System.Diagnostics.DiagnosticSourceEventSource
+                    httpContext.TraceIdentifier += "|" + name;
                 }
             }
         }

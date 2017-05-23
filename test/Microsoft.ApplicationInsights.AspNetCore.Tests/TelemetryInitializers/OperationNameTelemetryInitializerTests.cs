@@ -1,12 +1,10 @@
-﻿using Microsoft.ApplicationInsights.AspNetCore.DiagnosticListeners;
-
-namespace Microsoft.ApplicationInsights.AspNetCore.Tests.TelemetryInitializers
+﻿namespace Microsoft.ApplicationInsights.AspNetCore.Tests.TelemetryInitializers
 {
     using System;
     using System.Diagnostics;
-    using System.Diagnostics.Tracing;
     using Microsoft.ApplicationInsights.AspNetCore.TelemetryInitializers;
     using Microsoft.ApplicationInsights.AspNetCore.Tests.Helpers;
+    using Microsoft.ApplicationInsights.AspNetCore.DiagnosticListeners;
     using Microsoft.ApplicationInsights.DataContracts;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Http.Internal;
