@@ -144,7 +144,10 @@ namespace Microsoft.ApplicationInsights.AspNetCore.Tests
             Assert.IsType<RequestTelemetry>(this.sentTelemetry[1]);
             RequestTelemetry requestTelemetry = this.sentTelemetry[1] as RequestTelemetry;
             Assert.True(requestTelemetry.Duration.TotalMilliseconds >= 0);
-            Assert.False(requestTelemetry.Success);
+
+            bool? SuccessStatus = Int32.Parse(requestTelemetry.ResponseCode) == 200;
+            SuccessStatus &= !requestTelemetry.Success;
+            Assert.False(!SuccessStatus);
             Assert.Equal(CommonMocks.InstrumentationKey, requestTelemetry.Context.InstrumentationKey);
             Assert.Equal("", requestTelemetry.Source);
             Assert.Equal("", requestTelemetry.HttpMethod);
