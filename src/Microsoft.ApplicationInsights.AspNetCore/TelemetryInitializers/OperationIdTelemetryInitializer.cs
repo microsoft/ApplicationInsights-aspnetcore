@@ -15,7 +15,7 @@
         {
             if (string.IsNullOrEmpty(telemetry.Context.Operation.Id))
             {
-                telemetry.Context.Operation.Id = requestTelemetry.Id;
+                telemetry.Context.Operation.Id = requestTelemetry.Context.Operation.Id ?? requestTelemetry.Id;
             }
         }
     }
