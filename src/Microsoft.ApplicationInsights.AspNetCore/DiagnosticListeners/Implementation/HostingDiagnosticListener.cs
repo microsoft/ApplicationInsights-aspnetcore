@@ -41,7 +41,7 @@
                 httpContext.Features.Set(new RequestTelemetry());
 
                 this.beginRequestTimestamp.Value = timestamp;
-                this.client.Context.Operation.Id = httpContext.TraceIdentifier;
+                this.client.Context.Operation.Id = httpContext.TraceIdentifier = new Guid().ToString();
             }
         }
 
