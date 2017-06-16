@@ -1,5 +1,9 @@
 # Changelog
 
+## Version 2.0.1
+
+- Removed using TraceIdentifier for request operation Id to fix correlation and sampling issues.
+
 ## Version 2.0.0
 
 - Added a configuration overload for AddApplicationInsightsTelemetry.
