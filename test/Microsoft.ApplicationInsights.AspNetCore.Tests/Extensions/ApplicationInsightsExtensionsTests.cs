@@ -578,7 +578,7 @@ namespace Microsoft.Extensions.DependencyInjection.Test
             var services = ApplicationInsightsExtensionsTests.GetServiceCollectionWithContextAccessor();
             if (addChannel)
             {
-                services.AddSingleton<ITelemetryChannel>(new ServerTelemetryChannel());
+                services.AddSingleton<ITelemetryChannel>(new InMemoryChannel());
             }
             IConfigurationRoot config = null;
 

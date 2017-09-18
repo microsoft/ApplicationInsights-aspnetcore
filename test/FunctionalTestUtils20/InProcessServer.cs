@@ -3,6 +3,7 @@
     using System;
     using System.IO;
     using Microsoft.ApplicationInsights.Channel;
+    using Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.DependencyInjection;    
 
@@ -18,13 +19,22 @@
         private IWebHost hostingEngine;
         private string url;
 
-        private readonly BackTelemetryChannel backChannel;
+        private TelemetryHttpListenerObservable listener;
+        private readonly ServerTelemetryChannel channel;
 
-        public BackTelemetryChannel BackChannel
+        public ServerTelemetryChannel Channel
         {
             get
             {
-                return this.backChannel;
+                return this.channel;
+            }
+        }
+
+        public TelemetryHttpListenerObservable Listener
+        {
+            get
+            {
+                return this.listener;
             }
         }
 
@@ -33,7 +43,11 @@
             this.configureHost = configureHost;
             var machineName = Environment.GetEnvironmentVariable("COMPUTERNAME");
             this.url = "http://" + machineName + ":" + random.Next(5000, 14000).ToString();
-            this.backChannel = this.Start(assemblyName);
+
+            this.listener = new TelemetryHttpListenerObservable(url);
+            this.listener.Start();
+
+            this.channel = this.Start(assemblyName);
         }
 
         public string BaseHost
@@ -46,7 +60,7 @@
 
         public IServiceProvider ApplicationServices { get; private set; }
 
-        private BackTelemetryChannel Start(string assemblyName)
+        private ServerTelemetryChannel Start(string assemblyName)
         {
             var builder = new WebHostBuilder()
                 .UseContentRoot(Directory.GetCurrentDirectory())
@@ -64,11 +78,16 @@
             this.hostingEngine.Start();
 
             this.ApplicationServices = this.hostingEngine.Services;
-            return (BackTelemetryChannel)this.hostingEngine.Services.GetService<ITelemetryChannel>();
+            return (ServerTelemetryChannel)this.hostingEngine.Services.GetService<ITelemetryChannel>();
         }
 
         public void Dispose()
         {
+            if (this.listener != null)
+            {
+                this.listener.Stop();
+            }
+
             if (this.hostingEngine != null)
             {
                 this.hostingEngine.Dispose();

@@ -74,19 +74,19 @@ namespace MVCFramework20.FunctionalTests.FunctionalTest
                 }
             }
 
-            var telemetries = server.BackChannel.Buffer;
-            try
-            {
-                Assert.True(telemetries.Count >= 2);
-                var requestTelemetry = telemetries.OfType<RequestTelemetry>().Single();
-                var dependencyTelemetry = telemetries.OfType<DependencyTelemetry>().First(t => t.Name == "MyDependency");
-                Assert.Equal(requestTelemetry.Context.Operation.Id, dependencyTelemetry.Context.Operation.Id);
-            }
-            catch (Exception e)
-            {
-                string data = DebugTelemetryItems(telemetries);
-                throw new Exception(data, e);
-            }
+            //var telemetries = server.BackChannel.Buffer;
+            //try
+            //{
+            //    Assert.True(telemetries.Count >= 2);
+            //    var requestTelemetry = telemetries.OfType<RequestTelemetry>().Single();
+            //    var dependencyTelemetry = telemetries.OfType<DependencyTelemetry>().First(t => t.Name == "MyDependency");
+            //    Assert.Equal(requestTelemetry.Context.Operation.Id, dependencyTelemetry.Context.Operation.Id);
+            //}
+            //catch (Exception e)
+            //{
+            //    string data = DebugTelemetryItems(telemetries);
+            //    throw new Exception(data, e);
+            //}
         }
 
         [Fact]
@@ -106,19 +106,19 @@ namespace MVCFramework20.FunctionalTests.FunctionalTest
             }
 
             // Filter out any unexpected telemetry items.
-            IEnumerable<ITelemetry> telemetries = server.BackChannel.Buffer.Where((t) => t.Context?.Operation?.Name != null && t.Context.Operation.Name.Contains(path));
-            try
-            {
-                Assert.NotNull(telemetries);
-                var requestTelemetry = telemetries.OfType<RequestTelemetry>().Single();
-                var dependencyTelemetry = telemetries.First(t => t is DependencyTelemetry && (t as DependencyTelemetry).Name == "MyDependency");
-                Assert.Equal(requestTelemetry.Id, dependencyTelemetry.Context.Operation.ParentId);
-            }
-            catch (Exception e)
-            {
-                string data = DebugTelemetryItems(server.BackChannel.Buffer);
-                throw new Exception(data, e);
-            }
+            //IEnumerable<ITelemetry> telemetries = server.BackChannel.Buffer.Where((t) => t.Context?.Operation?.Name != null && t.Context.Operation.Name.Contains(path));
+            //try
+            //{
+            //    Assert.NotNull(telemetries);
+            //    var requestTelemetry = telemetries.OfType<RequestTelemetry>().Single();
+            //    var dependencyTelemetry = telemetries.First(t => t is DependencyTelemetry && (t as DependencyTelemetry).Name == "MyDependency");
+            //    Assert.Equal(requestTelemetry.Id, dependencyTelemetry.Context.Operation.ParentId);
+            //}
+            //catch (Exception e)
+            //{
+            //    string data = DebugTelemetryItems(server.BackChannel.Buffer);
+            //    throw new Exception(data, e);
+            //}
         }
 
         private string DebugTelemetryItems(IList<ITelemetry> telemetries)

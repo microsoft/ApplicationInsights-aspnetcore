@@ -99,7 +99,6 @@ namespace Microsoft.Extensions.DependencyInjection
 
         private void AddTelemetryChannelAndProcessors(TelemetryConfiguration configuration)
         {
-#if NET451 || NET46
             configuration.TelemetryChannel = this.telemetryChannel ?? new ServerTelemetryChannel();
 
             if (configuration.TelemetryChannel is ServerTelemetryChannel)
@@ -119,7 +118,7 @@ namespace Microsoft.Extensions.DependencyInjection
                     });
                 }
             }
-#endif
+
             if (this.applicationInsightsServiceOptions.EnableAdaptiveSampling)
             {
                 configuration.TelemetryProcessorChainBuilder.UseAdaptiveSampling();
