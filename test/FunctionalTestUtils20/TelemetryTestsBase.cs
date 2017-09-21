@@ -11,6 +11,7 @@
     using AI;
     using Microsoft.ApplicationInsights.DataContracts;
     using Microsoft.AspNetCore.Hosting;
+    using Microsoft.ApplicationInsights.Channel;
     using Microsoft.Extensions.DependencyInjection;
     using Xunit;
     using Xunit.Abstractions;
