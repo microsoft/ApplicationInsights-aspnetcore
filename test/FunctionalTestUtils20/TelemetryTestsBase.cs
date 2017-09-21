@@ -128,15 +128,8 @@
                 var timer = timerField.GetValue(perfModule);
                 timerField.FieldType.InvokeMember("ScheduleNextTick", BindingFlags.InvokeMethod | BindingFlags.Public | BindingFlags.Instance, null, timer, new object[] { TimeSpan.FromMilliseconds(10) });
 
-                DateTime timeout = DateTime.UtcNow.AddMilliseconds(TestTimeoutMs);
-                int numberOfCountersSent = 0;
-                do
-                {
-                    Thread.Sleep(1000);
-                    //numberOfCountersSent += server.Channel.Buffer.OfType<MetricTelemetry>().Distinct().Count();
-                } while (numberOfCountersSent == 0 && DateTime.UtcNow < timeout);
-
-                Assert.True(numberOfCountersSent > 0);
+                var actual = server.Listener.ReceiveItems(TestTimeoutMs);
+                Assert.True(actual.Length > 0);
             }
         }
 #endif

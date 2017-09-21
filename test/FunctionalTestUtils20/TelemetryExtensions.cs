@@ -58,6 +58,20 @@ namespace FunctionalTestUtils
 
         public static T[] ReceiveItemsOfType<T>(
             this TelemetryHttpListenerObservable listener,
+            int timeOut)
+        {
+            var result = listener
+                .Where(item => (item is TelemetryItem<T>))
+                .Select(item => ((TelemetryItem<T>)item).data.baseData)
+                .TakeUntil(DateTimeOffset.UtcNow.AddMilliseconds(timeOut))
+                .ToEnumerable()
+                .ToArray();
+           
+            return result;
+        }
+
+        public static T[] ReceiveItemsOfType<T>(
+            this TelemetryHttpListenerObservable listener,
             int count,
             int timeOut)
         {
