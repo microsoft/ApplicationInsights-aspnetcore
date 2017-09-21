@@ -24,13 +24,14 @@
             try
             {
                 var request = context.Request;
-                var content = request.GetContent();
+
+                string content = string.Empty;
 
                 if (!string.IsNullOrWhiteSpace(request.Headers["Content-Encoding"]) &&
                     string.Equals("gzip", request.Headers["Content-Encoding"],
                         StringComparison.InvariantCultureIgnoreCase))
                 {
-                    content = Decompress(content);
+                    content = Decompress(request);
                 }
 
                 Trace.WriteLine("=>");
@@ -50,28 +51,12 @@
         /// </summary>
         /// <param name="content"></param>
         /// <returns></returns>
-        private static string Decompress(string content)
+        private static string Decompress(HttpListenerRequest request)
         {
-            var zippedData = Encoding.Default.GetBytes(content);
-            using (var ms = new MemoryStream(zippedData))
+            var gzipStream = new GZipStream(request.InputStream, CompressionMode.Decompress);
+            using (var streamReader = new StreamReader(gzipStream, request.ContentEncoding))
             {
-                using (var compressedzipStream = new GZipStream(ms, CompressionMode.Decompress))
-                {
-                    var outputStream = new MemoryStream();
-                    var block = new byte[1024];
-                    while (true)
-                    {
-                        int bytesRead = compressedzipStream.Read(block, 0, block.Length);
-                        if (bytesRead <= 0)
-                        {
-                            break;
-                        }
-
-                        outputStream.Write(block, 0, bytesRead);
-                    }
-                    compressedzipStream.Close();
-                    return Encoding.UTF8.GetString(outputStream.ToArray());
-                }
+                return streamReader.ReadToEnd();
             }
         }        
     }

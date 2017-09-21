@@ -2,10 +2,7 @@
 {
     using System;
     using System.IO;
-    using Microsoft.ApplicationInsights.Channel;
-    using Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel;
     using Microsoft.AspNetCore.Hosting;
-    using Microsoft.Extensions.DependencyInjection;    
 
     // a variant of aspnet/Hosting/test/Microsoft.AspNetCore.Hosting.Tests/HostingEngineTests.cs
     public class InProcessServer : IDisposable
@@ -19,15 +16,20 @@
         private IWebHost hostingEngine;
         private string url;
 
-        private TelemetryHttpListenerObservable listener;
-        private readonly ServerTelemetryChannel channel;
+        private TelemetryHttpListenerObservable listener;       
+        
 
-        public ServerTelemetryChannel Channel
+        public InProcessServer(string assemblyName, Func<IWebHostBuilder, IWebHostBuilder> configureHost = null)
         {
-            get
-            {
-                return this.channel;
-            }
+            this.configureHost = configureHost;
+
+            var machineName = Environment.GetEnvironmentVariable("COMPUTERNAME");
+            this.url = "http://" + machineName + ":" + random.Next(5000, 14000).ToString();
+
+            this.listener = new TelemetryHttpListenerObservable("http://localhost:4001/v2/track/");
+            this.listener.Start();
+
+            this.Start(assemblyName);
         }
 
         public TelemetryHttpListenerObservable Listener
@@ -36,18 +38,6 @@
             {
                 return this.listener;
             }
-        }
-
-        public InProcessServer(string assemblyName, Func<IWebHostBuilder, IWebHostBuilder> configureHost = null)
-        {
-            this.configureHost = configureHost;
-            var machineName = Environment.GetEnvironmentVariable("COMPUTERNAME");
-            this.url = "http://" + machineName + ":" + random.Next(5000, 14000).ToString();
-
-            this.listener = new TelemetryHttpListenerObservable(url);
-            this.listener.Start();
-
-            this.channel = this.Start(assemblyName);
         }
 
         public string BaseHost
@@ -60,7 +50,7 @@
 
         public IServiceProvider ApplicationServices { get; private set; }
 
-        private ServerTelemetryChannel Start(string assemblyName)
+        private void Start(string assemblyName)
         {
             var builder = new WebHostBuilder()
                 .UseContentRoot(Directory.GetCurrentDirectory())
@@ -78,7 +68,6 @@
             this.hostingEngine.Start();
 
             this.ApplicationServices = this.hostingEngine.Services;
-            return (ServerTelemetryChannel)this.hostingEngine.Services.GetService<ITelemetryChannel>();
         }
 
         public void Dispose()
