@@ -7,6 +7,8 @@
     // a variant of aspnet/Hosting/test/Microsoft.AspNetCore.Hosting.Tests/HostingEngineTests.cs
     public class InProcessServer : IDisposable
     {
+        private const string httpListenerConnectionString = "http://localhost:4001/v2/track/";
+
         private static Random random = new Random();
 
         public static Func<IWebHostBuilder, IWebHostBuilder> UseApplicationInsights =
@@ -26,7 +28,7 @@
             var machineName = Environment.GetEnvironmentVariable("COMPUTERNAME");
             this.url = "http://" + machineName + ":" + random.Next(5000, 14000).ToString();
 
-            this.listener = new TelemetryHttpListenerObservable("http://localhost:4001/v2/track/");
+            this.listener = new TelemetryHttpListenerObservable(httpListenerConnectionString);
             this.listener.Start();
 
             this.Start(assemblyName);
