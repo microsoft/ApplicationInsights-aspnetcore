@@ -72,7 +72,7 @@
                     task.Wait(TestTimeoutMs);
                 }
 
-                var actual = server.Listener.ReceiveItems(TestListenerTimeoutInMs);
+                var actual = server.Execute<Envelope>(() => server.Listener.ReceiveItems(TestListenerTimeoutInMs));
 
                 try
                 {
@@ -108,7 +108,7 @@
                     task.Wait(TestTimeoutMs);
                 }
 
-                var actual = server.Listener.ReceiveItems(TestListenerTimeoutInMs);
+                var actual = server.Execute<Envelope>(() => server.Listener.ReceiveItems(TestListenerTimeoutInMs));
 
                 try
                 {

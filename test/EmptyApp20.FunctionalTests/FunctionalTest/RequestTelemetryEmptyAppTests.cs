@@ -62,7 +62,7 @@
                     task.Wait(TestTimeoutMs);
                 }
 
-                var telemetries = server.Listener.ReceiveItems(5, TestListenerTimeoutInMs);
+                var telemetries = server.Execute<Envelope>(() => server.Listener.ReceiveItems(5, TestListenerTimeoutInMs));
                 Assert.True(telemetries.Length >= 5);
 
                 Assert.Contains(telemetries.OfType<TelemetryItem<RemoteDependencyData>>(), 

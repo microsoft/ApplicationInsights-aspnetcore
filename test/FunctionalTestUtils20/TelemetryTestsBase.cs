@@ -23,10 +23,7 @@
     public abstract class TelemetryTestsBase
     {
         public const int TestListenerTimeoutInMs = 5000;
-
-        protected const int TestTimeoutMs = 10000;        
-        private object noParallelism = new object();
-
+        protected const int TestTimeoutMs = 10000;
         protected readonly ITestOutputHelper output;
         
         public TelemetryTestsBase(ITestOutputHelper output)
@@ -37,34 +34,31 @@
         [MethodImpl(MethodImplOptions.NoOptimization)]
         public void ValidateBasicRequest(InProcessServer server, string requestPath, RequestTelemetry expected)
         {
-            lock (noParallelism)
+            // Subtract 50 milliseconds to hack around strange behavior on build server where the RequestTelemetry.Timestamp is somehow sometimes earlier than now by a few milliseconds.
+            expected.Timestamp = DateTimeOffset.Now.Subtract(TimeSpan.FromMilliseconds(50));
+            Stopwatch timer = Stopwatch.StartNew();
+
+            var httpClientHandler = new HttpClientHandler();
+            httpClientHandler.UseDefaultCredentials = true;
+
+            Task<HttpResponseMessage> task;
+            using (HttpClient httpClient = new HttpClient(httpClientHandler, true))
             {
-                // Subtract 50 milliseconds to hack around strange behavior on build server where the RequestTelemetry.Timestamp is somehow sometimes earlier than now by a few milliseconds.
-                expected.Timestamp = DateTimeOffset.Now.Subtract(TimeSpan.FromMilliseconds(50));
-                Stopwatch timer = Stopwatch.StartNew();
-
-                var httpClientHandler = new HttpClientHandler();
-                httpClientHandler.UseDefaultCredentials = true;
-
-                Task<HttpResponseMessage> task;
-                using (HttpClient httpClient = new HttpClient(httpClientHandler, true))
-                {
-                    task = httpClient.GetAsync(server.BaseHost + requestPath);
-                    task.Wait(TestTimeoutMs);
-                }
-
-                timer.Stop();
-
-                var actual = server.Listener.ReceiveItemsOfType<RequestData>(1, TestListenerTimeoutInMs)[0];
-
-                Assert.Equal(expected.ResponseCode, actual.responseCode);
-                Assert.Equal(expected.Name, actual.name);
-                Assert.Equal(expected.Success, actual.success);
-                Assert.Equal(expected.Url, new Uri(actual.url));
-                output.WriteLine("actual.Duration: " + actual.duration);
-                output.WriteLine("timer.Elapsed: " + timer.Elapsed);
-                Assert.True(TimeSpan.Parse(actual.duration) < timer.Elapsed.Add(TimeSpan.FromMilliseconds(20)), "duration");
+                task = httpClient.GetAsync(server.BaseHost + requestPath);
+                task.Wait(TestTimeoutMs);
             }
+
+            timer.Stop();
+
+            var actual = server.Execute<RequestData>(() => server.Listener.ReceiveItemsOfType<RequestData>(1, TestListenerTimeoutInMs))[0];
+
+            Assert.Equal(expected.ResponseCode, actual.responseCode);
+            Assert.Equal(expected.Name, actual.name);
+            Assert.Equal(expected.Success, actual.success);
+            Assert.Equal(expected.Url, new Uri(actual.url));
+            output.WriteLine("actual.Duration: " + actual.duration);
+            output.WriteLine("timer.Elapsed: " + timer.Elapsed);
+            Assert.True(TimeSpan.Parse(actual.duration) < timer.Elapsed.Add(TimeSpan.FromMilliseconds(20)), "duration");
         }
 
         public void ValidateBasicException(InProcessServer server, string requestPath, ExceptionTelemetry expected)
@@ -80,7 +74,7 @@
             }
             var result = task.Result;
 
-            var actual = server.Listener.ReceiveItemsOfType<ExceptionData>(1, TestListenerTimeoutInMs)[0];
+            var actual = server.Execute<ExceptionData>(() => server.Listener.ReceiveItemsOfType<ExceptionData>(1, TestListenerTimeoutInMs))[0];
             
             Assert.Equal(expected.Exception.GetType().ToString(), actual.exceptions[0].typeName);
             Assert.NotEmpty(actual.exceptions[0].parsedStack);
@@ -99,7 +93,7 @@
             }
             var result = task.Result;
 
-            var actual = server.Listener.ReceiveItems(2, TestListenerTimeoutInMs);
+            var actual = server.Execute<Envelope>(() => server.Listener.ReceiveItems(2, TestListenerTimeoutInMs));
 
             var dependencyTelemetry = actual.OfType<TelemetryItem<RemoteDependencyData>>().FirstOrDefault();
             Assert.NotNull(dependencyTelemetry);
@@ -129,7 +123,7 @@
                 var timer = timerField.GetValue(perfModule);
                 timerField.FieldType.InvokeMember("ScheduleNextTick", BindingFlags.InvokeMethod | BindingFlags.Public | BindingFlags.Instance, null, timer, new object[] { TimeSpan.FromMilliseconds(10) });
 
-                var actual = server.Listener.ReceiveItems(TestTimeoutMs);
+                var actual = server.Execute<Envelope>(() => server.Listener.ReceiveItems(TestListenerTimeoutInMs));
                 Assert.True(actual.Length > 0);
             }
         }
