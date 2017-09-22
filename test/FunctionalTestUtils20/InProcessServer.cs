@@ -11,7 +11,7 @@
         private const string httpListenerConnectionString = "http://localhost:4001/v2/track/";
 
         private static Random random = new Random();
-        private object noParallelism = new object();
+        private static object noParallelism = new object();
 
         public static Func<IWebHostBuilder, IWebHostBuilder> UseApplicationInsights =
             builder => builder.UseApplicationInsights();
