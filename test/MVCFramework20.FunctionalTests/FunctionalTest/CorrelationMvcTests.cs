@@ -21,6 +21,7 @@
         [Fact]
         public void CorrelationInfoIsPropagatedToDependendedService()
         {
+#if netcoreapp2_0 // Correlation works on .Net core.
             using (var server = new InProcessServer(assemblyName, InProcessServer.UseApplicationInsights))
             {
                 using (var httpClient = new HttpClient())
@@ -40,6 +41,7 @@
                 Assert.Equal(requestTelemetry.tags["ai.operation.id"], dependencyTelemetry.tags["ai.operation.id"]);
                 Assert.Contains(dependencyTelemetry.tags["ai.operation.id"], requestTelemetry.tags["ai.operation.parentId"]);               
             }
+#endif
         }
     }
 }
