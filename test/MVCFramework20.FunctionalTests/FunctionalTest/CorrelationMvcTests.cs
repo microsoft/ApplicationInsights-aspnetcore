@@ -30,7 +30,7 @@
                     task.Wait(TestTimeoutMs);
                 }
 
-                var actual = server.Listener.ReceiveItems(2, TestListenerTimeoutInMs);
+                var actual = server.Execute<Envelope>(() => server.Listener.ReceiveItems(2, TestListenerTimeoutInMs));
 
                 var dependencyTelemetry = actual.OfType<TelemetryItem<RemoteDependencyData>>().FirstOrDefault();
                 Assert.NotNull(dependencyTelemetry);                         
