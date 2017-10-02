@@ -13,7 +13,7 @@
 
         public EndpointAddress()
         {
-            this.ConnectionString = string.Format(httpListenerConnectionString, random.Next(1000, 5000).ToString());
+            this.ConnectionString = string.Format(httpListenerConnectionString, random.Next(2000, 5000).ToString());
         }
 
         public string ConnectionString { get; }
