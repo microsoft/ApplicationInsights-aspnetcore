@@ -43,7 +43,7 @@ namespace ApplicationInsightsJavaScriptSnippetTest
                     {
                         new KeyValuePair<string, string>(
                             "ASPNETCORE_HOSTINGSTARTUPASSEMBLIES",
-                            "Microsoft.AspNetCore.ApplicationInsights.HostingStartup"),
+                            "Microsoft.AspNetCore.ApplicationInsights.HostingStartup2"),
                     },
                 };
 

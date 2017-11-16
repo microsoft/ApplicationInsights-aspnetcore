@@ -111,7 +111,7 @@ namespace ApplicationInsightsJavaScriptSnippetTest
                     {
                         new KeyValuePair<string, string>(
                             "ASPNETCORE_HOSTINGSTARTUPASSEMBLIES",
-                            "Microsoft.AspNetCore.ApplicationInsights.HostingStartup"),
+                            "Microsoft.AspNetCore.ApplicationInsights.HostingStartup2"),
                         new KeyValuePair<string, string>(
                             "HOME",
                             Path.Combine(GetApplicationPath(), "home"))

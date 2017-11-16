@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   
   <PropertyGroup>
-    <PackageId>Microsoft.AspNetCore.ApplicationInsights.HostingStartup</PackageId>
+    <PackageId>Microsoft.AspNetCore.ApplicationInsights.HostingStartup2</PackageId>
     <PackageVersion>2.1.0</PackageVersion>
     <Authors>Microsoft</Authors>
     <Owners>Microsoft</Owners>
@@ -13,6 +13,7 @@
     <TargetFrameworks>netcoreapp2.0;net461</TargetFrameworks>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageTags>aspnetcore;ApplicationInsights;Analytics;Telemetry;AppInsights</PackageTags>
+    <AssemblyName>Microsoft.AspNetCore.ApplicationInsights.HostingStartup2</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
