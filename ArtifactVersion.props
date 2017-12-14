@@ -1,0 +1,7 @@
+<Project>
+
+  <PropertyGroup>
+    <ArtifactVersion Condition="'$(ArtifactVersion)' == ''">2.2.0-beta3</ArtifactVersion>
+  </PropertyGroup>
+
+</Project>

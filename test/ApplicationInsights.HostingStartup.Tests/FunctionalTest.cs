@@ -16,7 +16,7 @@ namespace ApplicationInsightsJavaScriptSnippetTest
             var current = new DirectoryInfo(AppContext.BaseDirectory);
             while (current != null)
             {
-                if (File.Exists(Path.Combine(current.FullName, "Microsoft.AspNetCore.ApplicationInsights.HostingStartup.sln")))
+                if (File.Exists(Path.Combine(current.FullName, "ApplicationInsights.AspNetCore.sln")))
                 {
                     break;
                 }
