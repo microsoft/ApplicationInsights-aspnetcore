@@ -10,8 +10,6 @@ using Microsoft.ApplicationInsights.SnapshotCollector;
 
 [assembly: HostingStartup(typeof(Microsoft.AspNetCore.ApplicationInsights.HostingStartup.ApplicationInsightsHostingStartup))]
 
-// To be able to build as <OutputType>Exe</OutputType>
-internal class Program { public static void Main() { } }
 
 namespace Microsoft.AspNetCore.ApplicationInsights.HostingStartup
 {
@@ -45,19 +43,23 @@ namespace Microsoft.AspNetCore.ApplicationInsights.HostingStartup
             services.AddSingleton<IStartupFilter, ApplicationInsightsLoggerStartupFilter>();
             services.AddSingleton<ITagHelperComponent, JavaScriptSnippetTagHelperComponent>();
 
-            var home = Environment.GetEnvironmentVariable("HOME");
-            if (!string.IsNullOrEmpty(home))
+            try
             {
-                var settingsFile = Path.Combine(home, "site", "diagnostics", ApplicationInsightsSettingsFile);
-                var configurationBuilder = new ConfigurationBuilder()
-                    .AddJsonFile(settingsFile, optional: true, reloadOnChange: true);
-                var configuration = configurationBuilder.Build();
+                var home = Environment.GetEnvironmentVariable("HOME");
+                if (!string.IsNullOrEmpty(home))
+                {
+                    var settingsFile = Path.Combine(home, "site", "diagnostics", ApplicationInsightsSettingsFile);
+                    var configurationBuilder = new ConfigurationBuilder()
+                        .AddJsonFile(settingsFile, optional: true, reloadOnChange: true);
+                    var configuration = configurationBuilder.Build();
 
-                services.AddLogging(builder => builder.AddConfiguration(configuration.GetSection("Logging")));
+                    services.AddLogging(builder => builder.AddConfiguration(configuration.GetSection("Logging")));
 
-                // Configure SnapshotCollector
-                services.Configure<SnapshotCollectorConfiguration>(configuration.GetSection(nameof(SnapshotCollectorConfiguration)));
+                    // Configure SnapshotCollector
+                    services.Configure<SnapshotCollectorConfiguration>(configuration.GetSection(nameof(SnapshotCollectorConfiguration)));
+                }
             }
+            catch { }
         }
     }
 }
