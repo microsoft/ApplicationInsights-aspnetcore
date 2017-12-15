@@ -50,6 +50,7 @@
                 if (exception == null)
                 {
                     var traceTelemetry = new TraceTelemetry(formatter(state, exception), this.GetSeverityLevel(logLevel));
+                    traceTelemetry.Properties.Add("EventId", eventId.Id.ToString());
                     PopulateTelemetry(traceTelemetry, stateDictionary);
                     this.telemetryClient.TrackTrace(traceTelemetry);
                 }
@@ -73,7 +74,8 @@
             {
                 foreach (KeyValuePair<string, object> item in stateDictionary)
                 {
-                    dict[item.Key] = Convert.ToString(item.Value);
+                    if(item.Key != "EventId")
+                        dict[item.Key] = Convert.ToString(item.Value);
                 }
             }
 
