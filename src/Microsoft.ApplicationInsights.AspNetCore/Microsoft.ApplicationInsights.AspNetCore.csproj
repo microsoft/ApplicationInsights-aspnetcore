@@ -1,10 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="..\..\ArtifactVersion.props" />
+  <Import Project="..\..\GlobalStaticVersion.props" />
   <PropertyGroup>
     <Description>Application Insights for ASP.NET Core web applications. See https://azure.microsoft.com/documentation/articles/app-insights-asp-net-five/ for more information. Privacy statement: https://go.microsoft.com/fwlink/?LinkId=512156</Description>
     <Copyright>Copyright © Microsoft. All Rights Reserved.</Copyright>
     <AssemblyTitle>Application Insights for ASP.NET Core Web Applications</AssemblyTitle>
-    <VersionPrefix>$(ArtifactVersion)</VersionPrefix>
     <Authors>Microsoft</Authors>
     <TargetFrameworks>net451;net46;netstandard1.6</TargetFrameworks>
     <DelaySign>true</DelaySign>

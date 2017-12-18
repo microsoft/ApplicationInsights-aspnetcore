@@ -1,8 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="..\..\ArtifactVersion.props" />
+  <Import Project="..\..\GlobalStaticVersion.props" />
   <PropertyGroup>
     <PackageId>Microsoft.AspNetCore.ApplicationInsights.HostingStartup2</PackageId>
-    <VersionPrefix>$(ArtifactVersion)</VersionPrefix>
     <Authors>Microsoft</Authors>
     <Owners>Microsoft</Owners>
     <RequireLicenseAcceptance>true</RequireLicenseAcceptance>
