@@ -8,9 +8,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.ApplicationInsights.AspNetCore;
 using Microsoft.ApplicationInsights.SnapshotCollector;
 
-[assembly: HostingStartup(typeof(Microsoft.AspNetCore.ApplicationInsights.HostingStartup.ApplicationInsightsHostingStartup))]
-
-
 namespace Microsoft.AspNetCore.ApplicationInsights.HostingStartup
 {
     /// <summary>
