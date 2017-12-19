@@ -8,15 +8,21 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="ApplicationInsightsHostingStartupSample\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="AfterScript.html" />
     <None Remove="BeforeScript.html" />
     <None Remove="Rendered.html" />
+    <None Remove="ApplicationInsightsHostingStartupSample\**" />
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="AfterScript.html" />
     <EmbeddedResource Include="BeforeScript.html" />
     <EmbeddedResource Include="Rendered.html" />
+    <EmbeddedResource Remove="ApplicationInsightsHostingStartupSample\**" />
   </ItemGroup>
 
   <ItemGroup>

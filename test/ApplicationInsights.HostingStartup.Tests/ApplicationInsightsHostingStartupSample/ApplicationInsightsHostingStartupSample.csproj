@@ -2,7 +2,8 @@
 
   <PropertyGroup>
     <TargetFrameworks>netcoreapp2.0;net461</TargetFrameworks>
-    <RuntimeIdentifiers>win7-x86;win7-x64;linux-x64;osx-x64</RuntimeIdentifiers>
+    <OutputPath Condition="'$(OutputPath)'=='' ">bin\$(MSBuildProjectName)</OutputPath>
+	  <IntermediateOutputPath Condition="'$(IntermediateOutputPath)'=='' ">obj\$(MSBuildProjectName)</IntermediateOutputPath>
   </PropertyGroup>
 
   <ItemGroup>
@@ -15,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Microsoft.AspNetCore.ApplicationInsights.HostingStartup\Microsoft.AspNetCore.ApplicationInsights.HostingStartup.csproj" />
+    <ProjectReference Include="..\..\..\src\Microsoft.AspNetCore.ApplicationInsights.HostingStartup\Microsoft.AspNetCore.ApplicationInsights.HostingStartup.csproj" />
   </ItemGroup>
 
   <ItemGroup>

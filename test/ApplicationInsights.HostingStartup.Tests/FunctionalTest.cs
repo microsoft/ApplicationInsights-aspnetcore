@@ -28,7 +28,7 @@ namespace ApplicationInsightsJavaScriptSnippetTest
                 throw new InvalidOperationException("Could not find the solution directory");
             }
 
-            return Path.GetFullPath(Path.Combine(current.FullName, "sample", "ApplicationInsightsHostingStartupSample"));
+            return Path.GetFullPath(Path.Combine(current.FullName, "test", "ApplicationInsights.HostingStartup.Tests", "ApplicationInsightsHostingStartupSample"));
         }
 
         protected static bool PreservePublishedApplicationForDebugging
