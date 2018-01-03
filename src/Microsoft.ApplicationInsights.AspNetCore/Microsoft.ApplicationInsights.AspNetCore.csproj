@@ -6,7 +6,7 @@
     <AssemblyTitle>Application Insights for ASP.NET Core Web Applications</AssemblyTitle>
     <VersionPrefix>2.2.0-beta3</VersionPrefix>
     <Authors>Microsoft</Authors>
-    <TargetFrameworks>net451;net46;netstandard1.6</TargetFrameworks>
+    <TargetFrameworks>netstandard1.6</TargetFrameworks>
     <TargetFrameworks Condition=" '$(OS)' != 'Windows_NT' ">netstandard1.6</TargetFrameworks>
     <DelaySign Condition=" '$(OS)' == 'Windows_NT' ">true</DelaySign>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
