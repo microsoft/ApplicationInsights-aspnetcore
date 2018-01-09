@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\..\GlobalStaticVersion.props" />
+  <PropertyGroup>
+    <PackageId>Microsoft.AspNetCore.ApplicationInsights.HostingStartup2</PackageId>
+    <Authors>Microsoft</Authors>
+    <Owners>Microsoft</Owners>
+    <RequireLicenseAcceptance>true</RequireLicenseAcceptance>
+    <LicenseUrl>https://go.microsoft.com/fwlink/?LinkID=510709</LicenseUrl>
+    <ProjectUrl>https://go.microsoft.com/fwlink/?LinkId=392727</ProjectUrl>
+    <IconUrl>https://appanacdn.blob.core.windows.net/cdn/icons/aic.png</IconUrl>
+    <Description>ASP.NET Core lightup integration with Application Insights.</Description>
+    <TargetFrameworks>netcoreapp2.0;net461</TargetFrameworks>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <PackageTags>aspnetcore;ApplicationInsights;Analytics;Telemetry</PackageTags>
+    <AssemblyName>Microsoft.AspNetCore.ApplicationInsights.HostingStartup2</AssemblyName>
+    <OutputPath Condition="'$(OutputPath)'=='' ">..\..\artifacts\src\$(MSBuildProjectName)</OutputPath>
+    <IntermediateOutputPath Condition="'$(IntermediateOutputPath)'=='' ">..\..\artifacts\obj\src\$(MSBuildProjectName)</IntermediateOutputPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.ApplicationInsights.AspNetCore\Microsoft.ApplicationInsights.AspNetCore.csproj" />
+    <PackageReference Include="Microsoft.ApplicationInsights.SnapshotCollector" Version="1.1.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Hosting" Version="2.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Razor.Runtime" Version="2.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Configuration" Version="2.0.0" />
+  </ItemGroup>
+</Project>
