@@ -2,14 +2,8 @@
 
   <PropertyGroup>
     <VersionPrefix>1.0.2</VersionPrefix>
-    <TargetFrameworks>net46;netstandard1.6</TargetFrameworks>
-	<TargetFrameworks Condition=" '$(OS)' != 'Windows_NT' ">netstandard1.6</TargetFrameworks>
-    <DelaySign Condition=" '$(OS)' == 'Windows_NT' ">true</DelaySign>
-    <PreserveCompilationContext>true</PreserveCompilationContext>
-    <AssemblyName>FunctionalTestUtils</AssemblyName>
-    <AssemblyOriginatorKeyFile>../../keys/35MSSharedLib1024.snk</AssemblyOriginatorKeyFile>
-    <SignAssembly>true</SignAssembly>
-    <PublicSign Condition=" '$(OS)' != 'Windows_NT' ">true</PublicSign>
+    <TargetFrameworks>net47;netstandard1.6</TargetFrameworks>	    
+    <AssemblyName>FunctionalTestUtils</AssemblyName>        
     <PackageId>FunctionalTestUtils</PackageId>
     <NetStandardImplicitPackageVersion>1.6.1</NetStandardImplicitPackageVersion>
 	<OutputPath Condition="'$(OutputPath)'=='' ">..\..\artifacts\test\$(MSBuildProjectName)</OutputPath>
@@ -26,7 +20,7 @@
     <DotNetCliToolReference Include="dotnet-xunit" Version="2.3.1" />
   </ItemGroup>
 
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net46' ">
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net47' ">
     <Reference Include="System" />
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
