@@ -140,22 +140,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 services.AddSingleton<ITelemetryInitializer, WebUserTelemetryInitializer>();
                 services.AddSingleton<ITelemetryInitializer, AspNetCoreEnvironmentTelemetryInitializer>();
                 services.AddSingleton<ITelemetryInitializer, HttpDependenciesParsingTelemetryInitializer>();
-                services.AddSingleton<ITelemetryModule, DependencyTrackingTelemetryModule>(provider => {
-                    var module = new DependencyTrackingTelemetryModule();
-                    var excludedDomains = module.ExcludeComponentCorrelationHttpHeadersOnDomains;
-                    excludedDomains.Add("core.windows.net");
-                    excludedDomains.Add("core.chinacloudapi.cn");
-                    excludedDomains.Add("core.cloudapi.de");
-                    excludedDomains.Add("core.usgovcloudapi.net");
-                    excludedDomains.Add("localhost");
-                    excludedDomains.Add("127.0.0.1");
-
-                    var includedActivities = module.IncludeDiagnosticSourceActivities;
-                    includedActivities.Add("Microsoft.Azure.EventHubs");
-                    includedActivities.Add("Microsoft.Azure.ServiceBus");
-
-                    return module;
-                });
+                services.AddSingleton<ITelemetryModule, DependencyTrackingTelemetryModule>(provider => DefaultDependencyTrackingTelemetryModule.Value);
 
 #if NET451 || NET46
                 services.AddSingleton<ITelemetryModule, PerformanceCollectorModule>();
@@ -333,6 +318,24 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             // We treat ApplicationInsightsInitializer as a marker that AI services were added to service collection
             return services.Any(service => service.ServiceType == typeof(ApplicationInsightsInitializer));
+        }
+
+        private static readonly Lazy<DependencyTrackingTelemetryModule> DefaultDependencyTrackingTelemetryModule = new Lazy<DependencyTrackingTelemetryModule>(() =>
+        {
+            var module = new DependencyTrackingTelemetryModule();
+            var excludedDomains = module.ExcludeComponentCorrelationHttpHeadersOnDomains;
+            excludedDomains.Add("core.windows.net");
+            excludedDomains.Add("core.chinacloudapi.cn");
+            excludedDomains.Add("core.cloudapi.de");
+            excludedDomains.Add("core.usgovcloudapi.net");
+            excludedDomains.Add("localhost");
+            excludedDomains.Add("127.0.0.1");
+
+            var includedActivities = module.IncludeDiagnosticSourceActivities;
+            includedActivities.Add("Microsoft.Azure.EventHubs");
+            includedActivities.Add("Microsoft.Azure.ServiceBus");
+
+            return module;
+        });
     }
-}
 }
