@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "LoadGenerator": {
+      "commandName": "Project",
+      "commandLineArgs": "http://localhost:5000/api/values 100 60000"
+    }
+  }
+}
