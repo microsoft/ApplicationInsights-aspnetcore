@@ -40,13 +40,13 @@ namespace PerfTests
         public void TestMethod2()
         {
             Process app = CommandLineHelpers.ExecuteCommand("dotnet", "..\\..\\..\\..\\artifacts\\perf\\App1\\netcoreapp2.0\\App1.dll", false);
+            Trace.WriteLine("Exit code" + app.ExitCode);
+
             var error = app.StandardError.ReadToEnd();
             Trace.WriteLine("App  error:" + error);
 
             var output = app.StandardOutput.ReadToEnd();
-            Trace.WriteLine("App  output:" + output);
-
-            Trace.WriteLine("Exit code" + app.ExitCode);
+            Trace.WriteLine("App  output:" + output);            
 
             try
             {
