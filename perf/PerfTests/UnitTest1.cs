@@ -39,16 +39,45 @@ namespace PerfTests
         public void TestMethod2()
         {
             Process app = CommandLineHelpers.ExecuteCommand("dotnet", "..\\..\\..\\..\\artifacts\\perf\\App1\\netcoreapp2.0\\App1.dll", false);
-            if(app.HasExited)
+            try
             {
+                HttpClient client = new HttpClient();
+                var responsefromApp = client.GetStringAsync("http://localhost:5000/api/values").Result;
+            }
+            catch(Exception ex)
+            {
+                Trace.WriteLine("Exception: " + ex.Message);
+            }
+
+            if (app.HasExited)
+            {
+                try
+                {
+                    HttpClient client = new HttpClient();
+                    var responsefromApp = client.GetStringAsync("http://localhost:5000/api/values").Result;
+                }
+                catch (Exception ex)
+                {
+                    Trace.WriteLine("Exception: " + ex.Message);
+                }
                 var error = app.StandardError.ReadToEnd();
                 Trace.WriteLine("App exited error:" + error);
             }
             else
             {
+                try
+                {
+                    HttpClient client = new HttpClient();
+                    var responsefromApp = client.GetStringAsync("http://localhost:5000/api/values").Result;
+                }
+                catch (Exception ex)
+                {
+                    Trace.WriteLine("Exception: " + ex.Message);
+                }
+                app.Kill();
                 var output = app.StandardOutput.ReadToEnd();
                 Trace.WriteLine("App exited error:" + output);
-                app.Kill();
+                
             }
         }
 
