@@ -58,7 +58,7 @@ namespace PerfTests
                 })
                 .Start();
 
-
+            Thread.Sleep(1000);
             try
             {
                 HttpClient client = new HttpClient();
@@ -69,7 +69,7 @@ namespace PerfTests
             {
                 Trace.WriteLine("Exception: " + ex.Message);
             }
-            Thread.Sleep(1000);
+            
             
             app.Kill();
             Thread.Sleep(1000);
