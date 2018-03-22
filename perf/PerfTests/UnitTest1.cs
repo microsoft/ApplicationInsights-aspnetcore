@@ -46,6 +46,8 @@ namespace PerfTests
             var output = app.StandardOutput.ReadToEnd();
             Trace.WriteLine("App  output:" + output);
 
+            Trace.WriteLine("Exit code" + app.ExitCode);
+
             try
             {
                 HttpClient client = new HttpClient();
