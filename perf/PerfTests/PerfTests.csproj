@@ -17,6 +17,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="launchapp.ps1">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="ReadCounter.ps1">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
