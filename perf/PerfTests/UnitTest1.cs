@@ -14,6 +14,7 @@ namespace PerfTests
         const int TargetRps = 50;
 
         [TestMethod]
+        [Ignore]
         public void TestMethod1()
         {
             var s = Directory.GetCurrentDirectory();
@@ -34,7 +35,24 @@ namespace PerfTests
 
         }
 
-        private static void PrintPerfMeasurements(PerfMeasurements perfMeasurements)
+        [TestMethod]
+        public void TestMethod2()
+        {
+            Process app = CommandLineHelpers.ExecuteCommand("dotnet", "..\\..\\..\\..\\artifacts\\perf\\App1\\netcoreapp2.0\\App1.dll", false);
+            if(app.HasExited)
+            {
+                var error = app.StandardError.ReadToEnd();
+                Trace.WriteLine("App exited error:" + error);
+            }
+            else
+            {
+                var output = app.StandardOutput.ReadToEnd();
+                Trace.WriteLine("App exited error:" + output);
+                app.Kill();
+            }
+        }
+
+            private static void PrintPerfMeasurements(PerfMeasurements perfMeasurements)
         {
             Trace.WriteLine("Rps:" + perfMeasurements.rps);
             Trace.WriteLine("Cpu:" + perfMeasurements.cpuAverage);
