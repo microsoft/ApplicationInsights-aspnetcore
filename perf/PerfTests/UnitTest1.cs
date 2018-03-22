@@ -44,14 +44,10 @@ namespace PerfTests
         private static PerfMeasurements MeasureApp(string pathToApp)
         {
             // Launch App
-            Process app = CommandLineHelpers.ExecuteCommand("dotnet", pathToApp, false);
-            Trace.WriteLine("ProcessId:" + app.Id);
-            string error = app.StandardError.ReadToEnd();
-            Trace.WriteLine("Error:" + error);
-
+            Process app = CommandLineHelpers.ExecuteCommand("dotnet", pathToApp, true);
             app.ProcessorAffinity = (IntPtr)12;
             app.PriorityClass = ProcessPriorityClass.High;
-            
+            Trace.WriteLine("ProcessId:" + app.Id);
 
             //Verify App
             HttpClient client = new HttpClient();
