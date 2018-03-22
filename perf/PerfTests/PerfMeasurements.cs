@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 
-namespace PerfTest
+namespace PerfTests
 {
     public class PerfMeasurements
     {

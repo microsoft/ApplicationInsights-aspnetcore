@@ -1,37 +1,30 @@
-﻿using System;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
 using System.Diagnostics;
+using System.IO;
 using System.Net.Http;
 
-namespace PerfTest
+namespace PerfTests
 {
-    class Program
+    [TestClass]
+    public class UnitTest1
     {
         const double TestDuration = 60000;
         const int TargetRps = 50;
-        static void Main(string[] args)
-        {
-            Console.WriteLine("Hello World!");
-            PerfMeasurements perfMeasurements1 = MeasureApp("..\\..\\artifacts\\perf\\App1\\netcoreapp2.0\\App1.dll");
 
-            PerfMeasurements perfMeasurements2 = MeasureApp("..\\..\\artifacts\\perf\\App2\\netcoreapp2.0\\App2.dll");
+        [TestMethod]
+        public void TestMethod1()
+        {
+            var s = Directory.GetCurrentDirectory();
+            PerfMeasurements perfMeasurements1 = MeasureApp("..\\..\\..\\..\\artifacts\\perf\\App1\\netcoreapp2.0\\App1.dll");
+
+            PerfMeasurements perfMeasurements2 = MeasureApp("..\\..\\..\\..\\artifacts\\perf\\App2\\netcoreapp2.0\\App2.dll");
 
             double overhead = ((perfMeasurements1.rpsPerCpu - perfMeasurements2.rpsPerCpu) / perfMeasurements2.rpsPerCpu) * 100;
 
-            string[] contents = { string.Format("\n\n {0}  Overhead: {9} BaseDuration:{1} BaseRPS:{2} BaseAvgCPU:{3} BaseRpsPerCpu:{4} SDKDuration:{5} SDKRPS:{6} SDKAvgCPU:{7} SDKRpsPerCpu:{8}",
-                DateTime.UtcNow.ToString(), 
-                perfMeasurements1.durationInSecs,
-                perfMeasurements1.rps,
-                perfMeasurements1.cpuAverage,
-                perfMeasurements1.rpsPerCpu,
-                perfMeasurements2.durationInSecs,
-                perfMeasurements2.rps,
-                perfMeasurements2.cpuAverage,
-                perfMeasurements2.rpsPerCpu,
-                overhead) };
+            Trace.WriteLine("Overhead is:" + overhead);
+            Assert.IsTrue(overhead > 0 && overhead < 10, "Overhead should be 0-10. Value:" +overhead);
 
-            System.IO.File.AppendAllLines(@"c:\perftests\cijo.txt", contents);
-
-            Console.WriteLine(contents);
         }
 
         private static PerfMeasurements MeasureApp(string pathToApp)
@@ -47,7 +40,7 @@ namespace PerfTest
 
             // Launch Load Generator
             Process loadGenProcess = CommandLineHelpers.ExecuteCommand("dotnet",
-                string.Format("..\\..\\artifacts\\perf\\LoadGenerator\\netcoreapp2.0\\LoadGenerator.dll http://localhost:5000/api/values {0} {1}",
+                string.Format("..\\..\\..\\..\\artifacts\\perf\\LoadGenerator\\netcoreapp2.0\\LoadGenerator.dll http://localhost:5000/api/values {0} {1}",
                 TargetRps, TestDuration));
             loadGenProcess.ProcessorAffinity = (IntPtr)3;
             loadGenProcess.PriorityClass = ProcessPriorityClass.Normal;
@@ -55,11 +48,11 @@ namespace PerfTest
             // Launch perf counter reader
             Process MeasureCounterProcess = CommandLineHelpers.ExecuteCommand("powershell",
             ".\\ReadCounter.ps1");
-            string avgCpu = MeasureCounterProcess.StandardOutput.ReadToEnd();            
+            string avgCpu = MeasureCounterProcess.StandardOutput.ReadToEnd();
             MeasureCounterProcess.WaitForExit();
 
 
-            string requCount = loadGenProcess.StandardOutput.ReadToEnd();            
+            string requCount = loadGenProcess.StandardOutput.ReadToEnd();
             loadGenProcess.WaitForExit();
 
             double totalRequests = Math.Round(double.Parse(requCount), 2);
@@ -69,7 +62,7 @@ namespace PerfTest
             double rps = Math.Round(totalRequests / durationInSecs, 2);
 
             double rpsPerCpu = Math.Round(rps / cpuAverage, 2);
-           
+
             app.Kill();
 
             return new PerfMeasurements()
