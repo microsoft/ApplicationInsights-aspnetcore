@@ -46,6 +46,8 @@ namespace PerfTests
             // Launch App
             Process app = CommandLineHelpers.ExecuteCommand("dotnet", pathToApp, false);
             Trace.WriteLine("ProcessId:" + app.Id);
+            string op = app.StandardOutput.ReadToEnd();
+            Trace.WriteLine("output: " + op);
             string error = app.StandardError.ReadToEnd();
             Trace.WriteLine("Error:" + error);
 
