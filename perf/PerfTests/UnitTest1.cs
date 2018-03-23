@@ -160,11 +160,15 @@ namespace PerfTests
                 CreateNoWindow = true,
             };
 
+            
+
             if (!string.IsNullOrWhiteSpace(workingDirectory))
             {
                 startInfo.WorkingDirectory = workingDirectory;
             }
             Trace.WriteLine("process working dir" + startInfo.WorkingDirectory);
+            Trace.WriteLine("process args" + startInfo.Arguments);
+            Trace.WriteLine("process filename" + startInfo.FileName);
 
             process = new Process()
             {
