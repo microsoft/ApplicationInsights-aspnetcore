@@ -43,7 +43,7 @@ namespace PerfTests
             //Process app = CommandLineHelpers.ExecuteCommand("dotnet", "..\\..\\..\\..\\artifacts\\perf\\App1\\netcoreapp2.0\\App1.dll", false);
             //Trace.WriteLine("Exit code" + app.ExitCode);
 
-            string arguments = $"..\\..\\..\\..\\artifacts\\perf\\App1\\netcoreapp2.0\\App1.dll";
+            string arguments = $"D:\\a\\1\\s\\artifacts\\perf\\App1\\netcoreapp2.0\\App1.dll";
             string output = "";
             string error = "";
 
@@ -73,6 +73,7 @@ namespace PerfTests
             
             app.Kill();
             Thread.Sleep(1000);
+            Trace.WriteLine("App exitcode after explicit kill:" + app.ExitCode);
             Trace.WriteLine("Output:" + output);
             Trace.WriteLine("Error:" + error);
         }
