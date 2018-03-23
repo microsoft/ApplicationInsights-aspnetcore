@@ -57,7 +57,7 @@ namespace PerfTests
                     error += errorMessage;
                 })
                 .Start();
-
+            Trace.WriteLine("App exitcode:" + app.ExitCode);
             Thread.Sleep(1000);
             try
             {
@@ -309,6 +309,8 @@ namespace PerfTests
                         }
                     }
                 }
+
+                Trace.WriteLine("Dotnet.exe path: " + dotnetExePath);
                 return dotnetExePath;
             }
         }
