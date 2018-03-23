@@ -43,7 +43,8 @@ namespace PerfTests
         public void TestMethod3()
         {
             var cpuCount = Environment.ProcessorCount;
-            Trace.WriteLine("CPU Count" + cpuCount);
+            Trace.WriteLine("Current process:" + Process.GetCurrentProcess().ProcessName);
+            Trace.WriteLine("CPU Count:" + cpuCount);
             if(cpuCount == 2)
             {
                 affinityApp = 1;
