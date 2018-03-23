@@ -288,13 +288,15 @@ namespace PerfTests
         {
             //Trace.WriteLine("Process starting...");
             process.Start();
+            process.PriorityClass = prio;
             //process.ProcessorAffinity = affinity;
 
             long AffinityMask = (long)process.ProcessorAffinity;
+            Trace.WriteLine("Process Affinity before is:" + AffinityMask);
             AffinityMask &= affinity;
+            Trace.WriteLine("Process Affinity after is:" + AffinityMask);
             process.ProcessorAffinity = (IntPtr)AffinityMask;
-
-            process.PriorityClass = prio;
+            
 
             //Trace.WriteLine("Process started with pid:" + process.Id);
 
