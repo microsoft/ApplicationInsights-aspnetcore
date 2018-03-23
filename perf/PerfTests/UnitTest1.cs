@@ -76,9 +76,7 @@ namespace PerfTests
                     error += errorMessage;                    
                 })
                 .Start(12, ProcessPriorityClass.High);
-            //app.SetAffinity((IntPtr) 12);
-            //app.SetPriority(ProcessPriorityClass.High);
-            
+           
             //Verify App
             try
             {
@@ -97,7 +95,7 @@ namespace PerfTests
                 TargetRps, TestDuration));
             loadGenProcess.ProcessorAffinity = (IntPtr)3;
             loadGenProcess.PriorityClass = ProcessPriorityClass.Normal;
-            Trace.WriteLine("ProcessId (loadgen):" + loadGenProcess.Id);
+            //Trace.WriteLine("ProcessId (loadgen):" + loadGenProcess.Id);
 
             // Launch perf counter reader
             Process MeasureCounterProcess = CommandLineHelpers.ExecuteCommand("powershell",
@@ -118,8 +116,14 @@ namespace PerfTests
 
             double rpsPerCpu = Math.Round(rps / cpuAverage, 2);
 
-            Trace.WriteLine("Output:" + output);
-            Trace.WriteLine("Error:" + error);
+            if (string.IsNullOrEmpty(output))
+            {
+                Trace.WriteLine("Output:" + output);
+            }
+            if (string.IsNullOrEmpty(error))
+            {
+                Trace.WriteLine("Error:" + error);
+            }
             app.Kill();
             Thread.Sleep(1000);            
 
