@@ -13,6 +13,8 @@ namespace PerfTests
     {
         const double TestDuration = 30000;
         const int TargetRps = 50;
+        static long affinityApp = 1;
+        static long affinityLoadGen = 2;
 
         [Ignore]
         [TestMethod]        
@@ -39,7 +41,18 @@ namespace PerfTests
         [TestMethod]
         public void TestMethod3()
         {
-            Trace.WriteLine("CPU Count" + Environment.ProcessorCount);
+            var cpuCount = Environment.ProcessorCount;
+            Trace.WriteLine("CPU Count" + cpuCount);
+            if(cpuCount == 2)
+            {
+                affinityApp = 1;
+                affinityLoadGen = 2;
+            }
+            else if (cpuCount >=4)
+            {
+                affinityApp = 12;
+                affinityLoadGen = 3;
+            }
 
             Trace.WriteLine("Launching App1");
             PerfMeasurements perfMeasurements1 = MeasureApp2($"..\\..\\..\\..\\artifacts\\perf\\App1\\netcoreapp2.0\\App1.dll");
@@ -77,7 +90,7 @@ namespace PerfTests
                 {
                     error += errorMessage;                    
                 })
-                .Start(0xC, ProcessPriorityClass.High);
+                .Start(affinityApp, ProcessPriorityClass.High);
            
             //Verify App
             try
@@ -95,7 +108,7 @@ namespace PerfTests
             Process loadGenProcess = CommandLineHelpers.ExecuteCommand("dotnet",
                 string.Format("..\\..\\..\\..\\artifacts\\perf\\LoadGenerator\\netcoreapp2.0\\LoadGenerator.dll http://localhost:5000/api/values {0} {1}",
                 TargetRps, TestDuration));
-            loadGenProcess.ProcessorAffinity = (IntPtr)3;
+            loadGenProcess.ProcessorAffinity = (IntPtr) affinityLoadGen;
             loadGenProcess.PriorityClass = ProcessPriorityClass.Normal;
             //Trace.WriteLine("ProcessId (loadgen):" + loadGenProcess.Id);
 
