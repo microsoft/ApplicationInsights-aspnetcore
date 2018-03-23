@@ -12,9 +12,10 @@ namespace PerfTests
     public class UnitTest1
     {
         const double TestDuration = 30000;
-        const int TargetRps = 50;
+        const int TargetRps = 100;
         static long affinityApp = 1;
         static long affinityLoadGen = 2;
+        static int CpuCoresUsedByApp = 2;
 
         [Ignore]
         [TestMethod]        
@@ -47,11 +48,13 @@ namespace PerfTests
             {
                 affinityApp = 1;
                 affinityLoadGen = 2;
+                CpuCoresUsedByApp = 1;
             }
             else if (cpuCount >=4)
             {
                 affinityApp = 12;
                 affinityLoadGen = 3;
+                CpuCoresUsedByApp = 2;
             }
 
             Trace.WriteLine("Launching App1");
@@ -125,7 +128,7 @@ namespace PerfTests
 
             double totalRequests = Math.Round(double.Parse(requCount), 2);
             double cpuAverage = Math.Round(double.Parse(avgCpu), 2);
-            cpuAverage = Math.Round(cpuAverage / 2, 2);
+            cpuAverage = Math.Round(cpuAverage / CpuCoresUsedByApp, 2);
             double durationInSecs = Math.Round(TestDuration / 1000, 2);
             double rps = Math.Round(totalRequests / durationInSecs, 2);
 
