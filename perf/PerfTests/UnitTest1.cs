@@ -47,6 +47,17 @@ namespace PerfTests
             string output = "";
             string error = "";
 
+            new DotNetCoreProcess("--info")
+                .RedirectStandardOutputTo((string outputMessage) =>
+                {
+                    Trace.WriteLine("Info Output:" + outputMessage);
+                })
+                .RedirectStandardErrorTo((string errorMessage) =>
+                {
+                    Trace.WriteLine("Info Error:" + errorMessage);
+                })
+                .Start();
+
             var app = new DotNetCoreProcess(arguments)
                 .RedirectStandardOutputTo((string outputMessage) =>
                 {
