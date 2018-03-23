@@ -37,7 +37,7 @@ namespace PerfTests
         }
 
         [TestMethod]
-        [Timeout(5000)]
+        [Timeout(10000)]
         public void TestMethod2()
         {
             //Process app = CommandLineHelpers.ExecuteCommand("dotnet", "..\\..\\..\\..\\artifacts\\perf\\App1\\netcoreapp2.0\\App1.dll", false);
@@ -174,6 +174,7 @@ namespace PerfTests
                 int? result = null;
                 if (process.HasExited)
                 {
+                    Trace.WriteLine("process exited.");
                     result = process.ExitCode;
                 }
                 return result;
@@ -234,6 +235,8 @@ namespace PerfTests
         {
             process.Start();
 
+            Trace.WriteLine("Process started with pid:" + process.Id);
+
             if (process.StartInfo.RedirectStandardOutput)
             {
                 process.BeginOutputReadLine();
@@ -251,7 +254,7 @@ namespace PerfTests
         /// </summary>
         public void WaitForExit()
         {
-            WaitForExit(TimeSpan.FromSeconds(10));
+            WaitForExit(TimeSpan.FromSeconds(1));
         }
 
         /// <summary>
