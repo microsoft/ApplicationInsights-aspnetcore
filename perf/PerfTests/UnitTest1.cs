@@ -75,7 +75,7 @@ namespace PerfTests
                 {
                     error += errorMessage;                    
                 })
-                .Start(12, ProcessPriorityClass.High);
+                .Start(0xC, ProcessPriorityClass.High);
            
             //Verify App
             try
