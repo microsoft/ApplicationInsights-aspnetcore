@@ -47,17 +47,6 @@ namespace PerfTests
             string output = "";
             string error = "";
 
-            new DotNetCoreProcess("--info")
-                .RedirectStandardOutputTo((string outputMessage) =>
-                {
-                    Trace.WriteLine("Info Output:" + outputMessage);
-                })
-                .RedirectStandardErrorTo((string errorMessage) =>
-                {
-                    Trace.WriteLine("Info Error:" + errorMessage);
-                })
-                .Start();
-
             var app = new DotNetCoreProcess(arguments)
                 .RedirectStandardOutputTo((string outputMessage) =>
                 {
@@ -169,17 +158,12 @@ namespace PerfTests
             {
                 UseShellExecute = false,
                 CreateNoWindow = true,
-            };
-
-            
+            };          
 
             if (!string.IsNullOrWhiteSpace(workingDirectory))
             {
                 startInfo.WorkingDirectory = workingDirectory;
             }
-            Trace.WriteLine("process working dir" + startInfo.WorkingDirectory);
-            Trace.WriteLine("process args" + startInfo.Arguments);
-            Trace.WriteLine("process filename" + startInfo.FileName);
 
             process = new Process()
             {
@@ -263,11 +247,16 @@ namespace PerfTests
 
             if (process.StartInfo.RedirectStandardOutput)
             {
-                process.BeginOutputReadLine();
+                //process.BeginOutputReadLine();
+               var s =  process.StandardOutput.ReadToEnd();
+                Trace.WriteLine("s output: " + s);
             }
             if (process.StartInfo.RedirectStandardError)
             {
-                process.BeginErrorReadLine();
+                //process.BeginErrorReadLine();
+
+                var er = process.StandardError.ReadToEnd();
+                Trace.WriteLine("er output: " + er);
             }
 
             return this;
