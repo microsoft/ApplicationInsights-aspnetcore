@@ -121,11 +121,11 @@ namespace PerfTests
             ".\\ReadCounter.ps1");
             string avgCpu = MeasureCounterProcess.StandardOutput.ReadToEnd();
             MeasureCounterProcess.WaitForExit();
-            Trace.WriteLine("AvgCpu:" + avgCpu);
+            //Trace.WriteLine("AvgCpu:" + avgCpu);
 
             string requCount = loadGenProcess.StandardOutput.ReadToEnd();
             loadGenProcess.WaitForExit();
-            Trace.WriteLine("Total requests:" + requCount);
+            //Trace.WriteLine("Total requests:" + requCount);
 
             double totalRequests = Math.Round(double.Parse(requCount), 2);
             double cpuAverage = Math.Round(double.Parse(avgCpu), 2);
