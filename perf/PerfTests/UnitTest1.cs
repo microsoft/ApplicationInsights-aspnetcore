@@ -43,7 +43,7 @@ namespace PerfTests
             //Process app = CommandLineHelpers.ExecuteCommand("dotnet", "..\\..\\..\\..\\artifacts\\perf\\App1\\netcoreapp2.0\\App1.dll", false);
             //Trace.WriteLine("Exit code" + app.ExitCode);
 
-            string arguments = $"..\\..\\..\\..\\artifacts\\perf\\App1\\netcoreapp2.0\\Publish\\App1.dll";
+            string arguments = $"..\\..\\..\\..\\artifacts\\perf\\App1\\netcoreapp2.0\\App1.dll";
             string output = "";
             string error = "";
 
