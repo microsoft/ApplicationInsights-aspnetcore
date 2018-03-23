@@ -39,6 +39,8 @@ namespace PerfTests
         [TestMethod]
         public void TestMethod3()
         {
+            Trace.WriteLine("CPU Count" + Environment.ProcessorCount);
+
             Trace.WriteLine("Launching App1");
             PerfMeasurements perfMeasurements1 = MeasureApp2($"..\\..\\..\\..\\artifacts\\perf\\App1\\netcoreapp2.0\\App1.dll");
             PrintPerfMeasurements(perfMeasurements1);
