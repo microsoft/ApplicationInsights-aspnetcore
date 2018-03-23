@@ -36,54 +36,6 @@ namespace PerfTests
 
         }
 
-        [TestMethod]        
-        [Ignore]
-        
-        public void TestMethod2()
-        {
-            //Process app = CommandLineHelpers.ExecuteCommand("dotnet", "..\\..\\..\\..\\artifacts\\perf\\App1\\netcoreapp2.0\\App1.dll", false);
-            //Trace.WriteLine("Exit code" + app.ExitCode);
-
-            string arguments = $"..\\..\\..\\..\\artifacts\\perf\\App1\\netcoreapp2.0\\App1.dll";
-            string output = "";
-            string error = "";
-
-            var app = new DotNetCoreProcess(arguments)
-                .RedirectStandardOutputTo((string outputMessage) =>
-                {
-                    output += outputMessage;
-                    Trace.WriteLine("Output:" + outputMessage);
-                })
-                .RedirectStandardErrorTo((string errorMessage) =>
-                {
-                    error += errorMessage;
-                    Trace.WriteLine("Error:" + errorMessage);
-                })
-                .Start();
-
-            Thread.Sleep(1000);
-            try
-            {
-                HttpClient client = new HttpClient();
-                var responsefromApp = client.GetStringAsync("http://localhost:5000/api/values").Result;
-                Trace.WriteLine("App output http req:" + responsefromApp);
-            }
-            catch (Exception ex)
-            {
-                Trace.WriteLine("Exception while hitting app url: " + ex.Message);
-            }
-
-            Thread.Sleep(1000);
-            Trace.WriteLine("Output:" + output);
-            Trace.WriteLine("Error:" + error);
-            app.Kill();            
-            Trace.WriteLine("App exitcode after explicit kill:" + app.ExitCode);
-
-            Trace.WriteLine("App exitcode:" + app.ExitCode);
-
-
-        }
-
         [TestMethod]
         public void TestMethod3()
         {
@@ -123,7 +75,7 @@ namespace PerfTests
                 {
                     error += errorMessage;                    
                 })
-                .Start();
+                .Start((IntPtr)12, ProcessPriorityClass.High);
             //app.SetAffinity((IntPtr) 12);
             //app.SetPriority(ProcessPriorityClass.High);
             
@@ -245,7 +197,7 @@ namespace PerfTests
             ProcessStartInfo startInfo = new ProcessStartInfo("dotnet.exe", arguments)
             {
                 UseShellExecute = false,
-                CreateNoWindow = true,
+                CreateNoWindow = true,               
             };          
 
             if (!string.IsNullOrWhiteSpace(workingDirectory))
@@ -257,6 +209,8 @@ namespace PerfTests
             {
                 StartInfo = startInfo
             };
+
+        
         }
 
         /// <summary>
@@ -317,7 +271,7 @@ namespace PerfTests
         /// </summary>
         public DotNetCoreProcess Run()
         {
-            Start();
+            //Start();
             WaitForExit();
             return this;
         }
@@ -326,10 +280,12 @@ namespace PerfTests
         /// Asynchronously start this process. This method will not wait for
         /// the process to finish before it returns.
         /// </summary>
-        public DotNetCoreProcess Start()
+        public DotNetCoreProcess Start(IntPtr affinity, ProcessPriorityClass prio)
         {
             //Trace.WriteLine("Process starting...");
             process.Start();
+            process.ProcessorAffinity = affinity;
+            process.PriorityClass = prio;
 
             //Trace.WriteLine("Process started with pid:" + process.Id);
 
