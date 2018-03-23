@@ -37,7 +37,7 @@ namespace PerfTests
         }
 
         [TestMethod]
-        [Timeout(10000)]
+        
         public void TestMethod2()
         {
             //Process app = CommandLineHelpers.ExecuteCommand("dotnet", "..\\..\\..\\..\\artifacts\\perf\\App1\\netcoreapp2.0\\App1.dll", false);
@@ -157,6 +157,7 @@ namespace PerfTests
             {
                 startInfo.WorkingDirectory = workingDirectory;
             }
+            Trace.WriteLine("process working dir" + startInfo.WorkingDirectory);
 
             process = new Process()
             {
@@ -233,6 +234,7 @@ namespace PerfTests
         /// </summary>
         public DotNetCoreProcess Start()
         {
+            Trace.WriteLine("Process starting...");
             process.Start();
 
             Trace.WriteLine("Process started with pid:" + process.Id);
