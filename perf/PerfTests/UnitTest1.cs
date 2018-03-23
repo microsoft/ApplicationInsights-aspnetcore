@@ -75,7 +75,7 @@ namespace PerfTests
                 {
                     error += errorMessage;                    
                 })
-                .Start((IntPtr)12, ProcessPriorityClass.High);
+                .Start(12, ProcessPriorityClass.High);
             //app.SetAffinity((IntPtr) 12);
             //app.SetPriority(ProcessPriorityClass.High);
             
@@ -280,11 +280,16 @@ namespace PerfTests
         /// Asynchronously start this process. This method will not wait for
         /// the process to finish before it returns.
         /// </summary>
-        public DotNetCoreProcess Start(IntPtr affinity, ProcessPriorityClass prio)
+        public DotNetCoreProcess Start(long affinity, ProcessPriorityClass prio)
         {
             //Trace.WriteLine("Process starting...");
             process.Start();
-            process.ProcessorAffinity = affinity;
+            //process.ProcessorAffinity = affinity;
+
+            long AffinityMask = (long)process.ProcessorAffinity;
+            AffinityMask &= affinity;
+            process.ProcessorAffinity = (IntPtr)AffinityMask;
+
             process.PriorityClass = prio;
 
             //Trace.WriteLine("Process started with pid:" + process.Id);
