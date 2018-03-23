@@ -58,11 +58,11 @@ namespace PerfTests
             }
 
             Trace.WriteLine("Launching App1");
-            PerfMeasurements perfMeasurements1 = MeasureApp2($"..\\..\\..\\..\\artifacts\\perf\\App1\\netcoreapp2.0\\App1.dll");
+            PerfMeasurements perfMeasurements1 = MeasureApp2($"..\\..\\..\\..\\artifacts\\perf\\App1\\netcoreapp2.0\\win10-x64\\publish\\App1.dll");
             PrintPerfMeasurements(perfMeasurements1);
 
             Trace.WriteLine("Launching App2");
-            PerfMeasurements perfMeasurements2 = MeasureApp2($"..\\..\\..\\..\\artifacts\\perf\\App2\\netcoreapp2.0\\publish\\App2.dll");
+            PerfMeasurements perfMeasurements2 = MeasureApp2($"..\\..\\..\\..\\artifacts\\perf\\App2\\netcoreapp2.0\\win10-x64\\publish\\App2.dll");
             PrintPerfMeasurements(perfMeasurements2);
 
             double overhead = ((perfMeasurements1.rpsPerCpu - perfMeasurements2.rpsPerCpu) / perfMeasurements2.rpsPerCpu) * 100;
