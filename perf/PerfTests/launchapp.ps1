@@ -1,1 +1,1 @@
-Get-Process -name dotnet
+Get-Process -name dotnet | Stop-Process
