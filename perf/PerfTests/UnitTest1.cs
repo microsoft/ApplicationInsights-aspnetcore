@@ -21,7 +21,7 @@ namespace PerfTests
             Trace.WriteLine("Current Dir:" + s);
 
             Trace.WriteLine("Launching App1");
-            PerfMeasurements perfMeasurements1 = MeasureApp("..\\..\\..\\..\\artifacts\\perf\\App1\\netcoreapp2.0\\publish\\App1.dll");
+            PerfMeasurements perfMeasurements1 = MeasureApp("D:\\a\\1\\s\\artifacts\\perf\\App1\\netcoreapp2.0\\publish\\App1.dll");
             PrintPerfMeasurements(perfMeasurements1);
 
             Trace.WriteLine("Launching App2");
