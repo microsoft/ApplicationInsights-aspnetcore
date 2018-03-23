@@ -14,6 +14,7 @@ namespace PerfTests
         const double TestDuration = 60000;
         const int TargetRps = 50;
 
+        [Ignore]
         [TestMethod]        
         public void TestMethod1()
         {
@@ -35,8 +36,7 @@ namespace PerfTests
 
         }
 
-        [TestMethod]
-        [Ignore]
+        [TestMethod]        
         
         public void TestMethod2()
         {
@@ -59,7 +59,7 @@ namespace PerfTests
                     Trace.WriteLine("Error:" + errorMessage);
                 })
                 .Start();
-            Trace.WriteLine("App exitcode:" + app.ExitCode);
+
             Thread.Sleep(1000);
             try
             {
@@ -72,11 +72,9 @@ namespace PerfTests
                 Trace.WriteLine("Exception while hitting app url: " + ex.Message);
             }
 
-            //Trace.WriteLine("Output:" + output);
-            //Trace.WriteLine("Error:" + error);
-
-
             Thread.Sleep(1000);
+            Trace.WriteLine("Output:" + output);
+            Trace.WriteLine("Error:" + error);
             app.Kill();            
             Trace.WriteLine("App exitcode after explicit kill:" + app.ExitCode);
 
@@ -279,6 +277,8 @@ namespace PerfTests
         /// </summary>
         public void Kill()
         {
+            process.CancelErrorRead();
+            process.CancelOutputRead();
             process.Kill();
 
             // Kill is an async operation internally.
