@@ -69,13 +69,14 @@ namespace PerfTests
             {
                 Trace.WriteLine("Exception: " + ex.Message);
             }
-            
-            
+
+            Trace.WriteLine("Output:" + output);
+            Trace.WriteLine("Error:" + error);
+
             app.Kill();
             Thread.Sleep(1000);
             Trace.WriteLine("App exitcode after explicit kill:" + app.ExitCode);
-            Trace.WriteLine("Output:" + output);
-            Trace.WriteLine("Error:" + error);
+            
         }
 
             private static void PrintPerfMeasurements(PerfMeasurements perfMeasurements)
