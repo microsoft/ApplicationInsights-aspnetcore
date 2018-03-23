@@ -11,7 +11,7 @@ namespace PerfTests
     [TestClass]
     public class UnitTest1
     {
-        const double TestDuration = 60000;
+        const double TestDuration = 30000;
         const int TargetRps = 50;
 
         [Ignore]
@@ -83,13 +83,98 @@ namespace PerfTests
 
         }
 
-            private static void PrintPerfMeasurements(PerfMeasurements perfMeasurements)
+        [TestMethod]
+
+        public void TestMethod3()
+        {
+            MeasureApp2($"..\\..\\..\\..\\artifacts\\perf\\App1\\netcoreapp2.0\\App1.dll");
+
+        }
+
+        private static void PrintPerfMeasurements(PerfMeasurements perfMeasurements)
         {
             Trace.WriteLine("Rps:" + perfMeasurements.rps);
             Trace.WriteLine("Cpu:" + perfMeasurements.cpuAverage);
             Trace.WriteLine("RpsPerCpu:" + perfMeasurements.rpsPerCpu);
         }
 
+        private static PerfMeasurements MeasureApp2(string pathToApp)
+        {
+            // Launch App
+            //string arguments = $"..\\..\\..\\..\\artifacts\\perf\\App1\\netcoreapp2.0\\App1.dll";
+            string output = "";
+            string error = "";
+
+            var app = new DotNetCoreProcess(pathToApp)
+                .RedirectStandardOutputTo((string outputMessage) =>
+                {
+                    output += outputMessage;                    
+                })
+                .RedirectStandardErrorTo((string errorMessage) =>
+                {
+                    error += errorMessage;                    
+                })
+                .Start();
+
+            //Process app = CommandLineHelpers.ExecuteCommand("dotnet", pathToApp, true);
+            //app.ProcessorAffinity = (IntPtr)12;
+            //app.PriorityClass = ProcessPriorityClass.High;
+            //Trace.WriteLine("ProcessId:" + app.Id);
+
+            //Verify App
+            try
+            {
+                HttpClient client = new HttpClient();
+                var responsefromApp = client.GetStringAsync("http://localhost:5000/api/values").Result;
+                Trace.WriteLine("App output http req:" + responsefromApp);
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine("Exception while hitting app url: " + ex.Message);
+            }
+
+            // Launch Load Generator
+            Process loadGenProcess = CommandLineHelpers.ExecuteCommand("dotnet",
+                string.Format("..\\..\\..\\..\\artifacts\\perf\\LoadGenerator\\netcoreapp2.0\\LoadGenerator.dll http://localhost:5000/api/values {0} {1}",
+                TargetRps, TestDuration));
+            loadGenProcess.ProcessorAffinity = (IntPtr)3;
+            loadGenProcess.PriorityClass = ProcessPriorityClass.Normal;
+            Trace.WriteLine("ProcessId (loadgen):" + loadGenProcess.Id);
+
+            // Launch perf counter reader
+            Process MeasureCounterProcess = CommandLineHelpers.ExecuteCommand("powershell",
+            ".\\ReadCounter.ps1");
+            string avgCpu = MeasureCounterProcess.StandardOutput.ReadToEnd();
+            MeasureCounterProcess.WaitForExit();
+            Trace.WriteLine("AvgCpu:" + avgCpu);
+
+
+            string requCount = loadGenProcess.StandardOutput.ReadToEnd();
+            loadGenProcess.WaitForExit();
+            Trace.WriteLine("Total requests:" + requCount);
+
+            double totalRequests = Math.Round(double.Parse(requCount), 2);
+            double cpuAverage = Math.Round(double.Parse(avgCpu), 2);
+            cpuAverage = Math.Round(cpuAverage / 2, 2);
+            double durationInSecs = Math.Round(TestDuration / 1000, 2);
+            double rps = Math.Round(totalRequests / durationInSecs, 2);
+
+            double rpsPerCpu = Math.Round(rps / cpuAverage, 2);
+
+            Trace.WriteLine("Output:" + output);
+            Trace.WriteLine("Error:" + error);
+            app.Kill();
+            Thread.Sleep(1000);
+            //Trace.WriteLine(app.Id + " existed? :" + app.HasExited);
+
+            return new PerfMeasurements()
+            {
+                durationInSecs = durationInSecs,
+                rps = rps,
+                cpuAverage = cpuAverage,
+                rpsPerCpu = rpsPerCpu
+            };
+        }
         private static PerfMeasurements MeasureApp(string pathToApp)
         {
             // Launch App
@@ -153,7 +238,7 @@ namespace PerfTests
 
         public DotNetCoreProcess(string arguments, string workingDirectory = null)
         {
-            ProcessStartInfo startInfo = new ProcessStartInfo(DotNetExePath, arguments)
+            ProcessStartInfo startInfo = new ProcessStartInfo("dotnet.exe", arguments)
             {
                 UseShellExecute = false,
                 CreateNoWindow = true,
