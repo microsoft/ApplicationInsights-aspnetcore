@@ -37,6 +37,7 @@ namespace PerfTests
         }
 
         [TestMethod]        
+        [Ignore]
         
         public void TestMethod2()
         {
@@ -86,7 +87,18 @@ namespace PerfTests
         [TestMethod]
         public void TestMethod3()
         {
-            MeasureApp2($"..\\..\\..\\..\\artifacts\\perf\\App1\\netcoreapp2.0\\App1.dll");
+            Trace.WriteLine("Launching App1");
+            PerfMeasurements perfMeasurements1 = MeasureApp2($"..\\..\\..\\..\\artifacts\\perf\\App1\\netcoreapp2.0\\App1.dll");
+            PrintPerfMeasurements(perfMeasurements1);
+
+            Trace.WriteLine("Launching App2");
+            PerfMeasurements perfMeasurements2 = MeasureApp2($"..\\..\\..\\..\\artifacts\\perf\\App2\\netcoreapp2.0\\publish\\App2.dll");
+            PrintPerfMeasurements(perfMeasurements2);
+
+            double overhead = ((perfMeasurements1.rpsPerCpu - perfMeasurements2.rpsPerCpu) / perfMeasurements2.rpsPerCpu) * 100;
+
+            Trace.WriteLine("Overhead is:" + overhead);
+            Assert.IsTrue(overhead > 0 && overhead < 10, "Overhead should be 0-10. Value:" + overhead);
         }
 
         private static void PrintPerfMeasurements(PerfMeasurements perfMeasurements)
@@ -98,27 +110,23 @@ namespace PerfTests
 
         private static PerfMeasurements MeasureApp2(string pathToApp)
         {
-            // Launch App
-            //string arguments = $"..\\..\\..\\..\\artifacts\\perf\\App1\\netcoreapp2.0\\App1.dll";
+            // Launch App           
             string output = "";
             string error = "";
 
             var app = new DotNetCoreProcess(pathToApp)
                 .RedirectStandardOutputTo((string outputMessage) =>
                 {
-                    output += outputMessage;                    
+                    //output += outputMessage;                    
                 })
                 .RedirectStandardErrorTo((string errorMessage) =>
                 {
                     error += errorMessage;                    
                 })
                 .Start();
-
-            //Process app = CommandLineHelpers.ExecuteCommand("dotnet", pathToApp, true);
-            //app.ProcessorAffinity = (IntPtr)12;
-            //app.PriorityClass = ProcessPriorityClass.High;
-            //Trace.WriteLine("ProcessId:" + app.Id);
-
+            app.SetAffinity((IntPtr) 12);
+            app.SetPriority(ProcessPriorityClass.High);
+            
             //Verify App
             try
             {
@@ -146,7 +154,6 @@ namespace PerfTests
             MeasureCounterProcess.WaitForExit();
             Trace.WriteLine("AvgCpu:" + avgCpu);
 
-
             string requCount = loadGenProcess.StandardOutput.ReadToEnd();
             loadGenProcess.WaitForExit();
             Trace.WriteLine("Total requests:" + requCount);
@@ -162,8 +169,7 @@ namespace PerfTests
             Trace.WriteLine("Output:" + output);
             Trace.WriteLine("Error:" + error);
             app.Kill();
-            Thread.Sleep(1000);
-            //Trace.WriteLine(app.Id + " existed? :" + app.HasExited);
+            Thread.Sleep(1000);            
 
             return new PerfMeasurements()
             {
