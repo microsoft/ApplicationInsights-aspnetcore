@@ -84,11 +84,9 @@ namespace PerfTests
         }
 
         [TestMethod]
-
         public void TestMethod3()
         {
             MeasureApp2($"..\\..\\..\\..\\artifacts\\perf\\App1\\netcoreapp2.0\\App1.dll");
-
         }
 
         private static void PrintPerfMeasurements(PerfMeasurements perfMeasurements)
@@ -339,6 +337,22 @@ namespace PerfTests
             }
 
             return this;
+        }
+
+        /// <summary>
+        /// Set affinity for process
+        /// </summary>
+        public void SetAffinity(IntPtr affinityMask)
+        {
+            process.ProcessorAffinity = (IntPtr)affinityMask;
+        }
+
+        /// <summary>
+        /// Set affinity for process
+        /// </summary>
+        public void SetPriority(ProcessPriorityClass priorityClass)
+        {
+            process.PriorityClass = priorityClass;
         }
 
         /// <summary>
