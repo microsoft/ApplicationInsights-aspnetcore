@@ -51,10 +51,12 @@ namespace PerfTests
                 .RedirectStandardOutputTo((string outputMessage) =>
                 {
                     output += outputMessage;
+                    Trace.WriteLine("Output:" + outputMessage);
                 })
                 .RedirectStandardErrorTo((string errorMessage) =>
                 {
                     error += errorMessage;
+                    Trace.WriteLine("Error:" + errorMessage);
                 })
                 .Start();
             Trace.WriteLine("App exitcode:" + app.ExitCode);
@@ -67,16 +69,19 @@ namespace PerfTests
             }
             catch (Exception ex)
             {
-                Trace.WriteLine("Exception: " + ex.Message);
+                Trace.WriteLine("Exception while hitting app url: " + ex.Message);
             }
 
-            Trace.WriteLine("Output:" + output);
-            Trace.WriteLine("Error:" + error);
+            //Trace.WriteLine("Output:" + output);
+            //Trace.WriteLine("Error:" + error);
 
-            app.Kill();
+            //app.Kill();
             Thread.Sleep(1000);
-            Trace.WriteLine("App exitcode after explicit kill:" + app.ExitCode);
-            
+            //Trace.WriteLine("App exitcode after explicit kill:" + app.ExitCode);
+
+            Trace.WriteLine("App exitcode:" + app.ExitCode);
+
+
         }
 
             private static void PrintPerfMeasurements(PerfMeasurements perfMeasurements)
