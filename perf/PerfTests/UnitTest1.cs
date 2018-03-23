@@ -134,11 +134,11 @@ namespace PerfTests
 
             double rpsPerCpu = Math.Round(rps / cpuAverage, 2);
 
-            if (string.IsNullOrEmpty(output))
+            if (!string.IsNullOrEmpty(output))
             {
                 Trace.WriteLine("Output:" + output);
             }
-            if (string.IsNullOrEmpty(error))
+            if (!string.IsNullOrEmpty(error))
             {
                 Trace.WriteLine("Error:" + error);
             }
