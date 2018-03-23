@@ -315,7 +315,7 @@ namespace PerfTests
             AffinityMask &= affinity;
             Trace.WriteLine("Process Affinity after is:" + AffinityMask);
             process.ProcessorAffinity = (IntPtr)AffinityMask;
-            
+            Trace.WriteLine("Process Affinity after setting is:" + process.ProcessorAffinity);
 
             //Trace.WriteLine("Process started with pid:" + process.Id);
 
