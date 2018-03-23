@@ -10,7 +10,7 @@ namespace PerfTests
     {
         public static Process ExecuteCommand(string exec, string command, bool useShellExecute = false)
         {            
-            Console.WriteLine("Executing cmd command: " + command);
+            //Console.WriteLine("Executing cmd command: " + command);
             ProcessStartInfo commandInfo = new ProcessStartInfo(exec, command);
             Process process = new Process { StartInfo = commandInfo };
             process.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;

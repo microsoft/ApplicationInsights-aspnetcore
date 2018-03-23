@@ -124,8 +124,8 @@ namespace PerfTests
                     error += errorMessage;                    
                 })
                 .Start();
-            app.SetAffinity((IntPtr) 12);
-            app.SetPriority(ProcessPriorityClass.High);
+            //app.SetAffinity((IntPtr) 12);
+            //app.SetPriority(ProcessPriorityClass.High);
             
             //Verify App
             try
@@ -269,7 +269,7 @@ namespace PerfTests
                 int? result = null;
                 if (process.HasExited)
                 {
-                    Trace.WriteLine("process exited.");
+                    //Trace.WriteLine("process exited.");
                     result = process.ExitCode;
                 }
                 return result;
@@ -328,10 +328,10 @@ namespace PerfTests
         /// </summary>
         public DotNetCoreProcess Start()
         {
-            Trace.WriteLine("Process starting...");
+            //Trace.WriteLine("Process starting...");
             process.Start();
 
-            Trace.WriteLine("Process started with pid:" + process.Id);
+            //Trace.WriteLine("Process started with pid:" + process.Id);
 
             if (process.StartInfo.RedirectStandardOutput)
             {
