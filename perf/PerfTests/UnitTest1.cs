@@ -14,19 +14,18 @@ namespace PerfTests
         const double TestDuration = 60000;
         const int TargetRps = 50;
 
-        [TestMethod]
-        [Ignore]
+        [TestMethod]        
         public void TestMethod1()
         {
             var s = Directory.GetCurrentDirectory();
             Trace.WriteLine("Current Dir:" + s);
 
             Trace.WriteLine("Launching App1");
-            PerfMeasurements perfMeasurements1 = MeasureApp("..\\..\\..\\..\\artifacts\\perf\\App1\\netcoreapp2.0\\App1.dll");
+            PerfMeasurements perfMeasurements1 = MeasureApp("..\\..\\..\\..\\artifacts\\perf\\App1\\netcoreapp2.0\\publish\\App1.dll");
             PrintPerfMeasurements(perfMeasurements1);
 
             Trace.WriteLine("Launching App2");
-            PerfMeasurements perfMeasurements2 = MeasureApp("..\\..\\..\\..\\artifacts\\perf\\App2\\netcoreapp2.0\\App2.dll");
+            PerfMeasurements perfMeasurements2 = MeasureApp("..\\..\\..\\..\\artifacts\\perf\\App2\\netcoreapp2.0\\publish\\App2.dll");
             PrintPerfMeasurements(perfMeasurements1);
 
             double overhead = ((perfMeasurements1.rpsPerCpu - perfMeasurements2.rpsPerCpu) / perfMeasurements2.rpsPerCpu) * 100;
@@ -37,6 +36,7 @@ namespace PerfTests
         }
 
         [TestMethod]
+        [Ignore]
         
         public void TestMethod2()
         {
@@ -75,9 +75,10 @@ namespace PerfTests
             //Trace.WriteLine("Output:" + output);
             //Trace.WriteLine("Error:" + error);
 
-            //app.Kill();
+
             Thread.Sleep(1000);
-            //Trace.WriteLine("App exitcode after explicit kill:" + app.ExitCode);
+            app.Kill();            
+            Trace.WriteLine("App exitcode after explicit kill:" + app.ExitCode);
 
             Trace.WriteLine("App exitcode:" + app.ExitCode);
 
