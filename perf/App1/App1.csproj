@@ -21,6 +21,13 @@
     <Content Update="appsettings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-  </ItemGroup>  
+  </ItemGroup>
+
+  <PropertyGroup>
+    <DeployOnBuild>true</DeployOnBuild>
+    <DeployTarget>PipelinePreDeployCopyAllFilesToOneFolder</DeployTarget>
+    <_PackageTempDir>$(OutputPath)\Publish</_PackageTempDir>
+    <AutoParameterizationWebConfigConnectionStrings>false</AutoParameterizationWebConfigConnectionStrings>
+  </PropertyGroup>
 
 </Project>

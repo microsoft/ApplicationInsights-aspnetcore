@@ -43,7 +43,7 @@ namespace PerfTests
             //Process app = CommandLineHelpers.ExecuteCommand("dotnet", "..\\..\\..\\..\\artifacts\\perf\\App1\\netcoreapp2.0\\App1.dll", false);
             //Trace.WriteLine("Exit code" + app.ExitCode);
 
-            string arguments = $"D:\\a\\1\\s\\artifacts\\perf\\App1\\netcoreapp2.0\\App1.dll";
+            string arguments = $"D:\\a\\1\\s\\artifacts\\perf\\App1\\netcoreapp2.0\\Publish\\App1.dll";
             string output = "";
             string error = "";
 
@@ -247,23 +247,18 @@ namespace PerfTests
 
             if (process.StartInfo.RedirectStandardOutput)
             {
-                //process.BeginOutputReadLine();
-               var s =  process.StandardOutput.ReadToEnd();
-                Trace.WriteLine("s output: " + s);
+                process.BeginOutputReadLine();
             }
             if (process.StartInfo.RedirectStandardError)
             {
-                //process.BeginErrorReadLine();
-
-                var er = process.StandardError.ReadToEnd();
-                Trace.WriteLine("er output: " + er);
+                process.BeginErrorReadLine();
             }
 
             return this;
         }
 
         /// <summary>
-        /// Wait up to 10 seconds for this process to exit.
+        /// Wait up to 1 seconds for this process to exit.
         /// </summary>
         public void WaitForExit()
         {
