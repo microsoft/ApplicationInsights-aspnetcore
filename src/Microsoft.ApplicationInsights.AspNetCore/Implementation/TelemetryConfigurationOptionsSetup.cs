@@ -8,8 +8,10 @@ namespace Microsoft.Extensions.DependencyInjection
     using Microsoft.ApplicationInsights.Channel;
     using Microsoft.ApplicationInsights.Extensibility;
     using Microsoft.ApplicationInsights.Extensibility.PerfCounterCollector.QuickPulse;
+    using Microsoft.ApplicationInsights.WindowsServer;
     using Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel;
     using Microsoft.Extensions.Options;
+    using Microsoft.ApplicationInsights.Extensibility.Implementation;
 
     /// <summary>
     /// Initializes TelemetryConfiguration based on values in <see cref="ApplicationInsightsServiceOptions"/>
@@ -118,6 +120,13 @@ namespace Microsoft.Extensions.DependencyInjection
                 if (this.applicationInsightsServiceOptions.EnableAdaptiveSampling)
                 {
                     configuration.TelemetryProcessorChainBuilder.UseAdaptiveSampling();
+                }
+
+                if (this.applicationInsightsServiceOptions.EnableHeartbeat)
+                {
+                    var heartbeatExtModule = new AppServicesHeartbeatTelemetryModule();
+                    heartbeatExtModule.Initialize(configuration);
+                    TelemetryModules.Instance.Modules.Add(heartbeatExtModule);
                 }
             }
         }
