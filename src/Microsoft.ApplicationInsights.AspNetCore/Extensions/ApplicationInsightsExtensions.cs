@@ -14,6 +14,7 @@ namespace Microsoft.Extensions.DependencyInjection
     using Microsoft.ApplicationInsights.AspNetCore.TelemetryInitializers;
     using Microsoft.ApplicationInsights.DependencyCollector;
     using Microsoft.ApplicationInsights.Extensibility;
+    using Microsoft.ApplicationInsights.WindowsServer;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Http;
     using Microsoft.Extensions.Configuration;
@@ -23,7 +24,6 @@ namespace Microsoft.Extensions.DependencyInjection
 
 #if NET451 || NET46
     using Microsoft.ApplicationInsights.Extensibility.PerfCounterCollector;
-    using Microsoft.ApplicationInsights.WindowsServer;
 #endif
 
     /// <summary>
