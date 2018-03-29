@@ -1,5 +1,6 @@
 ﻿namespace Microsoft.ApplicationInsights.AspNetCore.Extensions
 {
+    using System;
     using System.Reflection;
 
     /// <summary>
