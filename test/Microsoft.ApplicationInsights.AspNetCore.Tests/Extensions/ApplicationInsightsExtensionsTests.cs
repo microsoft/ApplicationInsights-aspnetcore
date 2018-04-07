@@ -30,9 +30,6 @@ namespace Microsoft.Extensions.DependencyInjection.Test
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Options;
 
-
-
-
     public static class ApplicationInsightsExtensionsTests
     {
         /// <summary>Constant instrumentation key value for testintg.</summary>
