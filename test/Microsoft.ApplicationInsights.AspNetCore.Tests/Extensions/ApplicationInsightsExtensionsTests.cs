@@ -505,6 +505,7 @@ namespace Microsoft.Extensions.DependencyInjection.Test
                 Assert.Equal(0, qpProcessorCount);
             }
 
+
             [Fact]
             public static void AddsHeartbeatModulesToTheConfigurationByDefault()
             {
@@ -514,15 +515,14 @@ namespace Microsoft.Extensions.DependencyInjection.Test
                 var modules = serviceProvider.GetServices<ITelemetryModule>();
                 Assert.NotNull(modules.OfType<AppServicesHeartbeatTelemetryModule>().Single());
                 Assert.NotNull(modules.OfType<AzureInstanceMetadataTelemetryModule>().Single());
-
-                var heartbeatModule = TelemetryModules.Instance.Modules.OfType<IHeartbeatPropertyManager>().First();
-                Assert.NotNull(heartbeatModule);
-                Assert.True(heartbeatModule.IsHeartbeatEnabled);
             }
 
             [Fact]
             public static void HeartbeatIsDisabledWithServiceOptions()
             {
+                var heartbeatModulePRE = TelemetryModules.Instance.Modules.OfType<IHeartbeatPropertyManager>().First();
+                Assert.True(heartbeatModulePRE.IsHeartbeatEnabled);
+
                 Action<ApplicationInsightsServiceOptions> serviceOptions = options => options.EnableHeartbeat = false;
                 var services = CreateServicesAndAddApplicationinsightsTelemetry(null, "http://localhost:1234/v2/track/", serviceOptions, false);
                 IServiceProvider serviceProvider = services.BuildServiceProvider();
