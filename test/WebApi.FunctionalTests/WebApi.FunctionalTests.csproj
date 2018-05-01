@@ -5,6 +5,7 @@
     <TargetFrameworks>net46;netcoreapp1.0</TargetFrameworks>
     <TargetFrameworks Condition=" '$(OS)' != 'Windows_NT' ">netcoreapp1.0</TargetFrameworks>
     <RuntimeIdentifier Condition=" '$(TargetFramework)' == 'net46' ">win7-x86</RuntimeIdentifier>
+    <PackageTargetFallback Condition=" '$(TargetFramework)' == 'netcoreapp1.0' ">$(PackageTargetFallback);portable-net45+win8</PackageTargetFallback>
     <RuntimeFrameworkVersion Condition=" '$(TargetFramework)' == 'netcoreapp1.0' ">1.1.5</RuntimeFrameworkVersion>
     <OutputPath Condition="'$(OutputPath)'=='' ">..\..\artifacts\test\$(MSBuildProjectName)</OutputPath>
     <IntermediateOutputPath Condition="'$(IntermediateOutputPath)'=='' ">..\..\artifacts\obj\test\$(MSBuildProjectName)</IntermediateOutputPath>
