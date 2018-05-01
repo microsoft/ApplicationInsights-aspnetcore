@@ -2,20 +2,13 @@
 
   <PropertyGroup>
     <VersionPrefix>2.0.0</VersionPrefix>
-    <TargetFrameworks>netcoreapp2.0;net461</TargetFrameworks>
-	<TargetFrameworks Condition=" '$(OS)' != 'Windows_NT' ">netcoreapp2.0</TargetFrameworks>
-	<RuntimeIdentifier Condition=" '$(TargetFramework)' == 'net461' ">win7-x86</RuntimeIdentifier>    
-    <PreserveCompilationContext>true</PreserveCompilationContext>
-    <AssemblyName>WebApi20.FunctionalTests20</AssemblyName>
-    <PackageId>WebApi20.FunctionalTests</PackageId>
-    <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>    
-    <RuntimeFrameworkVersion Condition=" '$(TargetFramework)' == 'netcoreapp2.0' ">2.0.0</RuntimeFrameworkVersion>
+    <TargetFrameworks>net461;netstandard2.0</TargetFrameworks>
+    <TargetFrameworks Condition=" '$(OS)' != 'Windows_NT' ">netcoreapp2.0</TargetFrameworks>
+    <RuntimeIdentifier Condition=" '$(TargetFramework)' == 'net461' ">win7-x86</RuntimeIdentifier>
     <OutputPath Condition="'$(OutputPath)'=='' ">..\..\artifacts\test\$(MSBuildProjectName)</OutputPath>
-	<IntermediateOutputPath Condition="'$(IntermediateOutputPath)'=='' ">..\..\artifacts\obj\test\$(MSBuildProjectName)</IntermediateOutputPath>
-    <DebugType>pdbonly</DebugType>
-    <DebugSymbols>true</DebugSymbols>
+    <IntermediateOutputPath Condition="'$(IntermediateOutputPath)'=='' ">..\..\artifacts\obj\test\$(MSBuildProjectName)</IntermediateOutputPath>
     <ApplicationIcon />
-    <OutputType>Library</OutputType>
+    <OutputTypeEx>exe</OutputTypeEx>
     <StartupObject />
   </PropertyGroup>
 
@@ -34,16 +27,18 @@
     <ProjectReference Include="..\..\src\Microsoft.ApplicationInsights.AspNetCore\Microsoft.ApplicationInsights.AspNetCore.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.5.0" />
+  <ItemGroup>     
     <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.WebApiCompatShim" Version="2.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.StaticFiles" Version="2.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.0.0" />
-    <PackageReference Include="xunit" Version="2.3.0" />
-	<PackageReference Include="Microsoft.AspNetCore.Diagnostics" Version="2.0.0" />
-	<PackageReference Include="Microsoft.AspNetCore.Server.Kestrel" Version="2.0.0" />
-	<PackageReference Include="xunit.runner.visualstudio" Version="2.3.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.0.0" />    
+	  <PackageReference Include="Microsoft.AspNetCore.Diagnostics" Version="2.0.0" />
+	  <PackageReference Include="Microsoft.AspNetCore.Server.Kestrel" Version="2.0.0" />
+
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.6.0" />
+    <PackageReference Include="xunit" Version="2.3.1" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.3.1" />
+    <DotNetCliToolReference Include="dotnet-xunit" Version="2.3.1" />
   </ItemGroup>
 
   <ItemGroup>
