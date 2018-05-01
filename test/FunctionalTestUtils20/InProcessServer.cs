@@ -100,9 +100,6 @@
         {
             if (this.hostingEngine != null)
             {
-                this.output.WriteLine("Stopping host at:" + DateTime.Now.ToString("G"));
-                this.hostingEngine.StopAsync(TimeSpan.FromSeconds(5)).Wait();
-                this.output.WriteLine("Stopped host at:" + DateTime.Now.ToString("G"));
                 this.hostingEngine.Dispose();
             }
 
