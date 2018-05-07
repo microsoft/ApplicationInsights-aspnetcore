@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-    <Import Project="Signing.props"/>
+    <!--<Import Project="Signing.props"/>-->
 
     <PropertyGroup>
         <CliZipFile>$(BUILD_ARTIFACTSTAGINGDIRECTORY)\dotnet-sdk-2.1.4-win-x64.zip</CliZipFile>
@@ -189,21 +189,6 @@
         <RemoveDir Directories="$(BaseIntermediateOutputPath)" />
         <RemoveDir Directories="$(BUILD_ARTIFACTSTAGINGDIRECTORY)\dotnet-sdk-2.1.4-win-x64.latest" />
         <Delete Files="$(BUILD_ARTIFACTSTAGINGDIRECTORY)\dotnet-sdk-2.1.4-win-x64.zip" />
-    </Target>
-
-    <Target Name="AfterBuild" AfterTargets="Test" DependsOnTargets="Test">
-        <ItemGroup>
-            <FilesToSign Include="**\Microsoft.ApplicationInsights.AspNetCore.dll">
-                <Authenticode Condition="'%(FilesToSign.Authenticode)' == ''">Microsoft</Authenticode>
-                <StrongName Condition="'%(FilesToSign.StrongName)' == ''">MsSharedLib72</StrongName>
-            </FilesToSign>
-        </ItemGroup>
-        <Message Importance="high" Text="Files to sign:"></Message>
-        <Message Importance="high" Text="--> File:%(FilesToSign.FileName)%(FilesToSign.Extension)
-        --> BinariesDirectory:$([System.IO.Path]::GetDirectoryName(%(FilesToSign.FullPath))) --> Authenticode:%(FilesToSign.Authenticode)"></Message>
-        <ItemGroup>
-            <DocumentationFiles Include="**\Microsoft.ApplicationInsights.AspNetCore.xml"></DocumentationFiles>
-        </ItemGroup>
     </Target>
 
     <Target Name="FixXmlDocumentation" AfterTargets="AfterBuild" DependsOnTargets="AfterBuild">

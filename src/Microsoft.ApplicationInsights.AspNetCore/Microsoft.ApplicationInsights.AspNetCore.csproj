@@ -8,12 +8,12 @@
     <Authors>Microsoft</Authors>
     <TargetFrameworks>net451;net46;netstandard1.6</TargetFrameworks>
     <TargetFrameworks Condition=" '$(OS)' != 'Windows_NT' ">netstandard1.6</TargetFrameworks>
-    <DelaySign Condition=" '$(OS)' == 'Windows_NT' ">true</DelaySign>
+    <!--<DelaySign Condition=" '$(OS)' == 'Windows_NT' ">true</DelaySign>-->
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <AssemblyName>Microsoft.ApplicationInsights.AspNetCore</AssemblyName>
     <AssemblyOriginatorKeyFile>../../keys/35MSSharedLib1024.snk</AssemblyOriginatorKeyFile>
     <SignAssembly>true</SignAssembly>
-    <PublicSign Condition=" '$(OS)' != 'Windows_NT' ">true</PublicSign>
+    <!--<PublicSign Condition=" '$(OS)' != 'Windows_NT' ">true</PublicSign>-->
     <PackageId>Microsoft.ApplicationInsights.AspNetCore</PackageId>
     <PackageTags>Analytics;ApplicationInsights;Telemetry;AppInsights;aspnetcore</PackageTags>
     <PackageIconUrl>https://appanacdn.blob.core.windows.net/cdn/icons/aic.png</PackageIconUrl>
@@ -90,4 +90,5 @@
     <PackageReference Include="System.Net.NameResolution" Version="4.3.0" />
   </ItemGroup>
 
+  <Import Project="..\..\Signing.targets" />
 </Project>
