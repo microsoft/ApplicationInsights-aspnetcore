@@ -36,6 +36,7 @@
     <PackageReference Include="Desktop.Analyzers" Version="1.2.0-beta2">
       <PrivateAssets>All</PrivateAssets>
     </PackageReference>
+    <PackageReference Include="MicroBuild.Core" Version="0.3.0" />
     <PackageReference Include="Microsoft.ApiDesignGuidelines.Analyzers" Version="1.2.0-beta2">
       <PrivateAssets>All</PrivateAssets>
     </PackageReference>
