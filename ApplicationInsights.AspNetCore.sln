@@ -16,8 +16,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		Readme.md = Readme.md
 		RunTestsCore.ps1 = RunTestsCore.ps1
 		SetEnv.targets = SetEnv.targets
+		Signing.props = Signing.props
 		Signing.props.bak = Signing.props.bak
-		Signing.targets = Signing.targets
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{8B5230E5-8138-44D6-839F-DF9248F195EE}"
