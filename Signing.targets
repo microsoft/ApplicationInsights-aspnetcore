@@ -31,8 +31,8 @@
   <PropertyGroup>
     <!--<AssemblyOriginatorKeyFile>$(EnlistmentRoot)\keys\35MSSharedLib1024.snk</AssemblyOriginatorKeyFile>
     <KeyOriginatorFile>$(MSBuildThisFileDirectory)\keys\35MSSharedLib1024.snk</KeyOriginatorFile>-->
-    <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)\keys\35MSSharedLib1024.snk</AssemblyOriginatorKeyFile>
-    <KeyOriginatorFile>$(MSBuildThisFileDirectory)\keys\35MSSharedLib1024.snk</KeyOriginatorFile>
+    <AssemblyOriginatorKeyFile>..\..\Keys\35MSSharedLib1024.snk</AssemblyOriginatorKeyFile>
+    <KeyOriginatorFile>..\..\Keys\35MSSharedLib1024.snk</KeyOriginatorFile>
     <!--https://github.com/dotnet/corefx/blob/master/Documentation/project-docs/public-signing.md-->
     <PublicSign>true</PublicSign>
   </PropertyGroup>
