@@ -190,11 +190,11 @@
         <Delete Files="$(BUILD_ARTIFACTSTAGINGDIRECTORY)\dotnet-sdk-2.1.4-win-x64.zip" />
     </Target>
 
-    <Target Name="FixXmlDocumentation" AfterTargets="AfterBuild" DependsOnTargets="AfterBuild">
+    <!--<Target Name="FixXmlDocumentation" AfterTargets="AfterBuild" DependsOnTargets="AfterBuild">
         <InjectXmlLanguage InputFiles="@(DocumentationFiles)" />
     </Target>
 
     <Target Name="PackageNuGet" AfterTargets="SignFiles" DependsOnTargets="AfterBuild;FixXmlDocumentation;SignFiles">
         <Exec Command='"$(CliToolsPath)\dotnet.exe" pack $(ProjectToBuild) -c $(Configuration)' ContinueOnError="ErrorAndStop" />
-    </Target>
+    </Target>-->
 </Project>
