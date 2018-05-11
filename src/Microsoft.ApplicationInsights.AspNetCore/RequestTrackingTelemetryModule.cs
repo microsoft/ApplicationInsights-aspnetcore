@@ -12,8 +12,7 @@
     /// Telemetry module tracking requests using Diagnostic Listeners.
     /// </summary>
     public class RequestTrackingTelemetryModule : ITelemetryModule, IObserver<DiagnosticListener>, IDisposable
-    {
-        private TelemetryClient telemetryClient;
+    {        
         private IApplicationIdProvider applicationIdProvider;
         private ConcurrentBag<IDisposable> subscriptions;
         private List<IApplicationInsightDiagnosticListener> diagnosticListeners;
@@ -45,11 +44,9 @@
                 lock (this.lockObject)
                 {
                     if (!this.isInitialized)
-                    {
-                        this.telemetryClient = new TelemetryClient(configuration);
-
+                    {                        
                         this.diagnosticListeners.Add
-                            (new HostingDiagnosticListener(this.telemetryClient, applicationIdProvider));
+                            (new HostingDiagnosticListener(new TelemetryClient(configuration), applicationIdProvider));
 
                         this.diagnosticListeners.Add
                             (new MvcDiagnosticsListener());

@@ -20,6 +20,10 @@
 
         private char[] headerValueSeparators;
 
+        /// <summary>
+        /// Constructs an instance of ClientIpHeaderTelemetryInitializer.
+        /// </summary>
+        /// <param name="httpContextAccessor"></param>
         public ClientIpHeaderTelemetryInitializer(IHttpContextAccessor httpContextAccessor)
              : base(httpContextAccessor)
         {
