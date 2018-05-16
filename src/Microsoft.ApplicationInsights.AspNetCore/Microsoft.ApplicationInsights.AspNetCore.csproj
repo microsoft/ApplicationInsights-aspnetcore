@@ -4,28 +4,14 @@
     <VersionPrefix>2.3.0-beta2</VersionPrefix>
     <Authors>Microsoft</Authors>
     <Copyright>© Microsoft Corporation. All rights reserved.</Copyright>
-
     <AssemblyTitle>Application Insights for ASP.NET Core Web Applications</AssemblyTitle>
     <Description>Application Insights for ASP.NET Core web applications. See https://azure.microsoft.com/documentation/articles/app-insights-asp-net-five/ for more information. Privacy statement: https://go.microsoft.com/fwlink/?LinkId=512156</Description>
-    <PackageId>Microsoft.ApplicationInsights.AspNetCore</PackageId>
-    <PackageTags>Analytics;ApplicationInsights;Telemetry;AppInsights;aspnetcore</PackageTags>
-    <PackageIconUrl>https://appanacdn.blob.core.windows.net/cdn/icons/aic.png</PackageIconUrl>
-    <PackageProjectUrl>https://go.microsoft.com/fwlink/?LinkId=392727</PackageProjectUrl>
-    <PackageLicenseUrl>https://go.microsoft.com/fwlink/?LinkID=510709</PackageLicenseUrl>
-    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/Microsoft/ApplicationInsights-aspnetcore.git</RepositoryUrl>
     
     <TargetFrameworks>net451;net46;netstandard1.6</TargetFrameworks>
     <TargetFrameworks Condition=" '$(OS)' != 'Windows_NT' ">netstandard1.6</TargetFrameworks>
     
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    
-    <!--<DelaySign Condition=" '$(OS)' == 'Windows_NT' ">true</DelaySign>-->
-    <!--<AssemblyOriginatorKeyFile>../../keys/35MSSharedLib1024.snk</AssemblyOriginatorKeyFile>-->
-    <!--<SignAssembly>true</SignAssembly>-->
-    <!--<PublicSign Condition=" '$(OS)' != 'Windows_NT' ">true</PublicSign>-->
-    
-    <RepositoryType>git</RepositoryType>
-    <RepositoryUrl>https://github.com/Microsoft/ApplicationInsights-aspnetcore.git</RepositoryUrl>
     <NetStandardImplicitPackageVersion Condition=" '$(TargetFramework)' == 'netstandard1.6' ">1.6.1</NetStandardImplicitPackageVersion>	
 	  <OutputPath Condition="'$(OutputPath)'=='' ">..\..\artifacts\src\$(MSBuildProjectName)</OutputPath>
 	  <IntermediateOutputPath Condition="'$(IntermediateOutputPath)'=='' ">..\..\artifacts\obj\src\$(MSBuildProjectName)</IntermediateOutputPath>	
@@ -35,6 +21,13 @@
     <!--Package Settings-->
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <IncludeSymbols>False</IncludeSymbols>
+    <PackageId>Microsoft.ApplicationInsights.AspNetCore</PackageId>
+    <PackageTags>Analytics;ApplicationInsights;Telemetry;AppInsights;aspnetcore</PackageTags>
+    <PackageIconUrl>https://appanacdn.blob.core.windows.net/cdn/icons/aic.png</PackageIconUrl>
+    <PackageProjectUrl>https://go.microsoft.com/fwlink/?LinkId=392727</PackageProjectUrl>
+    <PackageLicenseUrl>https://go.microsoft.com/fwlink/?LinkID=510709</PackageLicenseUrl>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -107,8 +100,6 @@
   </ItemGroup>
 
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), 'Signing.props'))\Signing.props" />
-  <!--<Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), 'MicroBuild.Core.targets'))\MicroBuild.Core.targets" />-->
-  <!--<Import Project="..\..\..\packages\MicroBuild.Core.0.3.0\build\MicroBuild.Core.targets" Condition="Exists('..\..\..\packages\MicroBuild.Core.0.3.0\build\MicroBuild.Core.targets')" />-->
   <Import Project="..\..\..\packages\MicroBuild.Core.0.3.0\build\MicroBuild.Core.props" Condition="Exists('..\..\..\packages\MicroBuild.Core.0.3.0\build\MicroBuild.Core.props')" />
   <Import Project="..\..\..\packages\MicroBuild.Core.0.3.0\build\MicroBuild.Core.targets" Condition="Exists('..\..\..\packages\MicroBuild.Core.0.3.0\build\MicroBuild.Core.targets')" />
 </Project>
