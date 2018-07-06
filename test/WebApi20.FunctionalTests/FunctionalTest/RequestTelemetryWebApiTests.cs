@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
+using Microsoft.ApplicationInsights.Extensibility;
+using Microsoft.ApplicationInsights.Extensibility.Implementation.ApplicationId;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -70,17 +73,15 @@ namespace WebApi20.FunctionalTests.FunctionalTest
         [Fact]
         public void TestNoHeaderInjectionRequestTrackingOptions()
         {
-            Func<IWebHostBuilder, IWebHostBuilder> config = (builder) =>
+            IWebHostBuilder Config(IWebHostBuilder builder)
+            {
+                return builder.ConfigureServices(services =>
                 {
-                    return builder.ConfigureServices(services =>
-                        {
-                            services.AddApplicationInsightsTelemetry(options =>
-                                {
-                                    options.RequestCollectionOptions.InjectResponseHeaders = false;
-                                });
-                        });
-                };
-            using (var server = new InProcessServer(assemblyName, this.output, config))
+                    services.AddApplicationInsightsTelemetry(options => { options.RequestCollectionOptions.InjectResponseHeaders = false; });
+                });
+            }
+
+            using (var server = new InProcessServer(assemblyName, this.output, Config))
             {
                 const string RequestPath = "/api/values/1";
 

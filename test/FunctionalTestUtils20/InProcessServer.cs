@@ -1,4 +1,8 @@
-﻿namespace FunctionalTestUtils
+﻿using System.Collections.Generic;
+using Microsoft.ApplicationInsights.Extensibility;
+using Microsoft.ApplicationInsights.Extensibility.Implementation.ApplicationId;
+
+namespace FunctionalTestUtils
 {
     using System;
     using System.IO;
@@ -23,6 +27,8 @@
     // a variant of aspnet/Hosting/test/Microsoft.AspNetCore.Hosting.Tests/HostingEngineTests.cs
     public class InProcessServer : IDisposable
     {
+        public const string IKey = "Foo";
+        public const string AppId = "AppId";
         private readonly string httpListenerConnectionString;
         private readonly ITestOutputHelper output;
 
@@ -135,6 +141,14 @@
                 .UseKestrel()
                 .UseStartup(assemblyName)
                 .UseEnvironment("Production");
+            builder.ConfigureServices(services =>
+            {
+                services.AddSingleton<IApplicationIdProvider>(provider =>
+                    new DictionaryApplicationIdProvider()
+                    {
+                        Defined = new Dictionary<string, string> {[IKey] = AppId}
+                    });
+            });
             if (configureHost != null)
             {
                 builder = configureHost(builder);
