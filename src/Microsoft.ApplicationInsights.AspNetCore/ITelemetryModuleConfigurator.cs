@@ -1,5 +1,6 @@
 ﻿namespace Microsoft.ApplicationInsights.AspNetCore
-{    
+{
+    using Microsoft.ApplicationInsights.AspNetCore.Extensions;
     using Microsoft.ApplicationInsights.Extensibility;
     using System;
 
@@ -11,7 +12,7 @@
         /// <summary>
         /// Configures the given <see cref="ITelemetryModule"/>     
         /// </summary>
-        void Configure(ITelemetryModule telemetryModule);
+        void Configure(ITelemetryModule telemetryModule, ApplicationInsightsServiceOptions options);
 
         /// <summary>
         /// Gets the type of <see cref="ITelemetryModule"/> to be configured.     

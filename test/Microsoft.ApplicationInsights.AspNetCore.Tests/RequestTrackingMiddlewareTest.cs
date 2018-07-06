@@ -67,7 +67,11 @@
 
         public RequestTrackingMiddlewareTest()
         {
-            this.middleware = new HostingDiagnosticListener(CommonMocks.MockTelemetryClient(telemetry => this.sentTelemetry.Enqueue(telemetry)), CommonMocks.GetMockApplicationIdProvider());
+            this.middleware = new HostingDiagnosticListener(
+                CommonMocks.MockTelemetryClient(telemetry => this.sentTelemetry.Enqueue(telemetry)), 
+                CommonMocks.GetMockApplicationIdProvider(),
+                injectResponseHeaders: true,
+                trackExceptions: true);
         }
 
         [Fact]
@@ -501,6 +505,75 @@
 
             Assert.Single(sentTelemetry);
             Assert.Equal(Math.Round(expectedDuration.TotalMilliseconds, 3), Math.Round(((RequestTelemetry)sentTelemetry.First()).Duration.TotalMilliseconds, 3));
+        }
+
+        [Fact]
+        public void SetsSourceProvidedInHeaders()
+        {
+            HttpContext context = CreateContext(HttpRequestScheme, HttpRequestHost);
+            HttpHeadersUtilities.SetRequestContextKeyValue(context.Request.Headers, RequestResponseHeaders.RequestContextTargetKey, "someAppId");
+
+            HandleRequestBegin(context, 0);
+            HandleRequestEnd(context, 0);
+
+            Assert.Single(sentTelemetry);
+            Assert.IsType<RequestTelemetry>(this.sentTelemetry.Single());
+            RequestTelemetry requestTelemetry = this.sentTelemetry.OfType<RequestTelemetry>().Single();
+
+            Assert.Equal("someAppId", requestTelemetry.Source);
+        }
+
+        [Fact]
+        public void ResponseHeadersAreNotInjectedWhenDisabled()
+        {
+            HttpContext context = CreateContext(HttpRequestScheme, HttpRequestHost);
+
+            var noHeadersMiddleware = new HostingDiagnosticListener(
+                CommonMocks.MockTelemetryClient(telemetry => this.sentTelemetry.Enqueue(telemetry)),
+                CommonMocks.GetMockApplicationIdProvider(),
+                injectResponseHeaders: false,
+                trackExceptions: true);
+
+            noHeadersMiddleware.OnBeginRequest(context, 0);
+            Assert.False(context.Response.Headers.ContainsKey(RequestResponseHeaders.RequestContextHeader));
+            noHeadersMiddleware.OnEndRequest(context, 0);
+            Assert.False(context.Response.Headers.ContainsKey(RequestResponseHeaders.RequestContextHeader));
+
+            Assert.Single(sentTelemetry);
+            Assert.IsType<RequestTelemetry>(this.sentTelemetry.First());
+        }
+
+        [Fact]
+        public void ExceptionsAreNotTrackedInjectedWhenDisabled()
+        {
+            HttpContext context = CreateContext(HttpRequestScheme, HttpRequestHost);
+
+            var noExceptionsMiddleware = new HostingDiagnosticListener(
+                CommonMocks.MockTelemetryClient(telemetry => this.sentTelemetry.Enqueue(telemetry)),
+                CommonMocks.GetMockApplicationIdProvider(),
+                injectResponseHeaders: true,
+                trackExceptions: false);
+
+            noExceptionsMiddleware.OnHostingException(context, new Exception("HostingException"));
+            noExceptionsMiddleware.OnDiagnosticsHandledException(context, new Exception("DiagnosticsHandledException"));
+            noExceptionsMiddleware.OnDiagnosticsUnhandledException(context, new Exception("UnhandledException"));
+
+            Assert.Empty(sentTelemetry);
+        }
+
+        [Fact]
+        public void DoesntAddSourceIfRequestHeadersDontHaveSource()
+        {
+            HttpContext context = CreateContext(HttpRequestScheme, HttpRequestHost);
+
+            HandleRequestBegin(context, 0);
+            HandleRequestEnd(context, 0);
+
+            Assert.Single(sentTelemetry);
+            Assert.IsType<RequestTelemetry>(this.sentTelemetry.Single());
+            RequestTelemetry requestTelemetry = this.sentTelemetry.OfType<RequestTelemetry>().Single();
+
+            Assert.Null(requestTelemetry.Source);
         }
 
         private void HandleRequestBegin(HttpContext context, long timestamp)

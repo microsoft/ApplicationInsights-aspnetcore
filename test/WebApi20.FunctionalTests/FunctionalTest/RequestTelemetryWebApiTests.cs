@@ -1,4 +1,8 @@
-﻿namespace WebApi20.FunctionalTests.FunctionalTest
+﻿using System;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace WebApi20.FunctionalTests.FunctionalTest
 {
     using FunctionalTestUtils;
     using Microsoft.ApplicationInsights.DataContracts;
@@ -60,6 +64,33 @@
                 expectedRequestTelemetry.Url = new System.Uri(server.BaseHost + RequestPath);
 
                 this.ValidateBasicRequest(server, RequestPath, expectedRequestTelemetry);
+            }
+        }
+
+        [Fact]
+        public void TestNoHeaderInjectionRequestTrackingOptions()
+        {
+            Func<IWebHostBuilder, IWebHostBuilder> config = (builder) =>
+                {
+                    return builder.ConfigureServices(services =>
+                        {
+                            services.AddApplicationInsightsTelemetry(options =>
+                                {
+                                    options.RequestCollectionOptions.InjectResponseHeaders = false;
+                                });
+                        });
+                };
+            using (var server = new InProcessServer(assemblyName, this.output, config))
+            {
+                const string RequestPath = "/api/values/1";
+
+                var expectedRequestTelemetry = new RequestTelemetry();
+                expectedRequestTelemetry.Name = "GET Values/Get [id]";
+                expectedRequestTelemetry.ResponseCode = "200";
+                expectedRequestTelemetry.Success = true;
+                expectedRequestTelemetry.Url = new System.Uri(server.BaseHost + RequestPath);
+
+                this.ValidateBasicRequest(server, RequestPath, expectedRequestTelemetry, false);
             }
         }
     }

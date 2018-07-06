@@ -1,13 +1,8 @@
-﻿using Microsoft.ApplicationInsights.AspNetCore.DiagnosticListeners;
-using Microsoft.ApplicationInsights.AspNetCore.Tests.Helpers;
-using Microsoft.ApplicationInsights.Channel;
-using Microsoft.ApplicationInsights.DataContracts;
-using Microsoft.ApplicationInsights.Extensibility;
-using Microsoft.ApplicationInsights.Extensibility.Implementation;
-using Xunit;
-
-namespace Microsoft.ApplicationInsights.AspNetCore.Tests
+﻿namespace Microsoft.ApplicationInsights.AspNetCore.Tests
 {
+    using Microsoft.ApplicationInsights.Extensibility;
+    using Xunit;
+
     public class RequestTrackingTelemetryModuleTest
     {
         [Fact]
