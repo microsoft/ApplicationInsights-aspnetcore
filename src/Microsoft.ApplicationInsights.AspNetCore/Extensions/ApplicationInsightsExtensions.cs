@@ -252,7 +252,7 @@
         /// <returns>
         /// The <see cref="IServiceCollection"/>.
         /// </returns>
-        [Obsolete("Use ConfigureTelemetryModule overaload that accepts ApplicationInsightsServiceOptions.")]
+        [Obsolete("Use ConfigureTelemetryModule overload that accepts ApplicationInsightsServiceOptions.")]
         public static IServiceCollection ConfigureTelemetryModule<T>(this IServiceCollection services, Action<T> configModule) where T : ITelemetryModule
         {
             if (configModule == null)
