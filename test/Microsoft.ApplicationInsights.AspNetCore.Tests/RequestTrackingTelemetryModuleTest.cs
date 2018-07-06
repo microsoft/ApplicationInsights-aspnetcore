@@ -10,13 +10,5 @@
         {
             RequestTrackingTelemetryModule requestTrackingTelemetryModule = new RequestTrackingTelemetryModule(null);  
         }
-
-        [Fact]
-        public void RequestTrackingTelemetryModuleDoesNoThrowIfInitializeAfterDispose()
-        {
-            RequestTrackingTelemetryModule requestTrackingTelemetryModule = new RequestTrackingTelemetryModule(null);            
-            requestTrackingTelemetryModule.Dispose();
-            requestTrackingTelemetryModule.Initialize(new TelemetryConfiguration());
-        }
     }
 }

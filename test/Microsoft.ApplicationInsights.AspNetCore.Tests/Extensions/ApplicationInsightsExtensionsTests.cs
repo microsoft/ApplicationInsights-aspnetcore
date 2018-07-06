@@ -627,6 +627,33 @@ namespace Microsoft.Extensions.DependencyInjection.Test
             }
 
             [Fact]
+            public static void ConfigureApplicationInsightsTelemetryModuleWorksWithoutOptions()
+            {
+                //ARRANGE
+                var services = ApplicationInsightsExtensionsTests.GetServiceCollectionWithContextAccessor();
+                services.AddSingleton<ITelemetryModule, TestTelemetryModule>();
+
+                //ACT
+                services.ConfigureTelemetryModule<TestTelemetryModule>
+                    (module => module.CustomProperty = "mycustomproperty");
+                services.AddApplicationInsightsTelemetry();
+                IServiceProvider serviceProvider = services.BuildServiceProvider();
+
+                // Requesting TelemetryConfiguration from services trigger constructing the TelemetryConfiguration
+                // which in turn trigger configuration of all modules.
+                var telemetryConfiguration = serviceProvider.GetTelemetryConfiguration();
+
+                //VALIDATE
+                var modules = serviceProvider.GetServices<ITelemetryModule>();
+                var testTelemetryModule = modules.OfType<TestTelemetryModule>().Single();
+
+                //The module should be initialized and configured as instructed.
+                Assert.NotNull(testTelemetryModule);
+                Assert.Equal("mycustomproperty", testTelemetryModule.CustomProperty);
+                Assert.True(testTelemetryModule.IsInitialized);
+            }
+
+            [Fact]
             public static void ConfigureRequestTrackingTelemetryDefaultOptions()
             {
                 //ARRANGE
@@ -677,7 +704,8 @@ namespace Microsoft.Extensions.DependencyInjection.Test
                 services.AddSingleton<ITelemetryModule, TestTelemetryModule>();
 
                 //ACT and VALIDATE
-                Assert.Throws<ArgumentNullException>(() => services.ConfigureTelemetryModule<TestTelemetryModule>(null));
+                Assert.Throws<ArgumentNullException>(() => services.ConfigureTelemetryModule<TestTelemetryModule>((Action<TestTelemetryModule, ApplicationInsightsServiceOptions>)null));
+                Assert.Throws<ArgumentNullException>(() => services.ConfigureTelemetryModule<TestTelemetryModule>((Action<TestTelemetryModule>)null));
             }
 
             [Fact]

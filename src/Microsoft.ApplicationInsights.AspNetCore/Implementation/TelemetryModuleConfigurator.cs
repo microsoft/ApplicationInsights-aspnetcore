@@ -22,10 +22,14 @@
             this.TelemetryModuleType = telemetryModuleType;
         }
 
+        [Obsolete("Use Configure(ITelemetryModule telemetryModule, ApplicationInsightsServiceOptions options) instead.", true)]
+        public void Configure(ITelemetryModule telemetryModule)
+        {
+            this.configure?.Invoke(telemetryModule, null);
+        }
+
         /// <summary>
-        /// Creates an instance of the telemetry processor, passing the
-        /// next <see cref="ITelemetryProcessor"/> in the call chain to
-        /// its constructor.
+        /// Configures telemetry module.
         /// </summary>
         public void Configure(ITelemetryModule telemetryModule, ApplicationInsightsServiceOptions options)
         {

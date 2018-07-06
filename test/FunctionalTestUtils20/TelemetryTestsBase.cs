@@ -41,10 +41,10 @@
             var response = this.ExecuteRequest(server.BaseHost + requestPath);
 
             var actual = server.Listener.ReceiveItemsOfType<TelemetryItem<RequestData>>(1, TestListenerTimeoutInMs);
-            this.DebugTelemetryItems(actual);
-
-            this.output.WriteLine("Response headers: " + string.Join(",", response.Headers.Select(kvp => $"{kvp.Key} = {kvp.Value}")));
             timer.Stop();
+
+            this.DebugTelemetryItems(actual);
+            this.output.WriteLine("Response headers: " + string.Join(",", response.Headers.Select(kvp => $"{kvp.Key} = {kvp.Value}")));
 
             var item = actual.OfType<TelemetryItem<RequestData>>().FirstOrDefault();
             Assert.NotNull(item);
