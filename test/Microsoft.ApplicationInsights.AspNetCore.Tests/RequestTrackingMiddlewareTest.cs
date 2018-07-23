@@ -15,7 +15,7 @@
     using Microsoft.AspNetCore.Http;
     using Xunit;
 
-    public class RequestTrackingMiddlewareTest
+    public class RequestTrackingMiddlewareTest : IDisposable
     {
         private const string HttpRequestScheme = "http";
         private static readonly HostString HttpRequestHost = new HostString("testHost");
@@ -608,6 +608,14 @@
             else
             {
                 middleware.OnEndRequest(context, timestamp);
+            }
+        }
+
+        public void Dispose()
+        {
+            while (Activity.Current != null)
+            {
+                Activity.Current.Stop();
             }
         }
     }
