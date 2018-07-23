@@ -172,7 +172,6 @@
             Assert.NotNull(requestTelemetry);
             Assert.Equal(requestTelemetry.Id, Activity.Current.Id);
             Assert.Equal(requestTelemetry.Context.Operation.Id, Activity.Current.RootId);
-            Assert.Equal(requestTelemetry.Context.Operation.ParentId, Activity.Current.ParentId);
             Assert.Null(requestTelemetry.Context.Operation.ParentId);
 
             // W3C compatible-Id ( should go away when W3C is implemented in .NET https://github.com/dotnet/corefx/issues/30331)
