@@ -5,18 +5,23 @@
     using System.Diagnostics;
     using System.Globalization;
     using System.Linq;
+    using System.Text.RegularExpressions;
     using System.Threading.Tasks;
     using Microsoft.ApplicationInsights.AspNetCore.DiagnosticListeners;
     using Microsoft.ApplicationInsights.AspNetCore.Tests.Helpers;
     using Microsoft.ApplicationInsights.Channel;
     using Microsoft.ApplicationInsights.DataContracts;
+    using Microsoft.ApplicationInsights.Extensibility;
     using Microsoft.ApplicationInsights.Extensibility.Implementation;
+    using Microsoft.ApplicationInsights.W3C;
     using Microsoft.AspNetCore.Http;
     using Xunit;
 
-    public class RequestTrackingMiddlewareTest
+    public class RequestTrackingMiddlewareTest : IDisposable
     {
         private const string HttpRequestScheme = "http";
+        private const string ExpectedAppId = "cid-v1:some-app-id";
+
         private static readonly HostString HttpRequestHost = new HostString("testHost");
         private static readonly PathString HttpRequestPath = new PathString("/path/path");
         private static readonly QueryString HttpRequestQueryString = new QueryString("?query=1");
@@ -63,12 +68,16 @@
 
         private ConcurrentQueue<ITelemetry> sentTelemetry = new ConcurrentQueue<ITelemetry>();
 
-        private readonly HostingDiagnosticListener middleware;
+        private HostingDiagnosticListener middleware;
 
         public RequestTrackingMiddlewareTest()
         {
-            this.middleware = new HostingDiagnosticListener(CommonMocks.MockTelemetryClient(telemetry => this.sentTelemetry.Enqueue(telemetry)),
-                CommonMocks.MockCorrelationIdLookupHelper());
+            this.middleware = new HostingDiagnosticListener(
+                CommonMocks.MockTelemetryClient(telemetry => this.sentTelemetry.Enqueue(telemetry)), 
+                CommonMocks.GetMockApplicationIdProvider(),
+                injectResponseHeaders: true,
+                trackExceptions: true,
+                enableW3CHeaders: false);
         }
 
         [Fact]
@@ -80,18 +89,18 @@
 
             Assert.NotNull(context.Features.Get<RequestTelemetry>());
 
-            Assert.Equal(HttpHeadersUtilities.GetRequestContextKeyValue(context.Response.Headers, RequestResponseHeaders.RequestContextTargetKey), CorrelationIdLookupHelperStub.AppId);
+            Assert.Equal(CommonMocks.TestApplicationId, HttpHeadersUtilities.GetRequestContextKeyValue(context.Response.Headers, RequestResponseHeaders.RequestContextTargetKey));
 
             HandleRequestEnd(context, 0);
 
-            Assert.Equal(1, sentTelemetry.Count);
+            Assert.Single(sentTelemetry);
             Assert.IsType<RequestTelemetry>(this.sentTelemetry.First());
 
             RequestTelemetry requestTelemetry = this.sentTelemetry.First() as RequestTelemetry;
             Assert.True(requestTelemetry.Duration.TotalMilliseconds >= 0);
             Assert.True(requestTelemetry.Success);
             Assert.Equal(CommonMocks.InstrumentationKey, requestTelemetry.Context.InstrumentationKey);
-            Assert.Equal("", requestTelemetry.Source);
+            Assert.True(string.IsNullOrEmpty(requestTelemetry.Source));
             Assert.Equal(CreateUri(HttpRequestScheme, HttpRequestHost), requestTelemetry.Url);
             Assert.NotEmpty(requestTelemetry.Context.GetInternalContext().SdkVersion);
             Assert.Contains(SdkVersionTestUtils.VersionPrefix, requestTelemetry.Context.GetInternalContext().SdkVersion);
@@ -105,18 +114,18 @@
             HandleRequestBegin(context, 0);
 
             Assert.NotNull(context.Features.Get<RequestTelemetry>());
-            Assert.Equal(HttpHeadersUtilities.GetRequestContextKeyValue(context.Response.Headers, RequestResponseHeaders.RequestContextTargetKey), CorrelationIdLookupHelperStub.AppId);
+            Assert.Equal(CommonMocks.TestApplicationId, HttpHeadersUtilities.GetRequestContextKeyValue(context.Response.Headers, RequestResponseHeaders.RequestContextTargetKey));
 
             HandleRequestEnd(context, 0);
 
-            Assert.Equal(1, sentTelemetry.Count);
+            Assert.Single(sentTelemetry);
             Assert.IsType<RequestTelemetry>(this.sentTelemetry.First());
             RequestTelemetry requestTelemetry = sentTelemetry.First() as RequestTelemetry;
             Assert.NotNull(requestTelemetry.Url);
             Assert.True(requestTelemetry.Duration.TotalMilliseconds >= 0);
             Assert.True(requestTelemetry.Success);
             Assert.Equal(CommonMocks.InstrumentationKey, requestTelemetry.Context.InstrumentationKey);
-            Assert.Equal("", requestTelemetry.Source);
+            Assert.True(string.IsNullOrEmpty(requestTelemetry.Source));
             Assert.Equal(CreateUri(HttpRequestScheme, HttpRequestHost, HttpRequestPath, HttpRequestQueryString), requestTelemetry.Url);
             Assert.NotEmpty(requestTelemetry.Context.GetInternalContext().SdkVersion);
             Assert.Contains(SdkVersionTestUtils.VersionPrefix, requestTelemetry.Context.GetInternalContext().SdkVersion);
@@ -130,7 +139,7 @@
             HandleRequestBegin(context, 0);
 
             Assert.NotNull(context.Features.Get<RequestTelemetry>());
-            Assert.Equal(HttpHeadersUtilities.GetRequestContextKeyValue(context.Response.Headers, RequestResponseHeaders.RequestContextTargetKey), CorrelationIdLookupHelperStub.AppId);
+            Assert.Equal(CommonMocks.TestApplicationId, HttpHeadersUtilities.GetRequestContextKeyValue(context.Response.Headers, RequestResponseHeaders.RequestContextTargetKey));
 
             middleware.OnDiagnosticsUnhandledException(context, null);
             HandleRequestEnd(context, 0);
@@ -144,7 +153,7 @@
             Assert.True(requestTelemetry.Duration.TotalMilliseconds >= 0);
             Assert.False(requestTelemetry.Success);
             Assert.Equal(CommonMocks.InstrumentationKey, requestTelemetry.Context.InstrumentationKey);
-            Assert.Equal("", requestTelemetry.Source);
+            Assert.True(string.IsNullOrEmpty(requestTelemetry.Source));
             Assert.Equal(CreateUri(HttpRequestScheme, HttpRequestHost), requestTelemetry.Url);
             Assert.NotEmpty(requestTelemetry.Context.GetInternalContext().SdkVersion);
             Assert.Contains(SdkVersionTestUtils.VersionPrefix, requestTelemetry.Context.GetInternalContext().SdkVersion);
@@ -168,8 +177,12 @@
             Assert.NotNull(requestTelemetry);
             Assert.Equal(requestTelemetry.Id, Activity.Current.Id);
             Assert.Equal(requestTelemetry.Context.Operation.Id, Activity.Current.RootId);
-            Assert.Equal(requestTelemetry.Context.Operation.ParentId, Activity.Current.ParentId);
             Assert.Null(requestTelemetry.Context.Operation.ParentId);
+
+            // W3C compatible-Id ( should go away when W3C is implemented in .NET https://github.com/dotnet/corefx/issues/30331)
+            Assert.Equal(32, requestTelemetry.Context.Operation.Id.Length);
+            Assert.True(Regex.Match(requestTelemetry.Context.Operation.Id, @"[a-z][0-9]").Success);
+            // end of workaround test
         }
 
         [Fact]
@@ -217,8 +230,8 @@
             middleware.OnBeginRequest(context, 0);
 
             Assert.NotNull(Activity.Current);
-            Assert.NotNull(Activity.Current.Baggage.FirstOrDefault(b => b.Key == "prop1" && b.Value == "value1"));
-            Assert.NotNull(Activity.Current.Baggage.FirstOrDefault(b => b.Key == "prop2" && b.Value == "value2"));
+            Assert.Single(Activity.Current.Baggage.Where(b => b.Key == "prop1" && b.Value == "value1"));
+            Assert.Single(Activity.Current.Baggage.Where(b => b.Key == "prop2" && b.Value == "value2"));
 
             var requestTelemetry = context.Features.Get<RequestTelemetry>();
             Assert.NotNull(requestTelemetry);
@@ -227,8 +240,8 @@
             Assert.NotEqual(requestTelemetry.Context.Operation.Id, standardRequestRootId);
             Assert.Equal(requestTelemetry.Context.Operation.ParentId, requestId);
             Assert.NotEqual(requestTelemetry.Context.Operation.ParentId, standardRequestId);
-            Assert.Equal(requestTelemetry.Context.Properties["prop1"], "value1");
-            Assert.Equal(requestTelemetry.Context.Properties["prop2"], "value2");
+            Assert.Equal("value1", requestTelemetry.Context.Properties["prop1"]);
+            Assert.Equal("value2", requestTelemetry.Context.Properties["prop2"]);
         }
 
         [Fact]
@@ -250,7 +263,7 @@
             middleware.OnHttpRequestInStart(context);
             middleware.OnHttpRequestInStop(context);
 
-            Assert.Equal(1, sentTelemetry.Count);
+            Assert.Single(sentTelemetry);
             var requestTelemetry = this.sentTelemetry.First() as RequestTelemetry;
 
             Assert.Equal(requestTelemetry.Id, activity.Id);
@@ -290,7 +303,7 @@
 
             middleware.OnHttpRequestInStop(context);
 
-            Assert.Equal(1, sentTelemetry.Count);
+            Assert.Single(sentTelemetry);
             var requestTelemetry = this.sentTelemetry.First() as RequestTelemetry;
 
             Assert.Equal(requestTelemetry.Id, activityInitializedByStandardHeader.Id);
@@ -306,18 +319,17 @@
             HandleRequestBegin(context, 0);
 
             Assert.NotNull(context.Features.Get<RequestTelemetry>());
-            Assert.Equal(HttpHeadersUtilities.GetRequestContextKeyValue(context.Response.Headers, RequestResponseHeaders.RequestContextTargetKey), CorrelationIdLookupHelperStub.AppId);
+            Assert.Equal(CommonMocks.TestApplicationId, HttpHeadersUtilities.GetRequestContextKeyValue(context.Response.Headers, RequestResponseHeaders.RequestContextTargetKey));
 
             HandleRequestEnd(context, 0);
 
-            Assert.Equal(1, sentTelemetry.Count);
+            Assert.Single(sentTelemetry);
             Assert.IsType<RequestTelemetry>(this.sentTelemetry.First());
-            RequestTelemetry requestTelemetry = this.sentTelemetry.First() as RequestTelemetry;
+            RequestTelemetry requestTelemetry = this.sentTelemetry.Single() as RequestTelemetry;
             Assert.True(requestTelemetry.Duration.TotalMilliseconds >= 0);
             Assert.True(requestTelemetry.Success);
             Assert.Equal(CommonMocks.InstrumentationKey, requestTelemetry.Context.InstrumentationKey);
-            Assert.Equal("", requestTelemetry.Source);
-            Assert.Equal("POST", requestTelemetry.HttpMethod);
+            Assert.True(string.IsNullOrEmpty(requestTelemetry.Source));
             Assert.Equal(CreateUri(HttpRequestScheme, HttpRequestHost, "/Test"), requestTelemetry.Url);
             Assert.NotEmpty(requestTelemetry.Context.GetInternalContext().SdkVersion);
             Assert.Contains(SdkVersionTestUtils.VersionPrefix, requestTelemetry.Context.GetInternalContext().SdkVersion);
@@ -332,7 +344,7 @@
             HandleRequestBegin(context, 0);
 
             Assert.NotNull(context.Features.Get<RequestTelemetry>());
-            Assert.Equal(HttpHeadersUtilities.GetRequestContextKeyValue(context.Response.Headers, RequestResponseHeaders.RequestContextTargetKey), CorrelationIdLookupHelperStub.AppId);
+            Assert.Equal(CommonMocks.TestApplicationId, HttpHeadersUtilities.GetRequestContextKeyValue(context.Response.Headers, RequestResponseHeaders.RequestContextTargetKey));
 
             HandleRequestEnd(context, 0);
 
@@ -342,8 +354,7 @@
             Assert.True(requestTelemetry.Duration.TotalMilliseconds >= 0);
             Assert.True(requestTelemetry.Success);
             Assert.Equal(CommonMocks.InstrumentationKey, requestTelemetry.Context.InstrumentationKey);
-            Assert.Equal("", requestTelemetry.Source);
-            Assert.Equal("GET", requestTelemetry.HttpMethod);
+            Assert.True(string.IsNullOrEmpty(requestTelemetry.Source));            
             Assert.Equal(CreateUri(HttpRequestScheme, HttpRequestHost, "/Test"), requestTelemetry.Url);
             Assert.NotEmpty(requestTelemetry.Context.GetInternalContext().SdkVersion);
             Assert.Contains(SdkVersionTestUtils.VersionPrefix, requestTelemetry.Context.GetInternalContext().SdkVersion);
@@ -354,13 +365,13 @@
         public void OnEndRequestFromSameInstrumentationKey()
         {
             HttpContext context = CreateContext(HttpRequestScheme, HttpRequestHost, "/Test", method: "GET");
-            HttpHeadersUtilities.SetRequestContextKeyValue(context.Request.Headers, RequestResponseHeaders.RequestContextSourceKey, CorrelationIdLookupHelperStub.AppId);
+            HttpHeadersUtilities.SetRequestContextKeyValue(context.Request.Headers, RequestResponseHeaders.RequestContextSourceKey, CommonMocks.TestApplicationId);
 
             HandleRequestBegin(context, 0);
 
             Assert.NotNull(context.Features.Get<RequestTelemetry>());
 
-            Assert.Equal(HttpHeadersUtilities.GetRequestContextKeyValue(context.Response.Headers, RequestResponseHeaders.RequestContextTargetKey), CorrelationIdLookupHelperStub.AppId);
+            Assert.Equal(CommonMocks.TestApplicationId, HttpHeadersUtilities.GetRequestContextKeyValue(context.Response.Headers, RequestResponseHeaders.RequestContextTargetKey));
 
             HandleRequestEnd(context, 0);
 
@@ -370,8 +381,7 @@
             Assert.True(requestTelemetry.Duration.TotalMilliseconds >= 0);
             Assert.True(requestTelemetry.Success);
             Assert.Equal(CommonMocks.InstrumentationKey, requestTelemetry.Context.InstrumentationKey);
-            Assert.Equal("", requestTelemetry.Source);
-            Assert.Equal("GET", requestTelemetry.HttpMethod);
+            Assert.True(string.IsNullOrEmpty(requestTelemetry.Source));
             Assert.Equal(CreateUri(HttpRequestScheme, HttpRequestHost, "/Test"), requestTelemetry.Url);
             Assert.NotEmpty(requestTelemetry.Context.GetInternalContext().SdkVersion);
             Assert.Contains(SdkVersionTestUtils.VersionPrefix, requestTelemetry.Context.GetInternalContext().SdkVersion);
@@ -387,18 +397,17 @@
             HandleRequestBegin(context, 0);
 
             Assert.NotNull(context.Features.Get<RequestTelemetry>());
-            Assert.Equal(HttpHeadersUtilities.GetRequestContextKeyValue(context.Response.Headers, RequestResponseHeaders.RequestContextTargetKey), CorrelationIdLookupHelperStub.AppId);
+            Assert.Equal(CommonMocks.TestApplicationId, HttpHeadersUtilities.GetRequestContextKeyValue(context.Response.Headers, RequestResponseHeaders.RequestContextTargetKey));
 
             HandleRequestEnd(context, 0);
 
-            Assert.Equal(1, sentTelemetry.Count);
+            Assert.Single(sentTelemetry);
             Assert.IsType<RequestTelemetry>(this.sentTelemetry.First());
             RequestTelemetry requestTelemetry = this.sentTelemetry.First() as RequestTelemetry;
             Assert.True(requestTelemetry.Duration.TotalMilliseconds >= 0);
             Assert.True(requestTelemetry.Success);
             Assert.Equal(CommonMocks.InstrumentationKey, requestTelemetry.Context.InstrumentationKey);
-            Assert.Equal("", requestTelemetry.Source);
-            Assert.Equal("GET", requestTelemetry.HttpMethod);
+            Assert.Equal("DIFFERENT_INSTRUMENTATION_KEY_HASH", requestTelemetry.Source);            
             Assert.Equal(CreateUri(HttpRequestScheme, HttpRequestHost, "/Test"), requestTelemetry.Url);
             Assert.NotEmpty(requestTelemetry.Context.GetInternalContext().SdkVersion);
             Assert.Contains(SdkVersionTestUtils.VersionPrefix, requestTelemetry.Context.GetInternalContext().SdkVersion);
@@ -508,6 +517,308 @@
             Assert.Equal(Math.Round(expectedDuration.TotalMilliseconds, 3), Math.Round(((RequestTelemetry)sentTelemetry.First()).Duration.TotalMilliseconds, 3));
         }
 
+        [Fact]
+        public void SetsSourceProvidedInHeaders()
+        {
+            HttpContext context = CreateContext(HttpRequestScheme, HttpRequestHost);
+            HttpHeadersUtilities.SetRequestContextKeyValue(context.Request.Headers, RequestResponseHeaders.RequestContextTargetKey, "someAppId");
+
+            HandleRequestBegin(context, 0);
+            HandleRequestEnd(context, 0);
+
+            Assert.Single(sentTelemetry);
+            Assert.IsType<RequestTelemetry>(this.sentTelemetry.Single());
+            RequestTelemetry requestTelemetry = this.sentTelemetry.OfType<RequestTelemetry>().Single();
+
+            Assert.Equal("someAppId", requestTelemetry.Source);
+        }
+
+        [Fact]
+        public void ResponseHeadersAreNotInjectedWhenDisabled()
+        {
+            HttpContext context = CreateContext(HttpRequestScheme, HttpRequestHost);
+
+            var noHeadersMiddleware = new HostingDiagnosticListener(
+                CommonMocks.MockTelemetryClient(telemetry => this.sentTelemetry.Enqueue(telemetry)),
+                CommonMocks.GetMockApplicationIdProvider(),
+                injectResponseHeaders: false,
+                trackExceptions: true,
+                enableW3CHeaders: false);
+
+            noHeadersMiddleware.OnBeginRequest(context, 0);
+            Assert.False(context.Response.Headers.ContainsKey(RequestResponseHeaders.RequestContextHeader));
+            noHeadersMiddleware.OnEndRequest(context, 0);
+            Assert.False(context.Response.Headers.ContainsKey(RequestResponseHeaders.RequestContextHeader));
+
+            Assert.Single(sentTelemetry);
+            Assert.IsType<RequestTelemetry>(this.sentTelemetry.First());
+        }
+
+        [Fact]
+        public void ExceptionsAreNotTrackedInjectedWhenDisabled()
+        {
+            HttpContext context = CreateContext(HttpRequestScheme, HttpRequestHost);
+
+            var noExceptionsMiddleware = new HostingDiagnosticListener(
+                CommonMocks.MockTelemetryClient(telemetry => this.sentTelemetry.Enqueue(telemetry)),
+                CommonMocks.GetMockApplicationIdProvider(),
+                injectResponseHeaders: true,
+                trackExceptions: false,
+                enableW3CHeaders: false);
+
+            noExceptionsMiddleware.OnHostingException(context, new Exception("HostingException"));
+            noExceptionsMiddleware.OnDiagnosticsHandledException(context, new Exception("DiagnosticsHandledException"));
+            noExceptionsMiddleware.OnDiagnosticsUnhandledException(context, new Exception("UnhandledException"));
+
+            Assert.Empty(sentTelemetry);
+        }
+
+        [Fact]
+        public void DoesntAddSourceIfRequestHeadersDontHaveSource()
+        {
+            HttpContext context = CreateContext(HttpRequestScheme, HttpRequestHost);
+
+            HandleRequestBegin(context, 0);
+            HandleRequestEnd(context, 0);
+
+            Assert.Single(sentTelemetry);
+            Assert.IsType<RequestTelemetry>(this.sentTelemetry.Single());
+            RequestTelemetry requestTelemetry = this.sentTelemetry.OfType<RequestTelemetry>().Single();
+
+            Assert.True(string.IsNullOrEmpty(requestTelemetry.Source));
+        }
+
+        #pragma warning disable 612, 618
+        [Fact]
+        public void OnBeginRequestWithW3CHeadersIsTrackedCorrectly()
+        {
+            var configuration = TelemetryConfiguration.CreateDefault();
+            configuration.TelemetryInitializers.Add(new W3COperationCorrelationTelemetryInitializer());
+            this.middleware = new HostingDiagnosticListener(
+                CommonMocks.MockTelemetryClient(telemetry => this.sentTelemetry.Enqueue(telemetry), configuration),
+                CommonMocks.GetMockApplicationIdProvider(),
+                injectResponseHeaders: true,
+                trackExceptions: true,
+                enableW3CHeaders: true);
+
+            var context = CreateContext(HttpRequestScheme, HttpRequestHost, "/Test", method: "POST");
+
+            context.Request.Headers[W3CConstants.TraceParentHeader] = "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01";
+            context.Request.Headers[W3CConstants.TraceStateHeader] = "state=some";
+            context.Request.Headers[RequestResponseHeaders.CorrelationContextHeader] = "k=v";
+
+            if (HostingDiagnosticListener.IsAspNetCore20)
+            {
+                var activity = new Activity("operation");
+                activity.Start();
+
+                middleware.OnHttpRequestInStart(context);
+
+                Assert.NotEqual(Activity.Current, activity);
+            }
+            else
+            {
+                middleware.OnBeginRequest(context, Stopwatch.GetTimestamp());
+            }
+
+            var activityInitializedByW3CHeader = Activity.Current;
+            Assert.Equal("4bf92f3577b34da6a3ce929d0e0e4736", activityInitializedByW3CHeader.GetTraceId());
+            Assert.Equal("00f067aa0ba902b7", activityInitializedByW3CHeader.GetParentSpanId());
+            Assert.Equal(16, activityInitializedByW3CHeader.GetSpanId().Length);
+            Assert.Equal("state=some", activityInitializedByW3CHeader.GetTracestate());
+            Assert.Equal("v", activityInitializedByW3CHeader.Baggage.Single(t => t.Key == "k").Value);
+
+            if (HostingDiagnosticListener.IsAspNetCore20)
+            {
+                middleware.OnHttpRequestInStop(context);
+            }
+            else
+            {
+                middleware.OnEndRequest(context, Stopwatch.GetTimestamp());
+            }
+
+            Assert.Single(sentTelemetry);
+            var requestTelemetry = (RequestTelemetry)this.sentTelemetry.Single();
+
+            Assert.Equal($"|4bf92f3577b34da6a3ce929d0e0e4736.{activityInitializedByW3CHeader.GetSpanId()}.", requestTelemetry.Id);
+            Assert.Equal("4bf92f3577b34da6a3ce929d0e0e4736", requestTelemetry.Context.Operation.Id);
+            Assert.Equal("|4bf92f3577b34da6a3ce929d0e0e4736.00f067aa0ba902b7.", requestTelemetry.Context.Operation.ParentId);
+
+            Assert.True(context.Response.Headers.TryGetValue(RequestResponseHeaders.RequestContextHeader, out var appId));
+            Assert.Equal($"appId={CommonMocks.TestApplicationId}", appId);
+        }
+
+        [Fact]
+        public void OnBeginRequestWithW3CHeadersAndRequestIdIsTrackedCorrectly()
+        {
+            var configuration = TelemetryConfiguration.CreateDefault();
+            configuration.TelemetryInitializers.Add(new W3COperationCorrelationTelemetryInitializer());
+            this.middleware = new HostingDiagnosticListener(
+                CommonMocks.MockTelemetryClient(telemetry => this.sentTelemetry.Enqueue(telemetry), configuration),
+                CommonMocks.GetMockApplicationIdProvider(),
+                injectResponseHeaders: true,
+                trackExceptions: true,
+                enableW3CHeaders: true);
+
+            var context = CreateContext(HttpRequestScheme, HttpRequestHost, "/Test", method: "POST");
+
+            context.Request.Headers[RequestResponseHeaders.RequestIdHeader] = "|abc.1.2.3.";
+            context.Request.Headers[W3CConstants.TraceParentHeader] = "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01";
+            context.Request.Headers[W3CConstants.TraceStateHeader] = "state=some";
+            context.Request.Headers[RequestResponseHeaders.CorrelationContextHeader] = "k=v";
+
+            middleware.OnBeginRequest(context, Stopwatch.GetTimestamp());
+            var activityInitializedByW3CHeader = Activity.Current;
+
+            Assert.Equal("|abc.1.2.3.", activityInitializedByW3CHeader.ParentId);
+            Assert.Equal("4bf92f3577b34da6a3ce929d0e0e4736", activityInitializedByW3CHeader.GetTraceId());
+            Assert.Equal("00f067aa0ba902b7", activityInitializedByW3CHeader.GetParentSpanId());
+            Assert.Equal(16, activityInitializedByW3CHeader.GetSpanId().Length);
+            Assert.Equal("state=some", activityInitializedByW3CHeader.GetTracestate());
+            Assert.Equal("v", activityInitializedByW3CHeader.Baggage.Single(t => t.Key == "k").Value);
+
+            middleware.OnEndRequest(context, Stopwatch.GetTimestamp());
+
+            Assert.Single(sentTelemetry);
+            var requestTelemetry = (RequestTelemetry)this.sentTelemetry.Single();
+
+            Assert.Equal($"|4bf92f3577b34da6a3ce929d0e0e4736.{activityInitializedByW3CHeader.GetSpanId()}.", requestTelemetry.Id);
+            Assert.Equal("4bf92f3577b34da6a3ce929d0e0e4736", requestTelemetry.Context.Operation.Id);
+            Assert.Equal("|4bf92f3577b34da6a3ce929d0e0e4736.00f067aa0ba902b7.", requestTelemetry.Context.Operation.ParentId);
+
+            Assert.True(context.Response.Headers.TryGetValue(RequestResponseHeaders.RequestContextHeader, out var appId));
+            Assert.Equal($"appId={CommonMocks.TestApplicationId}", appId);
+
+            Assert.Equal("abc", requestTelemetry.Properties["ai_legacyRootId"]);
+            Assert.StartsWith("|abc.1.2.3.", requestTelemetry.Properties["ai_legacyRequestId"]);
+        }
+
+        [Fact]
+        public void OnBeginRequestWithNoW3CHeadersAndRequestIdIsTrackedCorrectly()
+        {
+            var configuration = TelemetryConfiguration.CreateDefault();
+            configuration.TelemetryInitializers.Add(new W3COperationCorrelationTelemetryInitializer());
+            this.middleware = new HostingDiagnosticListener(
+                CommonMocks.MockTelemetryClient(telemetry => this.sentTelemetry.Enqueue(telemetry), configuration),
+                CommonMocks.GetMockApplicationIdProvider(),
+                injectResponseHeaders: true,
+                trackExceptions: true,
+                enableW3CHeaders: true);
+
+            var context = CreateContext(HttpRequestScheme, HttpRequestHost, "/Test", method: "POST");
+
+            context.Request.Headers[RequestResponseHeaders.RequestIdHeader] = "|abc.1.2.3.";
+            context.Request.Headers[RequestResponseHeaders.CorrelationContextHeader] = "k=v";
+
+            middleware.OnBeginRequest(context, Stopwatch.GetTimestamp());
+            var activityInitializedByW3CHeader = Activity.Current;
+
+            Assert.Equal("|abc.1.2.3.", activityInitializedByW3CHeader.ParentId);
+            middleware.OnEndRequest(context, Stopwatch.GetTimestamp());
+
+            Assert.Single(sentTelemetry);
+            var requestTelemetry = (RequestTelemetry)this.sentTelemetry.Single();
+
+            Assert.Equal($"|{activityInitializedByW3CHeader.GetTraceId()}.{activityInitializedByW3CHeader.GetSpanId()}.", requestTelemetry.Id);
+            Assert.Equal(activityInitializedByW3CHeader.GetTraceId(), requestTelemetry.Context.Operation.Id);
+            Assert.Equal("|abc.1.2.3.", requestTelemetry.Context.Operation.ParentId);
+
+            Assert.Equal("abc", requestTelemetry.Properties["ai_legacyRootId"]);
+            Assert.StartsWith("|abc.1.2.3.", requestTelemetry.Properties["ai_legacyRequestId"]);
+        }
+
+        [Fact]
+        public void OnBeginRequestWithW3CSupportAndNoHeadersIsTrackedCorrectly()
+        {
+            var configuration = TelemetryConfiguration.CreateDefault();
+            configuration.TelemetryInitializers.Add(new W3COperationCorrelationTelemetryInitializer());
+            this.middleware = new HostingDiagnosticListener(
+                CommonMocks.MockTelemetryClient(telemetry => this.sentTelemetry.Enqueue(telemetry), configuration),
+                CommonMocks.GetMockApplicationIdProvider(),
+                injectResponseHeaders: true,
+                trackExceptions: true,
+                enableW3CHeaders: true);
+
+            var context = CreateContext(HttpRequestScheme, HttpRequestHost, "/Test", method: "POST");
+
+            middleware.OnBeginRequest(context, Stopwatch.GetTimestamp());
+
+            var activityInitializedByW3CHeader = Activity.Current;
+            Assert.Null(activityInitializedByW3CHeader.ParentId);
+            Assert.NotNull(activityInitializedByW3CHeader.GetTraceId());
+            Assert.Equal(32, activityInitializedByW3CHeader.GetTraceId().Length);
+            Assert.Equal(16, activityInitializedByW3CHeader.GetSpanId().Length);
+            Assert.Equal($"00-{activityInitializedByW3CHeader.GetTraceId()}-{activityInitializedByW3CHeader.GetSpanId()}-02",
+                activityInitializedByW3CHeader.GetTraceparent());
+            Assert.Null(activityInitializedByW3CHeader.GetTracestate());
+            Assert.Empty(activityInitializedByW3CHeader.Baggage);
+
+            middleware.OnEndRequest(context, Stopwatch.GetTimestamp());
+
+            Assert.Single(sentTelemetry);
+            var requestTelemetry = (RequestTelemetry)this.sentTelemetry.Single();
+
+            Assert.Equal($"|{activityInitializedByW3CHeader.GetTraceId()}.{activityInitializedByW3CHeader.GetSpanId()}.", requestTelemetry.Id);
+            Assert.Equal(activityInitializedByW3CHeader.GetTraceId(), requestTelemetry.Context.Operation.Id);
+            Assert.Null(requestTelemetry.Context.Operation.ParentId);
+
+            Assert.True(context.Response.Headers.TryGetValue(RequestResponseHeaders.RequestContextHeader, out var appId));
+            Assert.Equal($"appId={CommonMocks.TestApplicationId}", appId);
+        }
+
+        [Fact]
+        public void OnBeginRequestWithW3CHeadersAndAppIdInState()
+        {
+            var configuration = TelemetryConfiguration.CreateDefault();
+            configuration.TelemetryInitializers.Add(new W3COperationCorrelationTelemetryInitializer());
+            this.middleware = new HostingDiagnosticListener(
+                CommonMocks.MockTelemetryClient(telemetry => this.sentTelemetry.Enqueue(telemetry), configuration),
+                CommonMocks.GetMockApplicationIdProvider(),
+                injectResponseHeaders: true,
+                trackExceptions: true,
+                enableW3CHeaders: true);
+
+            var context = CreateContext(HttpRequestScheme, HttpRequestHost, "/Test", method: "POST");
+
+            context.Request.Headers[W3CConstants.TraceParentHeader] = "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-00";
+            context.Request.Headers[W3CConstants.TraceStateHeader] = $"state=some,{W3CConstants.AzureTracestateNamespace}={ExpectedAppId}";
+
+            if (HostingDiagnosticListener.IsAspNetCore20)
+            {
+                var activity = new Activity("operation");
+                activity.Start();
+
+                middleware.OnHttpRequestInStart(context);
+                Assert.NotEqual(Activity.Current, activity);
+            }
+            else
+            {
+                middleware.OnBeginRequest(context, Stopwatch.GetTimestamp());
+            }
+
+            var activityInitializedByW3CHeader = Activity.Current;
+
+            Assert.Equal("state=some", activityInitializedByW3CHeader.GetTracestate());
+
+            if (HostingDiagnosticListener.IsAspNetCore20)
+            {
+                middleware.OnHttpRequestInStop(context);
+            }
+            else
+            {
+                middleware.OnEndRequest(context, Stopwatch.GetTimestamp());
+            }
+
+            Assert.Single(sentTelemetry);
+            var requestTelemetry = (RequestTelemetry)this.sentTelemetry.Single();
+
+            Assert.Equal(ExpectedAppId, requestTelemetry.Source);
+
+            Assert.True(context.Response.Headers.TryGetValue(RequestResponseHeaders.RequestContextHeader, out var appId));
+            Assert.Equal($"appId={CommonMocks.TestApplicationId}", appId);
+        }
+#pragma warning restore 612, 618
+
         private void HandleRequestBegin(HttpContext context, long timestamp)
         {
             if (HostingDiagnosticListener.IsAspNetCore20)
@@ -534,6 +845,14 @@
             else
             {
                 middleware.OnEndRequest(context, timestamp);
+            }
+        }
+
+        public void Dispose()
+        {
+            while (Activity.Current != null)
+            {
+                Activity.Current.Stop();
             }
         }
     }

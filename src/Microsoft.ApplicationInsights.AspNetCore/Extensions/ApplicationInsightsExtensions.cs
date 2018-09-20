@@ -1,29 +1,29 @@
-﻿using System.Linq;
-
-namespace Microsoft.Extensions.DependencyInjection
+﻿namespace Microsoft.Extensions.DependencyInjection
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Reflection;
     using AspNetCore.Builder;
     using Microsoft.ApplicationInsights;
     using Microsoft.ApplicationInsights.AspNetCore;
-    using Microsoft.ApplicationInsights.AspNetCore.DiagnosticListeners;
     using Microsoft.ApplicationInsights.AspNetCore.Extensions;
     using Microsoft.ApplicationInsights.AspNetCore.Logging;
     using Microsoft.ApplicationInsights.AspNetCore.TelemetryInitializers;
+    using Microsoft.ApplicationInsights.Channel;
     using Microsoft.ApplicationInsights.DependencyCollector;
     using Microsoft.ApplicationInsights.Extensibility;
+    using Microsoft.ApplicationInsights.Extensibility.Implementation.ApplicationId;
+    using Microsoft.ApplicationInsights.Extensibility.PerfCounterCollector;
+    using Microsoft.ApplicationInsights.Extensibility.PerfCounterCollector.QuickPulse;
+    using Microsoft.ApplicationInsights.WindowsServer;    
+    using Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Http;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Configuration.Memory;
     using Microsoft.Extensions.DependencyInjection.Extensions;
     using Microsoft.Extensions.Options;
-
-#if NET451 || NET46
-    using Microsoft.ApplicationInsights.Extensibility.PerfCounterCollector;
-#endif
 
     /// <summary>
     /// Extension methods for <see cref="IServiceCollection"/> that allow adding Application Insights services to application.
@@ -57,7 +57,8 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <param name="services">The <see cref="IServiceCollection"/> instance.</param>
         /// <param name="instrumentationKey">Instrumentation key to use for telemetry.</param>
         /// <returns>The <see cref="IServiceCollection"/>.</returns>
-        public static IServiceCollection AddApplicationInsightsTelemetry(this IServiceCollection services, string instrumentationKey)
+        public static IServiceCollection AddApplicationInsightsTelemetry(this IServiceCollection services,
+            string instrumentationKey)
         {
             services.AddApplicationInsightsTelemetry(options => options.InstrumentationKey = instrumentationKey);
             return services;
@@ -69,7 +70,8 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <param name="services">The <see cref="IServiceCollection"/> instance.</param>
         /// <param name="configuration">Configuration to use for sending telemetry.</param>
         /// <returns>The <see cref="IServiceCollection"/>.</returns>
-        public static IServiceCollection AddApplicationInsightsTelemetry(this IServiceCollection services, IConfiguration configuration)
+        public static IServiceCollection AddApplicationInsightsTelemetry(this IServiceCollection services,
+            IConfiguration configuration)
         {
             services.AddApplicationInsightsTelemetry(options => AddTelemetryConfiguration(configuration, options));
             return services;
@@ -83,7 +85,8 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <returns>
         /// The <see cref="IServiceCollection"/>.
         /// </returns>
-        public static IServiceCollection AddApplicationInsightsTelemetry(this IServiceCollection services, Action<ApplicationInsightsServiceOptions> options)
+        public static IServiceCollection AddApplicationInsightsTelemetry(this IServiceCollection services,
+            Action<ApplicationInsightsServiceOptions> options)
         {
             services.AddApplicationInsightsTelemetry();
             services.Configure(options);
@@ -98,7 +101,8 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <returns>
         /// The <see cref="IServiceCollection"/>.
         /// </returns>
-        public static IServiceCollection AddApplicationInsightsTelemetry(this IServiceCollection services, ApplicationInsightsServiceOptions options)
+        public static IServiceCollection AddApplicationInsightsTelemetry(this IServiceCollection services,
+            ApplicationInsightsServiceOptions options)
         {
             services.AddApplicationInsightsTelemetry();
             services.Configure((ApplicationInsightsServiceOptions o) =>
@@ -111,6 +115,8 @@ namespace Microsoft.Extensions.DependencyInjection
                 o.EnableQuickPulseMetricStream = options.EnableQuickPulseMetricStream;
                 o.EndpointAddress = options.EndpointAddress;
                 o.InstrumentationKey = options.InstrumentationKey;
+                o.EnableHeartbeat = options.EnableHeartbeat;
+                o.AddAutoCollectedMetricExtractor = options.AddAutoCollectedMetricExtractor;
             });
             return services;
         }
@@ -119,7 +125,6 @@ namespace Microsoft.Extensions.DependencyInjection
         /// Adds Application Insights services into service collection.
         /// </summary>
         /// <param name="services">The <see cref="IServiceCollection"/> instance.</param>
-        /// <param name="options">The action used to configure the options.</param>
         /// <returns>
         /// The <see cref="IServiceCollection"/>.
         /// </returns>
@@ -129,19 +134,23 @@ namespace Microsoft.Extensions.DependencyInjection
             {
                 services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
+                services
+                    .AddSingleton<ITelemetryInitializer, ApplicationInsights.AspNetCore.TelemetryInitializers.
+                        DomainNameRoleInstanceTelemetryInitializer>();
                 services.AddSingleton<ITelemetryInitializer, AzureWebAppRoleEnvironmentTelemetryInitializer>();
-                services.AddSingleton<ITelemetryInitializer, DomainNameRoleInstanceTelemetryInitializer>();
                 services.AddSingleton<ITelemetryInitializer, ComponentVersionTelemetryInitializer>();
                 services.AddSingleton<ITelemetryInitializer, ClientIpHeaderTelemetryInitializer>();
                 services.AddSingleton<ITelemetryInitializer, OperationNameTelemetryInitializer>();
-                services.AddSingleton<ITelemetryInitializer, ApplicationInsights.AspNetCore.TelemetryInitializers.OperationCorrelationTelemetryInitializer>();
                 services.AddSingleton<ITelemetryInitializer, SyntheticTelemetryInitializer>();
                 services.AddSingleton<ITelemetryInitializer, WebSessionTelemetryInitializer>();
                 services.AddSingleton<ITelemetryInitializer, WebUserTelemetryInitializer>();
                 services.AddSingleton<ITelemetryInitializer, AspNetCoreEnvironmentTelemetryInitializer>();
                 services.AddSingleton<ITelemetryInitializer, HttpDependenciesParsingTelemetryInitializer>();
-                services.AddSingleton<ITelemetryModule, DependencyTrackingTelemetryModule>(provider => {
-                    var module = new DependencyTrackingTelemetryModule();
+                services.TryAddSingleton<ITelemetryChannel, ServerTelemetryChannel>();
+
+                services.AddSingleton<ITelemetryModule, DependencyTrackingTelemetryModule>();
+                services.ConfigureTelemetryModule<DependencyTrackingTelemetryModule>((module, o) =>
+                {
                     var excludedDomains = module.ExcludeComponentCorrelationHttpHeadersOnDomains;
                     excludedDomains.Add("core.windows.net");
                     excludedDomains.Add("core.chinacloudapi.cn");
@@ -154,21 +163,31 @@ namespace Microsoft.Extensions.DependencyInjection
                     includedActivities.Add("Microsoft.Azure.EventHubs");
                     includedActivities.Add("Microsoft.Azure.ServiceBus");
 
-                    return module;
+                    module.EnableW3CHeadersInjection = o.RequestCollectionOptions.EnableW3CDistributedTracing;
                 });
 
-#if NET451 || NET46
-                services.AddSingleton<ITelemetryModule, PerformanceCollectorModule>();
-#endif
-                services.AddSingleton<TelemetryConfiguration>(provider => provider.GetService<IOptions<TelemetryConfiguration>>().Value);
+                services.ConfigureTelemetryModule<RequestTrackingTelemetryModule>((module, options) =>
+                {
+                    module.CollectionOptions = options.RequestCollectionOptions;
+                });
 
-                services.AddSingleton<ICorrelationIdLookupHelper>(provider => new CorrelationIdLookupHelper(() => provider.GetService<IOptions<TelemetryConfiguration>>().Value));
+                services.AddSingleton<ITelemetryModule, PerformanceCollectorModule>();
+                services.AddSingleton<ITelemetryModule, AppServicesHeartbeatTelemetryModule>();
+                services.AddSingleton<ITelemetryModule, AzureInstanceMetadataTelemetryModule>();
+                services.AddSingleton<ITelemetryModule, QuickPulseTelemetryModule>();
+                services.AddSingleton<ITelemetryModule, RequestTrackingTelemetryModule>();
+                services.AddSingleton<TelemetryConfiguration>(provider =>
+                    provider.GetService<IOptions<TelemetryConfiguration>>().Value);
+
+                services.TryAddSingleton<IApplicationIdProvider, ApplicationInsightsApplicationIdProvider>();
 
                 services.AddSingleton<TelemetryClient>();
 
-                services.AddSingleton<ApplicationInsightsInitializer, ApplicationInsightsInitializer>();
-                services.AddSingleton<IApplicationInsightDiagnosticListener, HostingDiagnosticListener>();
-                services.AddSingleton<IApplicationInsightDiagnosticListener, MvcDiagnosticsListener>();
+                services.AddSingleton<ApplicationInsightsDebugLogger, ApplicationInsightsDebugLogger>();
+
+                services
+                    .TryAddSingleton<IConfigureOptions<ApplicationInsightsServiceOptions>,
+                        DefaultApplicationInsightsServiceConfigureOptions>();
 
                 // Using startup filter instead of starting DiagnosticListeners directly because
                 // AspNetCoreHostingDiagnosticListener injects TelemetryClient that injects TelemetryConfiguration
@@ -182,6 +201,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 services.AddSingleton<IOptions<TelemetryConfiguration>, TelemetryConfigurationOptions>();
                 services.AddSingleton<IConfigureOptions<TelemetryConfiguration>, TelemetryConfigurationOptionsSetup>();
             }
+
             return services;
         }
 
@@ -193,9 +213,11 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <returns>
         /// The <see cref="IServiceCollection"/>.
         /// </returns>
-        public static IServiceCollection AddApplicationInsightsTelemetryProcessor<T>(this IServiceCollection services) where T : ITelemetryProcessor
+        public static IServiceCollection AddApplicationInsightsTelemetryProcessor<T>(this IServiceCollection services)
+            where T : ITelemetryProcessor
         {
-            return services.AddSingleton<ITelemetryProcessorFactory>(serviceProvider => new TelemetryProcessorFactory(serviceProvider, typeof(T)));
+            return services.AddSingleton<ITelemetryProcessorFactory>(serviceProvider =>
+                new TelemetryProcessorFactory(serviceProvider, typeof(T)));
         }
 
         /// <summary>
@@ -208,7 +230,8 @@ namespace Microsoft.Extensions.DependencyInjection
         /// </returns>
         /// <exception cref="ArgumentNullException">The <paramref name="telemetryProcessorType"/> argument is null.</exception>
         /// <exception cref="ArgumentException">The <paramref name="telemetryProcessorType"/> type does not implement <see cref="ITelemetryProcessor"/>.</exception>
-        public static IServiceCollection AddApplicationInsightsTelemetryProcessor(this IServiceCollection services, Type telemetryProcessorType)
+        public static IServiceCollection AddApplicationInsightsTelemetryProcessor(this IServiceCollection services,
+            Type telemetryProcessorType)
         {
             if (telemetryProcessorType == null)
             {
@@ -220,7 +243,48 @@ namespace Microsoft.Extensions.DependencyInjection
                 throw new ArgumentException(nameof(telemetryProcessorType));
             }
 
-            return services.AddSingleton<ITelemetryProcessorFactory>(serviceProvider => new TelemetryProcessorFactory(serviceProvider, telemetryProcessorType));
+            return services.AddSingleton<ITelemetryProcessorFactory>(serviceProvider =>
+                new TelemetryProcessorFactory(serviceProvider, telemetryProcessorType));
+        }
+
+        /// <summary>
+        /// Extension method to provide configuration logic for application insights telemetry module.
+        /// </summary>
+        /// <param name="services">The <see cref="IServiceCollection"/> instance.</param>
+        /// <param name="configModule">Action used to configure the module.</param>
+        /// <returns>
+        /// The <see cref="IServiceCollection"/>.
+        /// </returns>
+        [Obsolete("Use ConfigureTelemetryModule overload that accepts ApplicationInsightsServiceOptions.")]
+        public static IServiceCollection ConfigureTelemetryModule<T>(this IServiceCollection services, Action<T> configModule) where T : ITelemetryModule
+        {
+            if (configModule == null)
+            {
+                throw new ArgumentNullException(nameof(configModule));
+            }
+
+            return services.AddSingleton(typeof(ITelemetryModuleConfigurator),
+                new TelemetryModuleConfigurator((config, options) => configModule((T)config), typeof(T)));
+        }
+
+        /// <summary>
+        /// Extension method to provide configuration logic for application insights telemetry module.
+        /// </summary>
+        /// <param name="services">The <see cref="IServiceCollection"/> instance.</param>
+        /// <param name="configModule">Action used to configure the module.</param>
+        /// <returns>
+        /// The <see cref="IServiceCollection"/>.
+        /// </returns>        
+        public static IServiceCollection ConfigureTelemetryModule<T>(this IServiceCollection services,
+            Action<T, ApplicationInsightsServiceOptions> configModule) where T : ITelemetryModule
+        {
+            if (configModule == null)
+            {
+                throw new ArgumentNullException(nameof(configModule));
+            }
+
+            return services.AddSingleton(typeof(ITelemetryModuleConfigurator),
+                new TelemetryModuleConfigurator((config, options) => configModule((T) config, options), typeof(T)));
         }
 
         /// <summary>
@@ -243,25 +307,28 @@ namespace Microsoft.Extensions.DependencyInjection
 
             if (developerMode != null)
             {
-                telemetryConfigValues.Add(new KeyValuePair<string, string>(DeveloperModeForWebSites, developerMode.Value.ToString()));
+                telemetryConfigValues.Add(new KeyValuePair<string, string>(DeveloperModeForWebSites,
+                    developerMode.Value.ToString()));
                 wasAnythingSet = true;
             }
 
             if (instrumentationKey != null)
             {
-                telemetryConfigValues.Add(new KeyValuePair<string, string>(InstrumentationKeyForWebSites, instrumentationKey));
+                telemetryConfigValues.Add(new KeyValuePair<string, string>(InstrumentationKeyForWebSites,
+                    instrumentationKey));
                 wasAnythingSet = true;
             }
 
             if (endpointAddress != null)
             {
-                telemetryConfigValues.Add(new KeyValuePair<string, string>(EndpointAddressForWebSites, endpointAddress));
+                telemetryConfigValues.Add(new KeyValuePair<string, string>(EndpointAddressForWebSites,
+                    endpointAddress));
                 wasAnythingSet = true;
             }
 
             if (wasAnythingSet)
             {
-                configurationSourceRoot.Add(new MemoryConfigurationSource() { InitialData = telemetryConfigValues });
+                configurationSourceRoot.Add(new MemoryConfigurationSource() {InitialData = telemetryConfigValues});
             }
 
             return configurationSourceRoot;
@@ -283,7 +350,8 @@ namespace Microsoft.Extensions.DependencyInjection
         /// </summary>
         /// <param name="config">Configuration to read variables from.</param>
         /// <param name="serviceOptions">Telemetry configuration to populate.</param>
-        internal static void AddTelemetryConfiguration(IConfiguration config, ApplicationInsightsServiceOptions serviceOptions)
+        internal static void AddTelemetryConfiguration(IConfiguration config,
+            ApplicationInsightsServiceOptions serviceOptions)
         {
             string instrumentationKey = config[InstrumentationKeyForWebSites];
             if (string.IsNullOrWhiteSpace(instrumentationKey))
@@ -331,8 +399,8 @@ namespace Microsoft.Extensions.DependencyInjection
 
         private static bool IsApplicationInsightsAdded(IServiceCollection services)
         {
-            // We treat ApplicationInsightsInitializer as a marker that AI services were added to service collection
-            return services.Any(service => service.ServiceType == typeof(ApplicationInsightsInitializer));
+            // We treat ApplicationInsightsDebugLogger as a marker that AI services were added to service collection
+            return services.Any(service => service.ServiceType == typeof(ApplicationInsightsDebugLogger));
+        }
     }
-}
 }

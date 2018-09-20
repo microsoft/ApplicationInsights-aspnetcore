@@ -17,6 +17,9 @@
             this.EnableAdaptiveSampling = true;
             this.EnableDebugLogger = true;
             this.EnableAuthenticationTrackingJavaScript = false;
+            this.EnableHeartbeat = true;
+            this.AddAutoCollectedMetricExtractor = true;
+            this.RequestCollectionOptions = new RequestCollectionOptions();
             this.ApplicationVersion = Assembly.GetEntryAssembly()?.GetName().Version.ToString();
         }
 
@@ -62,5 +65,20 @@
         /// be printed along with the main ApplicationInsights tracking script.
         /// </summary>
         public bool EnableAuthenticationTrackingJavaScript { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether heartbeats are enabled.
+        /// </summary>
+        public bool EnableHeartbeat { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether AutoCollectedMetricExtractor are added or not.
+        /// </summary>
+        public bool AddAutoCollectedMetricExtractor { get; set; }
+
+        /// <summary>
+        /// Gets <see cref="RequestCollectionOptions"/> that allow to manage <see cref="RequestTrackingTelemetryModule"/>
+        /// </summary>
+        public RequestCollectionOptions RequestCollectionOptions { get; }
     }
 }

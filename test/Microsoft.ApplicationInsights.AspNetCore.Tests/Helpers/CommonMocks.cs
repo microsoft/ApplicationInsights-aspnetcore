@@ -1,7 +1,6 @@
 ﻿namespace Microsoft.ApplicationInsights.AspNetCore.Tests.Helpers
 {
     using System;
-    using DiagnosticListeners;
     using Microsoft.ApplicationInsights.Channel;
     using Microsoft.ApplicationInsights.Extensibility;
 
@@ -9,6 +8,7 @@
     {
         public const string InstrumentationKey = "REQUIRED";
         public const string InstrumentationKeyHash = "0KNjBVW77H/AWpjTEcI7AP0atNgpasSkEll22AtqaVk=";
+        public const string TestApplicationId = nameof(TestApplicationId);
 
         public static TelemetryClient MockTelemetryClient(Action<ITelemetry> onSendCallback)
         {
@@ -19,9 +19,16 @@
             });
         }
 
-        internal static ICorrelationIdLookupHelper MockCorrelationIdLookupHelper()
+        public static TelemetryClient MockTelemetryClient(Action<ITelemetry> onSendCallback, TelemetryConfiguration configuration)
         {
-            return new CorrelationIdLookupHelperStub();
+            configuration.InstrumentationKey = InstrumentationKey;
+            configuration.TelemetryChannel = new FakeTelemetryChannel {OnSend = onSendCallback};
+            return new TelemetryClient(configuration);
+        }
+
+        internal static IApplicationIdProvider GetMockApplicationIdProvider()
+        {
+            return new MockApplicationIdProvider(InstrumentationKey, TestApplicationId);
         }
     }
 }

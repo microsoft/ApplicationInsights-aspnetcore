@@ -2,23 +2,23 @@
 {
     using System;
     using System.Diagnostics;
+    using System.Collections.Generic;
     using System.Linq;
     using System.Net.Http;
     using System.Reflection;
     using System.Runtime.CompilerServices;
     using System.Text;
+    using System.Text.RegularExpressions;
     using System.Threading;
     using System.Threading.Tasks;
     using AI;
     using Microsoft.ApplicationInsights.DataContracts;
-    using Microsoft.AspNetCore.Hosting;
-    using Microsoft.ApplicationInsights.Channel;
     using Microsoft.Extensions.DependencyInjection;
     using Xunit;
     using Xunit.Abstractions;
+    using Microsoft.ApplicationInsights.Extensibility;
 #if NET451 || NET461
     using Microsoft.ApplicationInsights.Extensibility.PerfCounterCollector;
-    using Microsoft.ApplicationInsights.Extensibility;    
 #endif
 
     public abstract class TelemetryTestsBase
@@ -32,30 +32,46 @@
         }
 
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void ValidateBasicRequest(InProcessServer server, string requestPath, RequestTelemetry expected)
+        public TelemetryItem<RequestData> ValidateBasicRequest(InProcessServer server, string requestPath, RequestTelemetry expected, bool expectRequestContextInResponse = true)
+        {
+            return ValidateRequestWithHeaders(server, requestPath, null, expected, expectRequestContextInResponse);
+        }
+
+        [MethodImpl(MethodImplOptions.NoOptimization)]
+        public TelemetryItem<RequestData> ValidateRequestWithHeaders(InProcessServer server, string requestPath, Dictionary<string, string> requestHeaders, RequestTelemetry expected, bool expectRequestContextInResponse = true)
         {
             // Subtract 50 milliseconds to hack around strange behavior on build server where the RequestTelemetry.Timestamp is somehow sometimes earlier than now by a few milliseconds.
             expected.Timestamp = DateTimeOffset.Now.Subtract(TimeSpan.FromMilliseconds(50));
             Stopwatch timer = Stopwatch.StartNew();
 
-            this.ExecuteRequest(server.BaseHost + requestPath);
+            var response = this.ExecuteRequest(server.BaseHost + requestPath, requestHeaders);
 
             var actual = server.Listener.ReceiveItemsOfType<TelemetryItem<RequestData>>(1, TestListenerTimeoutInMs);
-            this.DebugTelemetryItems(actual);
-
             timer.Stop();
+
+            this.DebugTelemetryItems(actual);
+            this.output.WriteLine("Response headers: " + string.Join(",", response.Headers.Select(kvp => $"{kvp.Key} = {kvp.Value.First()}")));
 
             var item = actual.OfType<TelemetryItem<RequestData>>().FirstOrDefault();
             Assert.NotNull(item);
             var data = ((TelemetryItem<RequestData>)item).data.baseData;
-            
+
             Assert.Equal(expected.ResponseCode, data.responseCode);
             Assert.Equal(expected.Name, data.name);
             Assert.Equal(expected.Success, data.success);
             Assert.Equal(expected.Url, new Uri(data.url));
+            Assert.Equal(expectRequestContextInResponse, response.Headers.Contains("Request-Context"));
+            if (expectRequestContextInResponse)
+            {
+                Assert.True(response.Headers.TryGetValues("Request-Context", out var appIds));
+                Assert.Equal($"appId={InProcessServer.AppId}", appIds.Single());
+            }
+
             output.WriteLine("actual.Duration: " + data.duration);
             output.WriteLine("timer.Elapsed: " + timer.Elapsed);
             Assert.True(TimeSpan.Parse(data.duration) < timer.Elapsed.Add(TimeSpan.FromMilliseconds(20)), "duration");
+
+            return item;
         }
 
         public void ValidateBasicException(InProcessServer server, string requestPath, ExceptionTelemetry expected)
@@ -73,9 +89,9 @@
             Assert.NotEmpty(data.exceptions[0].parsedStack);
         }
 
-        public void ValidateBasicDependency(InProcessServer server, string requestPath, DependencyTelemetry expected)
+        public (TelemetryItem<RequestData>, TelemetryItem<RemoteDependencyData>) ValidateBasicDependency(InProcessServer server, string requestPath, DependencyTelemetry expected)
         {
-            this.ExecuteRequest(server.BaseHost + requestPath);
+            var response = this.ExecuteRequest(server.BaseHost + requestPath);
 
             var actual = server.Listener.ReceiveItems(TestListenerTimeoutInMs);
             this.DebugTelemetryItems(actual);
@@ -87,13 +103,13 @@
             Assert.Equal(expected.ResultCode, dependencyData.resultCode);
             Assert.Equal(expected.Success, dependencyData.success);
 
-#if !NET461
             var requestTelemetry = actual.OfType<TelemetryItem<RequestData>>().FirstOrDefault();
             Assert.NotNull(requestTelemetry);
 
-            Assert.Contains(dependencyTelemetry.tags["ai.operation.id"], requestTelemetry.tags["ai.operation.parentId"]);
             Assert.Equal(requestTelemetry.tags["ai.operation.id"], dependencyTelemetry.tags["ai.operation.id"]);
-#endif
+            Assert.Contains(dependencyTelemetry.data.baseData.id, requestTelemetry.tags["ai.operation.parentId"]);
+
+            return (requestTelemetry, dependencyTelemetry);
         }
 
 #if NET451 || NET461
@@ -115,17 +131,28 @@
         }
 #endif
 
-        protected void ExecuteRequest(string requestPath)
+        protected HttpResponseMessage ExecuteRequest(string requestPath, Dictionary<string, string> headers = null)
         {
             var httpClientHandler = new HttpClientHandler();
             httpClientHandler.UseDefaultCredentials = true;
 
             using (HttpClient httpClient = new HttpClient(httpClientHandler, true))
             {
-                this.output.WriteLine(string.Format("{0}: Executing request: {1}", DateTime.Now.ToString("G"), requestPath));
-                var task = httpClient.GetAsync(requestPath);
+                this.output.WriteLine(string.Format("{0}: Executing request: {1}", DateTime.Now.ToString("MM/dd/yyyy hh:mm:ss.fff tt"), requestPath));
+                HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, requestPath);
+                if (headers != null)
+                {
+                    foreach (var h in headers)
+                    {
+                        request.Headers.Add(h.Key, h.Value);
+                    }
+                }
+
+                var task = httpClient.SendAsync(request);
                 task.Wait(TestListenerTimeoutInMs);
-                this.output.WriteLine(string.Format("{0}: Ended request: {1}", DateTime.Now.ToString("G"), requestPath));
+                this.output.WriteLine(string.Format("{0:MM/dd/yyyy hh:mm:ss.fff tt}: Ended request: {1}", DateTime.Now, requestPath));
+
+                return task.Result;
             }
         }
 
@@ -136,9 +163,9 @@
             {
                 TelemetryItem<RemoteDependencyData> dependency = telemetry as TelemetryItem<RemoteDependencyData>;
                 if (dependency != null)
-                {
+                {                    
                     var data = ((TelemetryItem<RemoteDependencyData>)dependency).data.baseData;
-                    builder.AppendLine($"{dependency.ToString()} - {data.data} - {data.duration} - {data.id} - {data.name} - {data.resultCode} - {data.success} - {data.target} - {data.type}");
+                    builder.AppendLine($"{dependency} - {data.data} - {((TelemetryItem<RemoteDependencyData>)dependency).time} - {data.duration} - {data.id} - {data.name} - {data.resultCode} - {data.success} - {data.target} - {data.type}");
                 }
                 else
                 {
@@ -146,7 +173,7 @@
                     if (request != null)
                     {
                         var data = ((TelemetryItem<RequestData>)request).data.baseData;
-                        builder.AppendLine($"{request.ToString()} - {data.url} - {data.duration} - {data.id} - {data.name} - {data.success} - {data.responseCode}");
+                        builder.AppendLine($"{request} - {data.url} - {((TelemetryItem<RequestData>)request).time} - {data.duration} - {data.id} - {data.name} - {data.success} - {data.responseCode}");
                     }
                     else
                     {
@@ -154,7 +181,7 @@
                         if (exception != null)
                         {
                             var data = ((TelemetryItem<ExceptionData>)exception).data.baseData;
-                            builder.AppendLine($"{exception.ToString()} - {data.exceptions[0].message} - {data.exceptions[0].stack} - {data.exceptions[0].typeName} - {data.severityLevel}");
+                            builder.AppendLine($"{exception} - {data.exceptions[0].message} - {data.exceptions[0].stack} - {data.exceptions[0].typeName} - {data.severityLevel}");
                         }
                         else
                         {
@@ -162,11 +189,24 @@
                             if (message != null)
                             {
                                 var data = ((TelemetryItem<MessageData>)message).data.baseData;
-                                builder.AppendLine($"{message.ToString()} - {data.message} - {data.severityLevel}");
+                                builder.AppendLine($"{message} - {data.message} - {data.severityLevel}");
                             }
                             else
                             {
-                                builder.AppendLine($"{telemetry.ToString()} - {telemetry.name}");
+                                TelemetryItem<MetricData> metric = telemetry as TelemetryItem<MetricData>;
+                                if (metric != null)
+                                {
+                                    var data = ((TelemetryItem<MetricData>)metric).data.baseData;
+                                    builder.AppendLine($"{metric.ToString()} - {metric.data}- {metric.name} - {data.metrics.Count}");
+                                    foreach (var metricVal in data.metrics)
+                                    {
+                                        builder.AppendLine($"{metricVal.name} {metricVal.value}");
+                                    }
+                                }     
+                                else
+                                {
+                                    builder.AppendLine($"{telemetry.ToString()} - {telemetry.time}");
+                                }
                             }
                         }
                     }

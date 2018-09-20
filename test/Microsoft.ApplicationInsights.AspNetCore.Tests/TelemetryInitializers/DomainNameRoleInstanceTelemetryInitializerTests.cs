@@ -10,48 +10,18 @@
     using Microsoft.ApplicationInsights.Extensibility.Implementation;
     using Microsoft.AspNetCore.Http;
     using Xunit;
-    
+
     public class DomainNameRoleInstanceTelemetryInitializerTests
     {
-        private const string TestListenerName = "TestListener";
-
-        [Fact]
-        public void InitializeThrowIfHttpContextAccessorIsNull()
-        {
-            Assert.ThrowsAny<ArgumentNullException>(() =>
-            {
-                var initializer = new DomainNameRoleInstanceTelemetryInitializer(null);
-            });
-        }
-
-        [Fact]
-        public void InitializeDoesNotThrowIfHttpContextIsUnavailable()
-        {
-            var ac = new HttpContextAccessor() { HttpContext = null };
-
-            var initializer = new DomainNameRoleInstanceTelemetryInitializer(ac);
-
-            initializer.Initialize(new RequestTelemetry());
-        }
-
-        [Fact]
-        public void InitializeDoesNotThrowIfRequestTelemetryIsUnavailable()
-        {
-            var ac = new HttpContextAccessor() { HttpContext = new DefaultHttpContext() };
-
-            var initializer = new DomainNameRoleInstanceTelemetryInitializer(ac);
-
-            initializer.Initialize(new RequestTelemetry());
-        }
-
+        private const string TestListenerName = "TestListener";              
+        
         [Fact]
         public void RoleInstanceNameIsSetToDomainAndHost()
-        {
-            var contextAccessor = HttpContextAccessorHelper.CreateHttpContextAccessor(new RequestTelemetry(), null);
-            var source = new DomainNameRoleInstanceTelemetryInitializer(contextAccessor);
+        {            
+            var source = new DomainNameRoleInstanceTelemetryInitializer();
             var requestTelemetry = new RequestTelemetry();
             source.Initialize(requestTelemetry);
-            
+
             string hostName = Dns.GetHostName();
 
 #if NET451 || NET46
@@ -62,23 +32,17 @@
             }
 #endif
 
-            Assert.Equal(hostName, requestTelemetry.Context.Cloud.RoleInstance);
-            Assert.Equal(hostName, requestTelemetry.Context.GetInternalContext().NodeName);
+            Assert.Equal(hostName, requestTelemetry.Context.Cloud.RoleInstance);            
         }
 
         [Fact]
         public void ContextInitializerDoesNotOverrideMachineName()
-        {
-            var contextAccessor = HttpContextAccessorHelper.CreateHttpContextAccessor(new RequestTelemetry(), null);
-            var source = new DomainNameRoleInstanceTelemetryInitializer(contextAccessor);
+        {            
+            var source = new DomainNameRoleInstanceTelemetryInitializer();
             var requestTelemetry = new RequestTelemetry();
-            requestTelemetry.Context.Cloud.RoleInstance = "Test";
-            requestTelemetry.Context.GetInternalContext().NodeName = "Test1";
-
+            requestTelemetry.Context.Cloud.RoleInstance = "Test";            
             source.Initialize(requestTelemetry);
-
-            Assert.Equal("Test", requestTelemetry.Context.Cloud.RoleInstance);
-            Assert.Equal("Test1", requestTelemetry.Context.GetInternalContext().NodeName);
+            Assert.Equal("Test", requestTelemetry.Context.Cloud.RoleInstance);            
         }
     }
 }

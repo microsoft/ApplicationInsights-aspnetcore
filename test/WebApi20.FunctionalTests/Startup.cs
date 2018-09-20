@@ -1,16 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Builder;
+﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using Microsoft.ApplicationInsights.Channel;
 using FunctionalTestUtils;
-using System.IO;
+
 
 namespace WebApi20.FunctionalTests
 {
@@ -30,7 +23,7 @@ namespace WebApi20.FunctionalTests
             services.AddSingleton<EndpointAddress>(endpointAddress);
 
             var builder = new ConfigurationBuilder();
-            builder.AddApplicationInsightsSettings(instrumentationKey: "Foo", endpointAddress: endpointAddress.ConnectionString, developerMode: true);
+            builder.AddApplicationInsightsSettings(instrumentationKey: InProcessServer.IKey, endpointAddress: endpointAddress.ConnectionString, developerMode: true);
             services.AddApplicationInsightsTelemetry(builder.Build());
 
             services.AddMvc();
