@@ -13,9 +13,11 @@ Param(
 ) 
 
 
+$requiredCopyright = "$([char]0x00A9) Microsoft Corporation. All rights reserved.";#"© Microsoft Corporation. All rights reserved.";
 $expectedProjectUrl = "https://go.microsoft.com/fwlink/?LinkId=392727"; # Application Insights Project Url
 $expectedLicenseUrl = "https://go.microsoft.com/fwlink/?LinkID=510709"; # Application Insights license Url
 $expectedOwner = "AppInsightsSdk"; # Application Insights Nuget Account
+$expectedTags = @("Azure","Monitoring");
 
 $sb = [System.Text.StringBuilder]::new();
 
@@ -144,10 +146,6 @@ function Get-IsValidPackageId([xml]$nuspecXml) {
     Test-Condition ($id.StartsWith("Microsoft.")) $message $requirement;
 }
 
-function Get-IsValidVersioning() {
-    #TODO
-}
-
 function Get-IsValidAuthors([xml]$nuspecXml) {
     $authors = $nuspecXml.package.metadata.authors;
 
@@ -199,8 +197,7 @@ function Get-IsValidLicenseAcceptance([xml]$nuspecXml) {
 
 function Get-IsValidCopyright([xml]$nuspecXml) {
     $copyright = $nuspecXml.package.metadata.copyright;
-    $requiredCopyright = "$([char]0x00A9) Microsoft Corporation. All rights reserved.";#"© Microsoft Corporation. All rights reserved.";
-
+    
     $message = "Copyright: $copyright";
     $requirement = "Must match '$requiredCopyright'";
 
@@ -222,9 +219,19 @@ function Get-IsValidTags([xml]$nuspecXml) {
     $hasTags = !([System.String]::IsNullOrEmpty($tags));
 
     $message = "Tags: $tags";
-    $requirement = "Must have tags."
+        $requirement = "Must have tags."
+        Test-Condition $hasTags $message $requirement;
 
-    Test-Condition $hasTags $message $requirement;
+    $tagsArray = @();
+    if($hasTags) {
+        $tagsArray = $tags -split " ";
+    } 
+
+    $expectedTags | ForEach-Object {
+        $hasTag = $tagsArray.Contains($_);
+        $requirement = "Must include tag: $_";
+        Test-Condition $hasTag $message $requirement;
+    }
 }
 
 function Get-IsValidLogoUrl([xml]$nuspecXml, $path) {
