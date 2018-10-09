@@ -20,7 +20,7 @@ namespace App2
         public static IWebHost BuildWebHost(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
                 .UseStartup<Startup>()
-                .UseApplicationInsights("37aac79b-2ec5-47dc-8e76-ce9f33e82217")
+                .UseApplicationInsights("78782c82-6673-4bf2-8839-c8ef09555274")
                 .Build();
     }
 }

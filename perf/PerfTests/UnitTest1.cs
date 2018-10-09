@@ -11,7 +11,7 @@ namespace PerfTests
     [TestClass]
     public class UnitTest1
     {
-        const double TestDuration = 30000;
+        const double TestDuration = 300000;
         const int TargetRps = 50;
         static long affinityApp = 1;
         static long affinityLoadGen = 2;
@@ -95,18 +95,25 @@ namespace PerfTests
                     error += errorMessage;                    
                 })
                 .Start(affinityApp, ProcessPriorityClass.High);
-           
+
+            Thread.Sleep(2000);
             //Verify App
-            try
+            for (int i = 1; i <= 3; i++)
             {
-                HttpClient client = new HttpClient();
-                var responsefromApp = client.GetStringAsync("http://localhost:5000/api/values").Result;
-                Trace.WriteLine("App output http req:" + responsefromApp);
+                try
+                {
+                    Trace.WriteLine("Validating App attempt :" + i);
+                    HttpClient client = new HttpClient();
+                    var responsefromApp = client.GetStringAsync("http://localhost:5000/api/values").Result;
+                    Trace.WriteLine("App output http req:" + responsefromApp);
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    Trace.WriteLine("Exception while hitting app url: " + ex.Message);
+                }
             }
-            catch (Exception ex)
-            {
-                Trace.WriteLine("Exception while hitting app url: " + ex.Message);
-            }
+            
 
             // Launch Load Generator
             Process loadGenProcess = CommandLineHelpers.ExecuteCommand("dotnet",
