@@ -1,3 +1,5 @@
+using System.Linq;
+
 namespace Microsoft.ApplicationInsights.AspNetCore
 {
     using System;
@@ -8,6 +10,7 @@ namespace Microsoft.ApplicationInsights.AspNetCore
     using Microsoft.ApplicationInsights.AspNetCore.DiagnosticListeners;
     using Microsoft.ApplicationInsights.AspNetCore.Extensions;
     using Microsoft.ApplicationInsights.Extensibility;
+    using Microsoft.ApplicationInsights.DependencyCollector.Implementation;
 
     /// <summary>
     /// Telemetry module tracking requests using Diagnostic Listeners.
@@ -59,8 +62,7 @@ namespace Microsoft.ApplicationInsights.AspNetCore
                     {
                         this.telemetryClient = new TelemetryClient(configuration);
 
-                        this.diagnosticListeners.Add
-                            (new HostingDiagnosticListener(
+                        this.diagnosticListeners.Add(new HostingDiagnosticListener(
                             this.telemetryClient,
                             this.applicationIdProvider,
                             this.CollectionOptions.InjectResponseHeaders,
@@ -92,6 +94,7 @@ namespace Microsoft.ApplicationInsights.AspNetCore
                 if (applicationInsightDiagnosticListener.ListenerName == value.Name)
                 {
                     subs.Add(value.SubscribeWithAdapter(applicationInsightDiagnosticListener));
+                    applicationInsightDiagnosticListener.OnSubscribe();
                 }
             }
         }
@@ -128,6 +131,11 @@ namespace Microsoft.ApplicationInsights.AspNetCore
             foreach (var subscription in subs)
             {
                 subscription.Dispose();
+            }
+
+            foreach (var listener in this.diagnosticListeners)
+            {
+                listener.Dispose();
             }
         }
     }
