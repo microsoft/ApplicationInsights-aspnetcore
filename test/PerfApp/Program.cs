@@ -20,7 +20,7 @@ namespace PerfApp
         public static IWebHost BuildWebHost(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
                 .UseStartup<Startup>()
-                // .UseApplicationInsights("b5feab90-214e-445d-9ea5-3a15339904dd")
+                .UseApplicationInsights("b5feab90-214e-445d-9ea5-3a15339904dd")
                 .Build();
     }
 }

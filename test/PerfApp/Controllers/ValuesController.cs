@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -13,6 +14,7 @@ namespace PerfApp.Controllers
         [HttpGet]
         public IEnumerable<string> Get()
         {
+            DoWorkForNMillisecs(1);
             return new string[] { "value1", "value2" };
         }
 
@@ -39,6 +41,14 @@ namespace PerfApp.Controllers
         [HttpDelete("{id}")]
         public void Delete(int id)
         {
+        }
+
+        private void DoWorkForNMillisecs(int n)
+        {
+            Stopwatch stopWatch = new Stopwatch();
+            stopWatch.Start();
+            while (stopWatch.ElapsedMilliseconds < n && stopWatch.IsRunning) { Guid guid = Guid.NewGuid(); }
+            stopWatch.Stop();
         }
     }
 }
