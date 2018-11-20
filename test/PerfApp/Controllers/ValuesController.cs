@@ -14,15 +14,16 @@ namespace PerfApp.Controllers
         [HttpGet]
         public IEnumerable<string> Get()
         {
-            DoWorkForNMillisecs(1);
-            return new string[] { "value1", "value2" };
+            // DoWorkForNMillisecs(1);
+            
+            return new string[] { "value1", "value2"};
         }
 
         // GET api/values/5
         [HttpGet("{id}")]
         public string Get(int id)
         {
-            return "value";
+            return Process.GetCurrentProcess().Id.ToString();
         }
 
         // POST api/values
