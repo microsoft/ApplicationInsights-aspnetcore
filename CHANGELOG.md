@@ -1,5 +1,8 @@
 # Changelog
 
+## Version 2.6.0-beta3
+- [Fix: Do not track requests by each host in the process](https://github.com/Microsoft/ApplicationInsights-aspnetcore/issues/621)
+
 ## Version 2.6.0-beta2
 - Updated Web/Base SDK version dependency to 2.9.0-beta2
 

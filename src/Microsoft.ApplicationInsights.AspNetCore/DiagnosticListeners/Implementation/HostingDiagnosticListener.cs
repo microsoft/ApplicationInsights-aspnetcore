@@ -90,7 +90,7 @@
             if (this.client.IsEnabled())
             {
                 // It's possible to host multiple apps (ASP.NET Core or generic hosts) in the same process
-                // Each of this apps has it's own DependencyTrackingModule and corresponding Http listener.
+                // Each of this apps has it's own HostingDiagnosticListener and corresponding Http listener.
                 // We should ignore events for all of them except one
                 if (!SubscriptionManager.IsActive(this))
                 {
@@ -191,7 +191,7 @@
             if (this.client.IsEnabled() && !IsAspNetCore20)
             {
                 // It's possible to host multiple apps (ASP.NET Core or generic hosts) in the same process
-                // Each of this apps has it's own DependencyTrackingModule and corresponding Http listener.
+                // Each of this apps has it's own HostingDiagnosticListener and corresponding Http listener.
                 // We should ignore events for all of them except one
                 if (!SubscriptionManager.IsActive(this))
                 {
@@ -405,7 +405,7 @@
             if (this.client.IsEnabled())
             {
                 // It's possible to host multiple apps (ASP.NET Core or generic hosts) in the same process
-                // Each of this apps has it's own DependencyTrackingModule and corresponding Http listener.
+                // Each of this apps has it's own HostingDiagnosticListener and corresponding Http listener.
                 // We should ignore events for all of them except one
                 if (!SubscriptionManager.IsActive(this))
                 {
@@ -456,7 +456,7 @@
             if (this.trackExceptions && this.client.IsEnabled())
             {
                 // It's possible to host multiple apps (ASP.NET Core or generic hosts) in the same process
-                // Each of this apps has it's own DependencyTrackingModule and corresponding Http listener.
+                // Each of this apps has it's own HostingDiagnosticListener and corresponding Http listener.
                 // We should ignore events for all of them except one
                 if (!SubscriptionManager.IsActive(this))
                 {

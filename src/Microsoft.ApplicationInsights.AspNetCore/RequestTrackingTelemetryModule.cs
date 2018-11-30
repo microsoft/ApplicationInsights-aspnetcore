@@ -1,5 +1,3 @@
-using System.Linq;
-
 namespace Microsoft.ApplicationInsights.AspNetCore
 {
     using System;
@@ -10,7 +8,6 @@ namespace Microsoft.ApplicationInsights.AspNetCore
     using Microsoft.ApplicationInsights.AspNetCore.DiagnosticListeners;
     using Microsoft.ApplicationInsights.AspNetCore.Extensions;
     using Microsoft.ApplicationInsights.Extensibility;
-    using Microsoft.ApplicationInsights.DependencyCollector.Implementation;
 
     /// <summary>
     /// Telemetry module tracking requests using Diagnostic Listeners.
