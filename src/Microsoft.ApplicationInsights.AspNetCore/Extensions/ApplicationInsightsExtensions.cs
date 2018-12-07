@@ -16,7 +16,7 @@
     using Microsoft.ApplicationInsights.Extensibility.Implementation.ApplicationId;
     using Microsoft.ApplicationInsights.Extensibility.PerfCounterCollector;
     using Microsoft.ApplicationInsights.Extensibility.PerfCounterCollector.QuickPulse;
-    using Microsoft.ApplicationInsights.WindowsServer;    
+    using Microsoft.ApplicationInsights.WindowsServer;
     using Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Http;
@@ -247,11 +247,52 @@
 
             if (!telemetryProcessorType.GetTypeInfo().ImplementedInterfaces.Contains(typeof(ITelemetryProcessor)))
             {
-                throw new ArgumentException(nameof(telemetryProcessorType));
+                throw new ArgumentException(
+                    nameof(telemetryProcessorType) + " does not implement required ITelemetryProcessor interface.",
+                    nameof(telemetryProcessorType));
             }
 
             return services.AddSingleton<ITelemetryProcessorFactory>(serviceProvider =>
                 new TelemetryProcessorFactory(serviceProvider, telemetryProcessorType));
+        }
+
+        /// <summary>
+        /// Adds the Application Insights telemetry initializer to the telemetry configuration.
+        /// </summary>
+        /// <typeparam name="T">Type of Telemetry Initializer to the add to the pipeline.</typeparam>
+        /// <param name="services">The <see cref="IServiceCollection"/> instance.</param>
+        /// <returns><see cref="IServiceCollection"/> instance.</returns>
+        public static IServiceCollection AddApplicationInsightsTelemetryInitializer<T>(this IServiceCollection services)
+        {
+            return services.AddApplicationInsightsTelemetryInitializer(typeof(T));
+        }
+
+        /// <summary>
+        /// Adds the Application Insights telemetry initializer to the telemetry configuration.
+        /// </summary>
+        /// <param name="services">The <see cref="IServiceCollection"/> instance.</param>
+        /// <param name="telemetryInitializerType">Type of the telemetry initializer to be used with the telemetry configuration.</param>
+        /// <returns><see cref="IServiceCollection"/></returns>
+        /// <exception cref="ArgumentNullException">telemetryInitializerType</exception>
+        /// <exception cref="ArgumentException">telemetryInitializerType - telemetryInitializerType</exception>
+        public static IServiceCollection AddApplicationInsightsTelemetryInitializer(
+            this IServiceCollection services,
+            Type telemetryInitializerType)
+        {
+            if (telemetryInitializerType == null)
+            {
+                throw new ArgumentNullException(nameof(telemetryInitializerType));
+            }
+
+            if (!telemetryInitializerType.GetTypeInfo().ImplementedInterfaces.Contains(typeof(ITelemetryInitializer)))
+            {
+                throw new ArgumentException(
+                    nameof(telemetryInitializerType) + " does not implement required ITelemetryInitializer interface.",
+                    nameof(telemetryInitializerType));
+            }
+
+            return services.AddSingleton<ITelemetryInitializerFactory>(serviceProvider =>
+                new TelemetryInitializerFactory(serviceProvider, telemetryInitializerType));
         }
 
         /// <summary>
@@ -291,7 +332,7 @@
             }
 
             return services.AddSingleton(typeof(ITelemetryModuleConfigurator),
-                new TelemetryModuleConfigurator((config, options) => configModule((T) config, options), typeof(T)));
+                new TelemetryModuleConfigurator((config, options) => configModule((T)config, options), typeof(T)));
         }
 
         /// <summary>
@@ -335,7 +376,7 @@
 
             if (wasAnythingSet)
             {
-                configurationSourceRoot.Add(new MemoryConfigurationSource() {InitialData = telemetryConfigValues});
+                configurationSourceRoot.Add(new MemoryConfigurationSource() { InitialData = telemetryConfigValues });
             }
 
             return configurationSourceRoot;
@@ -379,8 +420,7 @@
 
             if (!string.IsNullOrWhiteSpace(developerModeValue))
             {
-                bool developerMode = false;
-                if (bool.TryParse(developerModeValue, out developerMode))
+                if (bool.TryParse(developerModeValue, out bool developerMode))
                 {
                     serviceOptions.DeveloperMode = developerMode;
                 }

@@ -604,6 +604,39 @@ namespace Microsoft.Extensions.DependencyInjection.Test
             }
 
             [Fact]
+            public static void RegistersTelemetryConfigurationFactoryMethodThatPopulatesItWithTelemetryInitializerFactoriesFromContainer()
+            {
+                var services = ApplicationInsightsExtensionsTests.GetServiceCollectionWithContextAccessor();
+                services.AddApplicationInsightsTelemetryInitializer<FakeTelemetryInitializerWithImportingConstructor>();
+
+                services.AddApplicationInsightsTelemetry(new ConfigurationBuilder().Build());
+
+                IServiceProvider serviceProvider = services.BuildServiceProvider();
+                var telemetryConfiguration = serviceProvider.GetTelemetryConfiguration();
+
+                FakeTelemetryInitializerWithImportingConstructor telemetryInitializer = 
+                    telemetryConfiguration.TelemetryInitializers.OfType<FakeTelemetryInitializerWithImportingConstructor>().SingleOrDefault();
+                Assert.NotNull(telemetryInitializer);
+                Assert.True(telemetryInitializer.IsInitialized);
+                Assert.Same(serviceProvider.GetService<IHostingEnvironment>(), telemetryInitializer.HostingEnvironment);
+            }
+
+            [Fact]
+            public static void AddApplicationInsightsTelemetryInitializerWithNullTelemetryInitializerTypeThrows()
+            {
+                var services = ApplicationInsightsExtensionsTests.GetServiceCollectionWithContextAccessor();
+                Assert.Throws<ArgumentNullException>(() => services.AddApplicationInsightsTelemetryInitializer(null));
+            }
+
+            [Fact]
+            public static void AddApplicationInsightsTelemetryInitializerWithNonTelemetryInitializerTypeThrows()
+            {
+                var services = ApplicationInsightsExtensionsTests.GetServiceCollectionWithContextAccessor();
+                Assert.Throws<ArgumentException>(() => services.AddApplicationInsightsTelemetryInitializer(typeof(string)));
+                Assert.Throws<ArgumentException>(() => services.AddApplicationInsightsTelemetryInitializer(typeof(ITelemetryInitializer)));
+            }
+
+            [Fact]
             public static void ConfigureApplicationInsightsTelemetryModuleWorks()
             {
                 //ARRANGE

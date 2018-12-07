@@ -1,19 +1,18 @@
 namespace Microsoft.Extensions.DependencyInjection
 {
     using System;
-    using System.Linq;
     using System.Collections.Generic;
+    using System.Linq;
     using Microsoft.ApplicationInsights.AspNetCore;
-    using Microsoft.ApplicationInsights.AspNetCore.Extensions;
     using Microsoft.ApplicationInsights.AspNetCore.Extensibility.Implementation.Tracing;
+    using Microsoft.ApplicationInsights.AspNetCore.Extensions;
     using Microsoft.ApplicationInsights.Channel;
     using Microsoft.ApplicationInsights.Extensibility;
-    using Microsoft.ApplicationInsights.Extensibility.PerfCounterCollector.QuickPulse;
-    using Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel;
-    using Microsoft.Extensions.Options;
     using Microsoft.ApplicationInsights.Extensibility.Implementation;
     using Microsoft.ApplicationInsights.Extensibility.Implementation.Tracing;
+    using Microsoft.ApplicationInsights.Extensibility.PerfCounterCollector.QuickPulse;
     using Microsoft.ApplicationInsights.W3C;
+    using Microsoft.Extensions.Options;
 
     /// <summary>
     /// Initializes TelemetryConfiguration based on values in <see cref="ApplicationInsightsServiceOptions"/>
@@ -27,6 +26,7 @@ namespace Microsoft.Extensions.DependencyInjection
         private readonly ITelemetryChannel telemetryChannel;
         private readonly IEnumerable<ITelemetryProcessorFactory> telemetryProcessorFactories;
         private readonly IEnumerable<ITelemetryModuleConfigurator> telemetryModuleConfigurators;
+        private readonly IEnumerable<ITelemetryInitializerFactory> telemetryInitializerFactories;
         private readonly IApplicationIdProvider applicationIdProvider;
 
         /// <summary>
@@ -38,13 +38,15 @@ namespace Microsoft.Extensions.DependencyInjection
             IEnumerable<ITelemetryInitializer> initializers,
             IEnumerable<ITelemetryModule> modules,
             IEnumerable<ITelemetryProcessorFactory> telemetryProcessorFactories,
-            IEnumerable<ITelemetryModuleConfigurator> telemetryModuleConfigurators)
+            IEnumerable<ITelemetryModuleConfigurator> telemetryModuleConfigurators,
+            IEnumerable<ITelemetryInitializerFactory> telemetryInitializerFactories)
         {
             this.applicationInsightsServiceOptions = applicationInsightsServiceOptions.Value;
             this.initializers = initializers;
             this.modules = modules;
             this.telemetryProcessorFactories = telemetryProcessorFactories;
             this.telemetryModuleConfigurators = telemetryModuleConfigurators;
+            this.telemetryInitializerFactories = telemetryInitializerFactories;
             this.telemetryChannel = serviceProvider.GetService<ITelemetryChannel>();
             this.applicationIdProvider = serviceProvider.GetService<IApplicationIdProvider>();
         }
@@ -60,7 +62,7 @@ namespace Microsoft.Extensions.DependencyInjection
             if (this.telemetryModuleConfigurators.Any())
             {
                 foreach (ITelemetryModuleConfigurator telemetryModuleConfigurator in this.telemetryModuleConfigurators)
-                {                    
+                {
                     ITelemetryModule telemetryModule = this.modules.FirstOrDefault(((module) => module.GetType() == telemetryModuleConfigurator.TelemetryModuleType));
                     if (telemetryModule != null)
                     {
@@ -76,9 +78,18 @@ namespace Microsoft.Extensions.DependencyInjection
             if (this.telemetryProcessorFactories.Any())
             {
                 foreach (ITelemetryProcessorFactory processorFactory in this.telemetryProcessorFactories)
-                {                    
+                {
                     configuration.DefaultTelemetrySink.TelemetryProcessorChainBuilder.Use(processorFactory.Create);
-                }                
+                }
+            }
+
+            // Add any TelemetryInitializers added using DependencyInjection.
+            if (this.telemetryInitializerFactories.Any())
+            {
+                foreach (ITelemetryInitializerFactory initializerFactory in this.telemetryInitializerFactories)
+                {
+                    configuration.TelemetryInitializers.Add(initializerFactory.Create());
+                }
             }
 
             // Fallback to default channel (InMemoryChannel) created by base sdk if no channel is found in DI
@@ -96,7 +107,7 @@ namespace Microsoft.Extensions.DependencyInjection
             }
 
             configuration.DefaultTelemetrySink.TelemetryProcessorChainBuilder.Build();
-            configuration.TelemetryProcessorChainBuilder.Build();            
+            configuration.TelemetryProcessorChainBuilder.Build();
 
             if (this.applicationInsightsServiceOptions.DeveloperMode != null)
             {
@@ -134,10 +145,10 @@ namespace Microsoft.Extensions.DependencyInjection
         private void AddQuickPulse(TelemetryConfiguration configuration)
         {
             if (this.applicationInsightsServiceOptions.EnableQuickPulseMetricStream)
-            {              
+            {
                 QuickPulseTelemetryModule quickPulseModule = this.modules.FirstOrDefault(((module) => module.GetType() == typeof(QuickPulseTelemetryModule))) as QuickPulseTelemetryModule;
                 if (quickPulseModule != null)
-                {                    
+                {
                     QuickPulseTelemetryProcessor processor = null;
                     configuration.DefaultTelemetrySink.TelemetryProcessorChainBuilder.Use((next) =>
                     {
@@ -149,8 +160,8 @@ namespace Microsoft.Extensions.DependencyInjection
                 else
                 {
                     AspNetCoreEventSource.Instance.UnableToFindQuickPulseModuleInDI();
-                }                
-            }        
+                }
+            }
         }
 
         private void AddSampling(TelemetryConfiguration configuration)
