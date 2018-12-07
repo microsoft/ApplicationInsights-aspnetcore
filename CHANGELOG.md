@@ -1,6 +1,7 @@
 # Changelog
 
 ## Version 2.6.0-beta3
+- [Enhancement: Add TelemetryInitializers using .AddApplicationInsightsTelemetryInitializer() extension methods](https://github.com/Microsoft/ApplicationInsights-aspnetcore/pull/791)
 - [Fix: Do not track requests by each host in the process](https://github.com/Microsoft/ApplicationInsights-aspnetcore/issues/621)
 - [Fix: Correlation doesn't work for localhost](https://github.com/Microsoft/ApplicationInsights-dotnet-server/issues/1120)
 
