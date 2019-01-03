@@ -263,6 +263,7 @@
         /// <param name="services">The <see cref="IServiceCollection"/> instance.</param>
         /// <returns><see cref="IServiceCollection"/> instance.</returns>
         public static IServiceCollection AddApplicationInsightsTelemetryInitializer<T>(this IServiceCollection services)
+            where T : ITelemetryInitializer
         {
             return services.AddApplicationInsightsTelemetryInitializer(typeof(T));
         }

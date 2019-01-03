@@ -59,37 +59,28 @@ namespace Microsoft.Extensions.DependencyInjection
                 configuration.InstrumentationKey = this.applicationInsightsServiceOptions.InstrumentationKey;
             }
 
-            if (this.telemetryModuleConfigurators.Any())
+            foreach (ITelemetryModuleConfigurator telemetryModuleConfigurator in this.telemetryModuleConfigurators)
             {
-                foreach (ITelemetryModuleConfigurator telemetryModuleConfigurator in this.telemetryModuleConfigurators)
+                ITelemetryModule telemetryModule = this.modules.FirstOrDefault(((module) => module.GetType() == telemetryModuleConfigurator.TelemetryModuleType));
+                if (telemetryModule != null)
                 {
-                    ITelemetryModule telemetryModule = this.modules.FirstOrDefault(((module) => module.GetType() == telemetryModuleConfigurator.TelemetryModuleType));
-                    if (telemetryModule != null)
-                    {
-                        telemetryModuleConfigurator.Configure(telemetryModule, this.applicationInsightsServiceOptions);
-                    }
-                    else
-                    {
-                        AspNetCoreEventSource.Instance.UnableToFindModuleToConfigure(telemetryModuleConfigurator.TelemetryModuleType.ToString());
-                    }
+                    telemetryModuleConfigurator.Configure(telemetryModule, this.applicationInsightsServiceOptions);
+                }
+                else
+                {
+                    AspNetCoreEventSource.Instance.UnableToFindModuleToConfigure(telemetryModuleConfigurator.TelemetryModuleType.ToString());
                 }
             }
 
-            if (this.telemetryProcessorFactories.Any())
+            foreach (ITelemetryProcessorFactory processorFactory in this.telemetryProcessorFactories)
             {
-                foreach (ITelemetryProcessorFactory processorFactory in this.telemetryProcessorFactories)
-                {
-                    configuration.DefaultTelemetrySink.TelemetryProcessorChainBuilder.Use(processorFactory.Create);
-                }
+                configuration.DefaultTelemetrySink.TelemetryProcessorChainBuilder.Use(processorFactory.Create);
             }
 
             // Add any TelemetryInitializers added using DependencyInjection.
-            if (this.telemetryInitializerFactories.Any())
+            foreach (ITelemetryInitializerFactory initializerFactory in this.telemetryInitializerFactories)
             {
-                foreach (ITelemetryInitializerFactory initializerFactory in this.telemetryInitializerFactories)
-                {
-                    configuration.TelemetryInitializers.Add(initializerFactory.Create());
-                }
+                configuration.TelemetryInitializers.Add(initializerFactory.Create());
             }
 
             // Fallback to default channel (InMemoryChannel) created by base sdk if no channel is found in DI
