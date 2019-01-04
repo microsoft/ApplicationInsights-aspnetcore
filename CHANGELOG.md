@@ -1,5 +1,8 @@
 # Changelog
 
+## Version 2.6.0
+- [Fix: TypeInitializationException when Microsoft.AspNetCore.Hosting and Microsoft.AspNetCore.Hosting.Abstractions versions do not match](https://github.com/Microsoft/ApplicationInsights-aspnetcore/pull/821)
+
 ## Version 2.6.0-beta3
 - [Enhancement: Add TelemetryInitializers using .AddApplicationInsightsTelemetryInitializer() extension methods](https://github.com/Microsoft/ApplicationInsights-aspnetcore/pull/791)
 - Updated Web/Base SDK version dependency to 2.9.0-beta3
