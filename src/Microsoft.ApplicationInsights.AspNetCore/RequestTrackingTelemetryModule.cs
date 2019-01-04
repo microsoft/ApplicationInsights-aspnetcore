@@ -1,16 +1,17 @@
-using System.Reflection;
-using Microsoft.AspNetCore.Hosting;
-
 namespace Microsoft.ApplicationInsights.AspNetCore
 {
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.Reflection;
     using System.Threading;
+
     using Microsoft.ApplicationInsights.AspNetCore.DiagnosticListeners;
     using Microsoft.ApplicationInsights.AspNetCore.Extensions;
     using Microsoft.ApplicationInsights.Extensibility;
+
+    using Microsoft.AspNetCore.Hosting;
 
     /// <summary>
     /// Telemetry module tracking requests using Diagnostic Listeners.
@@ -62,10 +63,10 @@ namespace Microsoft.ApplicationInsights.AspNetCore
                     {
                         this.telemetryClient = new TelemetryClient(configuration);
 
-                        bool IsAspNetCore2 = true;
+                        bool enableNewDiagnosticEvents = true;
                         try
                         {
-                            IsAspNetCore2 = typeof(IWebHostBuilder).GetTypeInfo().Assembly.GetName().Version.Major >= 2;
+                            enableNewDiagnosticEvents = typeof(IWebHostBuilder).GetTypeInfo().Assembly.GetName().Version.Major >= 2;
                         }
                         catch (Exception)
                         {
@@ -78,7 +79,7 @@ namespace Microsoft.ApplicationInsights.AspNetCore
                             this.CollectionOptions.InjectResponseHeaders,
                             this.CollectionOptions.TrackExceptions,
                             this.CollectionOptions.EnableW3CDistributedTracing,
-                            IsAspNetCore2));
+                            enableNewDiagnosticEvents));
 
                         this.diagnosticListeners.Add
                             (new MvcDiagnosticsListener());
