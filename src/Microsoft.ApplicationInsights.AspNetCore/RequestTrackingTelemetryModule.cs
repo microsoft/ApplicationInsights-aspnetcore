@@ -1,3 +1,6 @@
+using System.Reflection;
+using Microsoft.AspNetCore.Hosting;
+
 namespace Microsoft.ApplicationInsights.AspNetCore
 {
     using System;
@@ -59,12 +62,23 @@ namespace Microsoft.ApplicationInsights.AspNetCore
                     {
                         this.telemetryClient = new TelemetryClient(configuration);
 
+                        bool IsAspNetCore2 = true;
+                        try
+                        {
+                            IsAspNetCore2 = typeof(IWebHostBuilder).GetTypeInfo().Assembly.GetName().Version.Major >= 2;
+                        }
+                        catch (Exception)
+                        {
+                            // ignore any errors
+                        }
+
                         this.diagnosticListeners.Add(new HostingDiagnosticListener(
                             this.telemetryClient,
                             this.applicationIdProvider,
                             this.CollectionOptions.InjectResponseHeaders,
                             this.CollectionOptions.TrackExceptions,
-                            this.CollectionOptions.EnableW3CDistributedTracing));
+                            this.CollectionOptions.EnableW3CDistributedTracing,
+                            IsAspNetCore2));
 
                         this.diagnosticListeners.Add
                             (new MvcDiagnosticsListener());
