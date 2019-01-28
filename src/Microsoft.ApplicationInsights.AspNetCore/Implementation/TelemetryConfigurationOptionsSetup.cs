@@ -9,10 +9,11 @@ namespace Microsoft.Extensions.DependencyInjection
     using Microsoft.ApplicationInsights.Channel;
     using Microsoft.ApplicationInsights.Extensibility;
     using Microsoft.ApplicationInsights.Extensibility.PerfCounterCollector.QuickPulse;
+    using Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel;
     using Microsoft.Extensions.Options;
     using Microsoft.ApplicationInsights.Extensibility.Implementation;
     using Microsoft.ApplicationInsights.Extensibility.Implementation.Tracing;
-    using Microsoft.ApplicationInsights.Extensibility.W3C;
+    using Microsoft.ApplicationInsights.W3C;
 
     /// <summary>
     /// Initializes TelemetryConfiguration based on values in <see cref="ApplicationInsightsServiceOptions"/>
@@ -184,9 +185,11 @@ namespace Microsoft.Extensions.DependencyInjection
             }
         }
 
+#pragma warning disable 612, 618
         private void EnableW3CHeaders(TelemetryConfiguration configuration)
         {
             configuration.TelemetryInitializers.Add(new W3COperationCorrelationTelemetryInitializer());
         }
+#pragma warning restore 612, 618
     }
 }

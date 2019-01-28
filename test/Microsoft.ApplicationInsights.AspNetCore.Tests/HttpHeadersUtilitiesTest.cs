@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using DiagnosticListeners;
+    using Microsoft.ApplicationInsights.W3C;
     using Microsoft.AspNetCore.Http;
     using Microsoft.Extensions.Primitives;
     using Xunit;
@@ -44,11 +45,10 @@
         public void GetRequestContextKeyValueShouldReturnContextKeyValue()
         {
             IHeaderDictionary headerDictionary = new HeaderDictionary(
-                new Dictionary<string, StringValues>()
-                {
-                    {RequestResponseHeaders.RequestContextHeader, new StringValues("app=id")},
-                    {"NoizyName", new StringValues("noizy=noizy-id")}
-                });
+    new Dictionary<string, StringValues>() {
+                                { RequestResponseHeaders.RequestContextHeader, new StringValues("app=id") },
+                                { "NoizyName", new StringValues("noizy=noizy-id") }
+});
 
             string actual = HttpHeadersUtilities.GetRequestContextKeyValue(headerDictionary, "app");
 
@@ -127,11 +127,12 @@
             Assert.False(HttpHeadersUtilities.ContainsRequestContextKeyValue(headers, "Non-exists"));
         }
 
+#pragma warning disable 612, 618
         [Fact]
         public void GetHeaderValueEmpty()
         {
             IHeaderDictionary headers = new HeaderDictionary();
-            var values = HttpHeadersUtilities.SafeGetCommaSeparatedHeaderValues(headers, W3C.W3CConstants.TraceStateHeader, 100500, 100500)?.ToList();
+            var values = HttpHeadersUtilities.SafeGetCommaSeparatedHeaderValues(headers, W3CConstants.TraceStateHeader, 100500, 100500)?.ToList();
             Assert.NotNull(values);
             Assert.Empty(values);
         }
@@ -139,8 +140,8 @@
         [Fact]
         public void GetHeaderValueNoMax1()
         {
-            IHeaderDictionary headers = new HeaderDictionary(new Dictionary<string, StringValues> { [W3C.W3CConstants.TraceStateHeader] = "k1=v1,k2=v2" });
-            var values = HttpHeadersUtilities.SafeGetCommaSeparatedHeaderValues(headers, W3C.W3CConstants.TraceStateHeader, 100500, 100500)?.ToList();
+            IHeaderDictionary headers = new HeaderDictionary(new Dictionary<string, StringValues> { [W3CConstants.TraceStateHeader] = "k1=v1,k2=v2" });
+            var values = HttpHeadersUtilities.SafeGetCommaSeparatedHeaderValues(headers, W3CConstants.TraceStateHeader, 100500, 100500)?.ToList();
             Assert.NotNull(values);
             Assert.Equal(2, values.Count);
             Assert.Equal("k1=v1", values.First());
@@ -150,8 +151,8 @@
         [Fact]
         public void GetHeaderValueNoMax2()
         {
-            IHeaderDictionary headers = new HeaderDictionary(new Dictionary<string, StringValues> { [W3C.W3CConstants.TraceStateHeader] = new []{"k1=v1,k2=v2", "k3=v3,k4=v4" }});
-            var values = HttpHeadersUtilities.SafeGetCommaSeparatedHeaderValues(headers, W3C.W3CConstants.TraceStateHeader, 100500, 100500)?.ToList();
+            IHeaderDictionary headers = new HeaderDictionary(new Dictionary<string, StringValues> { [W3CConstants.TraceStateHeader] = new []{"k1=v1,k2=v2", "k3=v3,k4=v4" }});
+            var values = HttpHeadersUtilities.SafeGetCommaSeparatedHeaderValues(headers, W3CConstants.TraceStateHeader, 100500, 100500)?.ToList();
             Assert.NotNull(values);
             Assert.Equal(4, values.Count);
             Assert.Equal("k1=v1", values[0]);
@@ -167,8 +168,8 @@
         [InlineData(13)] // k1=v1,k2=v2,k".Length
         public void GetHeaderValueMaxLenTruncatesEnd(int maxLength)
         {
-            IHeaderDictionary headers = new HeaderDictionary(new Dictionary<string, StringValues> { [W3C.W3CConstants.TraceStateHeader] = "k1=v1,k2=v2,k3=v3,k4=v4" });
-            var values = HttpHeadersUtilities.SafeGetCommaSeparatedHeaderValues(headers, W3C.W3CConstants.TraceStateHeader, maxLength, 100500)?.ToList();
+            IHeaderDictionary headers = new HeaderDictionary(new Dictionary<string, StringValues> { [W3CConstants.TraceStateHeader] = "k1=v1,k2=v2,k3=v3,k4=v4" });
+            var values = HttpHeadersUtilities.SafeGetCommaSeparatedHeaderValues(headers, W3CConstants.TraceStateHeader, maxLength, 100500)?.ToList();
             Assert.NotNull(values);
             Assert.Equal(2, values.Count);
             Assert.Equal("k1=v1", values.First());
@@ -182,8 +183,8 @@
         [InlineData(13)] // k1=v1,k2=v2,k".Length
         public void GetHeaderValueMaxLenTruncatesEnd2(int maxLength)
         {
-            IHeaderDictionary headers = new HeaderDictionary(new Dictionary<string, StringValues> { [W3C.W3CConstants.TraceStateHeader] = new[] { "k1=v1,k2=v2", "k3=v3,k4=v4" } });
-            var values = HttpHeadersUtilities.SafeGetCommaSeparatedHeaderValues(headers, W3C.W3CConstants.TraceStateHeader, maxLength, 100500)?.ToList();
+            IHeaderDictionary headers = new HeaderDictionary(new Dictionary<string, StringValues> { [W3CConstants.TraceStateHeader] = new[] { "k1=v1,k2=v2", "k3=v3,k4=v4" } });
+            var values = HttpHeadersUtilities.SafeGetCommaSeparatedHeaderValues(headers, W3CConstants.TraceStateHeader, maxLength, 100500)?.ToList();
             Assert.NotNull(values);
             Assert.Equal(2, values.Count);
             Assert.Equal("k1=v1", values.First());
@@ -195,8 +196,8 @@
         [InlineData(3)]
         public void GetHeaderValueMaxLenTruncatesEndInvalid(int maxLength)
         {
-            IHeaderDictionary headers = new HeaderDictionary(new Dictionary<string, StringValues> { [W3C.W3CConstants.TraceStateHeader] = "k1=v1,k2=v2" });
-            var values = HttpHeadersUtilities.SafeGetCommaSeparatedHeaderValues(headers, W3C.W3CConstants.TraceStateHeader, maxLength, 100500)?.ToList();
+            IHeaderDictionary headers = new HeaderDictionary(new Dictionary<string, StringValues> { [W3CConstants.TraceStateHeader] = "k1=v1,k2=v2" });
+            var values = HttpHeadersUtilities.SafeGetCommaSeparatedHeaderValues(headers, W3CConstants.TraceStateHeader, maxLength, 100500)?.ToList();
             Assert.NotNull(values);
             Assert.Empty(values);
         }
@@ -204,8 +205,8 @@
         [Fact]
         public void GetHeaderValueMaxItemsTruncatesEndInvalid()
         {
-            IHeaderDictionary headers = new HeaderDictionary(new Dictionary<string, StringValues> { [W3C.W3CConstants.TraceStateHeader] = "k1=v1,k2=v2" });
-            var values = HttpHeadersUtilities.SafeGetCommaSeparatedHeaderValues(headers, W3C.W3CConstants.TraceStateHeader, 100500, 0)?.ToList();
+            IHeaderDictionary headers = new HeaderDictionary(new Dictionary<string, StringValues> { [W3CConstants.TraceStateHeader] = "k1=v1,k2=v2" });
+            var values = HttpHeadersUtilities.SafeGetCommaSeparatedHeaderValues(headers, W3CConstants.TraceStateHeader, 100500, 0)?.ToList();
             Assert.NotNull(values);
             Assert.Empty(values);
         }
@@ -213,12 +214,14 @@
         [Fact]
         public void GetHeaderValueMaxItemsTruncatesEnd()
         {
-            IHeaderDictionary headers = new HeaderDictionary(new Dictionary<string, StringValues> { [W3C.W3CConstants.TraceStateHeader] = "k1=v1,k2=v2,k3=v3,k4=v4" });
-            var values = HttpHeadersUtilities.SafeGetCommaSeparatedHeaderValues(headers, W3C.W3CConstants.TraceStateHeader, 100500, 2)?.ToList();
+            IHeaderDictionary headers = new HeaderDictionary(new Dictionary<string, StringValues> { [W3CConstants.TraceStateHeader] = "k1=v1,k2=v2,k3=v3,k4=v4" });
+            var values = HttpHeadersUtilities.SafeGetCommaSeparatedHeaderValues(headers, W3CConstants.TraceStateHeader, 100500, 2)?.ToList();
             Assert.NotNull(values);
             Assert.Equal(2, values.Count);
             Assert.Equal("k1=v1", values.First());
             Assert.Equal("k2=v2", values.Last());
         }
+#pragma warning restore 612, 618
+
     }
 }

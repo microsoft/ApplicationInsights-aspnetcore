@@ -7,11 +7,12 @@
     using Microsoft.ApplicationInsights.AspNetCore;
     using Microsoft.ApplicationInsights.DependencyCollector;
     using Microsoft.ApplicationInsights.DataContracts;
-    using Microsoft.ApplicationInsights.Extensibility.W3C;
+    using Microsoft.ApplicationInsights.W3C;
     using Microsoft.Extensions.DependencyInjection;
     using Xunit;
     using Xunit.Abstractions;
 
+#pragma warning disable 612, 618
     public class TelemetryModuleWorkingWebApiTests : TelemetryTestsBase, IDisposable
     {
         private const string assemblyName = "WebApi20.FunctionalTests20";
@@ -100,4 +101,5 @@
             }
         }
     }
+#pragma warning restore 612, 618
 }
