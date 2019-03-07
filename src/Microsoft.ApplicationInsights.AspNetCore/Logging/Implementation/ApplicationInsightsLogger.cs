@@ -69,13 +69,7 @@
                     exceptionTelemetry.Message = formatter(state, exception);
                     exceptionTelemetry.SeverityLevel = this.GetSeverityLevel(logLevel);
                     exceptionTelemetry.Properties["Exception"] = exception.ToString();
-                    foreach (DictionaryEntry exceptionDataItem in exception.Data)
-                    {
-                        if(exceptionDataItem.Key != null && exceptionDataItem.Value != null)
-                        {
-                            exceptionTelemetry.Properties[exceptionData.Key.ToString()] = exceptionData.Value.ToString();
-                        }
-                    }
+                    exception.Data.Cast<DictionaryEntry>().ToList().ForEach((item) => exceptionTelemetry.Properties[item.Key.ToString()] = (item.Value ?? "null").ToString());
                     PopulateTelemetry(exceptionTelemetry, stateDictionary, eventId);
                     this.telemetryClient.TrackException(exceptionTelemetry);
                 }
