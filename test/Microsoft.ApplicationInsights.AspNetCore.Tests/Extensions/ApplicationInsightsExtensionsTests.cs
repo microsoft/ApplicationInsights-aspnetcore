@@ -92,6 +92,17 @@ namespace Microsoft.Extensions.DependencyInjection.Test
             }
 
             [Fact]
+            public static void LoggerMarkerIsAddedByDefault()
+            {
+#if netcoreapp2_0
+                var services = CreateServicesAndAddApplicationinsightsTelemetry(null, null);
+                var sp = services.BuildServiceProvider();
+                var s = sp.GetRequiredService<LoggerMarker>();
+                Assert.NotNull(s);
+#endif
+            }
+
+            [Fact]
             public static void DoesNotThrowWithoutInstrumentationKey()
             {
                 var services = CreateServicesAndAddApplicationinsightsTelemetry(null, null);
@@ -145,10 +156,10 @@ namespace Microsoft.Extensions.DependencyInjection.Test
 
             /// <summary>
             /// We determine if Active telemtery needs to be configured based on the assumptions that 'default' configuration
-            // created by base SDK has single preset ITelemetryIntitializer. If it ever changes, change TelemetryConfigurationOptions.IsActiveConfigured method as well.
+            // created by base SDK has single preset ITelemetryInitializer. If it ever changes, change TelemetryConfigurationOptions.IsActiveConfigured method as well.
             /// </summary>
             [Fact]
-            public static void DefaultTelemetryconfigurationHasOneTelemetryInitializer()
+            public static void DefaultTelemetryConfigurationHasOneTelemetryInitializer()
             {
                 //
                 var defaultConfig = TelemetryConfiguration.CreateDefault();
