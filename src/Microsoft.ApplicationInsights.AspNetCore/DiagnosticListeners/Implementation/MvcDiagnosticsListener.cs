@@ -1,10 +1,9 @@
-using Microsoft.ApplicationInsights.AspNetCore.DiagnosticListeners.Implementation;
-
 namespace Microsoft.ApplicationInsights.AspNetCore.DiagnosticListeners
 {
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using Microsoft.ApplicationInsights.AspNetCore.DiagnosticListeners.Implementation;
     using Microsoft.ApplicationInsights.DataContracts;
     using Microsoft.AspNetCore.Http;
 
