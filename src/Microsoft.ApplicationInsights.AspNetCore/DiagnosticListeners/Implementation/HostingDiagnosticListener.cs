@@ -343,7 +343,7 @@
                 }
             }
 
-            this.client.Initialize(requestTelemetry);
+            this.client.InitializeInstrumentationKey(requestTelemetry);
 
             requestTelemetry.Source = GetAppIdFromRequestHeader(httpContext.Request.Headers, requestTelemetry.Context.InstrumentationKey);
 
@@ -363,7 +363,7 @@
             {
                 headerCorrelationId = StringUtilities.EnforceMaxLength(headerCorrelationId, InjectionGuardConstants.AppIdMaxLength);
                 if (string.IsNullOrEmpty(instrumentationKey))
-                {
+                {In
                     return headerCorrelationId;
                 }
 
