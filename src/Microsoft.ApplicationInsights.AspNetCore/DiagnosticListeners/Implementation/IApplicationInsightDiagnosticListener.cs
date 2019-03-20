@@ -1,8 +1,7 @@
-﻿using System.Collections.Generic;
-
-namespace Microsoft.ApplicationInsights.AspNetCore.DiagnosticListeners
+﻿namespace Microsoft.ApplicationInsights.AspNetCore.DiagnosticListeners
 {
     using System;
+    using System.Collections.Generic;
 
     /// <summary>
     /// Base diagnostic listener type for Application Insight
