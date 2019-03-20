@@ -22,8 +22,10 @@
     using Microsoft.AspNetCore.Http;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Configuration.Memory;
+    using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.DependencyInjection.Extensions;
     using Microsoft.Extensions.Options;
+    using Microsoft.Extensions.Logging;
 
     /// <summary>
     /// Extension methods for <see cref="IServiceCollection"/> that allow adding Application Insights services to application.
@@ -190,8 +192,6 @@
 
                 services.AddSingleton<TelemetryClient>();
 
-                services.AddSingleton<ApplicationInsightsDebugLogger, ApplicationInsightsDebugLogger>();
-
                 services
                     .TryAddSingleton<IConfigureOptions<ApplicationInsightsServiceOptions>,
                         DefaultApplicationInsightsServiceConfigureOptions>();
@@ -201,12 +201,28 @@
                 // that requires IOptions infrastructure to run and initialize
                 services.AddSingleton<IStartupFilter, ApplicationInsightsStartupFilter>();
 
-                services.AddSingleton<JavaScriptSnippet>();
-                services.AddSingleton<ApplicationInsightsLoggerEvents>();
+                services.AddSingleton<JavaScriptSnippet>();                
 
                 services.AddOptions();
                 services.AddSingleton<IOptions<TelemetryConfiguration>, TelemetryConfigurationOptions>();
                 services.AddSingleton<IConfigureOptions<TelemetryConfiguration>, TelemetryConfigurationOptionsSetup>();
+
+                // NetStandard2.0 has a package reference to Microsoft.Extensions.Logging.ApplicationInsights, and
+                // enables ApplicationInsightsLoggerProvider by default.
+                // This also adds LoggerMarker to the DI Container, which is used by LoggerFactory.AddApplicationInsights() method
+                // to detect ApplicationInsightsLoggerProvider as already added and back-off.
+                // Without this, there will be double logging if LoggerFactory.AddApplicationInsights() was already used.
+#if NETSTANDARD2_0
+                services.AddLogging(loggingBuilder =>
+                {
+                     loggingBuilder.AddApplicationInsights();
+
+                     // By default, all logs Warning or above is captured.
+                     // AddFilter is additive
+                     loggingBuilder.AddFilter<Microsoft.Extensions.Logging.ApplicationInsights.ApplicationInsightsLoggerProvider>("", LogLevel.Warning);
+                });                
+                services.TryAddSingleton<LoggerMarker>();
+#endif
             }
 
             return services;
@@ -406,8 +422,15 @@
 
         private static bool IsApplicationInsightsAdded(IServiceCollection services)
         {
-            // We treat ApplicationInsightsDebugLogger as a marker that AI services were added to service collection
-            return services.Any(service => service.ServiceType == typeof(ApplicationInsightsDebugLogger));
+            // We treat TelemetryClient as a marker that AI services were added to service collection
+            return services.Any(service => service.ServiceType == typeof(TelemetryClient));
         }
+    }
+
+    internal class LoggerMarker
+    {
+        // Serves no purpose other than acting as a Marker to indicate that ApplicationInsightsLoggerProvider was added.
+        // The presence of this marker is used by ILoggerFactory.AddApplicationInsights() method to detect
+        // ApplicationInsightsLoggerProvider as already added and back-off.
     }
 }
