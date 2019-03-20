@@ -1,4 +1,6 @@
-﻿namespace Microsoft.ApplicationInsights.AspNetCore.Extensions
+﻿using Microsoft.AspNetCore.Http.Extensions;
+
+namespace Microsoft.ApplicationInsights.AspNetCore.Extensions
 {
     using System;
     using System.Text;
