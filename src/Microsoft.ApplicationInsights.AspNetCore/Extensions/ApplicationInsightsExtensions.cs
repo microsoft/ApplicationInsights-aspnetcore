@@ -219,7 +219,7 @@
 
                      // By default, all logs Warning or above is captured.
                      // AddFilter is additive
-                     loggingBuilder.AddFilter<Microsoft.Extensions.Logging.ApplicationInsights.ApplicationInsightsLoggerProvider>("", LogLevel.Warning);
+                     loggingBuilder.AddFilter<Microsoft.Extensions.Logging.ApplicationInsights.ApplicationInsightsLoggerProvider>("Default", LogLevel.Warning);
                 });                
                 services.TryAddSingleton<LoggerMarker>();
 #endif
