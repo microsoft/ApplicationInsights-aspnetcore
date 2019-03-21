@@ -366,7 +366,7 @@
             {
                 headerCorrelationId = StringUtilities.EnforceMaxLength(headerCorrelationId, InjectionGuardConstants.AppIdMaxLength);
                 if (string.IsNullOrEmpty(instrumentationKey))
-                {In
+                {
                     return headerCorrelationId;
                 }
 
