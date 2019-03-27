@@ -92,17 +92,6 @@ namespace Microsoft.Extensions.DependencyInjection.Test
             }
 
             [Fact]
-            public static void LoggerMarkerIsAddedByDefault()
-            {
-#if netcoreapp2_0
-                var services = CreateServicesAndAddApplicationinsightsTelemetry(null, null);
-                var sp = services.BuildServiceProvider();
-                var s = sp.GetRequiredService<LoggerMarker>();
-                Assert.NotNull(s);
-#endif
-            }
-
-            [Fact]
             public static void DoesNotThrowWithoutInstrumentationKey()
             {
                 var services = CreateServicesAndAddApplicationinsightsTelemetry(null, null);

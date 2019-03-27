@@ -66,31 +66,28 @@
             IServiceProvider serviceProvider,
             Func<string, LogLevel, bool> filter,
             Action loggerAddedCallback)
-        {
-            var loggerMarker = serviceProvider.GetService<LoggerMarker>();
-            if (loggerMarker == null)
+        {            
+            
+            var client = serviceProvider.GetService<TelemetryClient>();
+            var debugLoggerControl = serviceProvider.GetService<Microsoft.ApplicationInsights.AspNetCore.Logging.ApplicationInsightsLoggerEvents>();
+            var options = serviceProvider.GetService<IOptions<Microsoft.ApplicationInsights.AspNetCore.Logging.ApplicationInsightsLoggerOptions>>();
+
+            if (options == null)
             {
-                var client = serviceProvider.GetService<TelemetryClient>();
-                var debugLoggerControl = serviceProvider.GetService<Microsoft.ApplicationInsights.AspNetCore.Logging.ApplicationInsightsLoggerEvents>();
-                var options = serviceProvider.GetService<IOptions<Microsoft.ApplicationInsights.AspNetCore.Logging.ApplicationInsightsLoggerOptions>>();
-
-                if (options == null)
-                {
-                    options = Options.Create(new Microsoft.ApplicationInsights.AspNetCore.Logging.ApplicationInsightsLoggerOptions());
-                }
-
-                if (debugLoggerControl != null)
-                {
-                    debugLoggerControl.OnLoggerAdded();
-
-                    if (loggerAddedCallback != null)
-                    {
-                        debugLoggerControl.LoggerAdded += loggerAddedCallback;
-                    }
-                }
-                factory.AddProvider(new Microsoft.ApplicationInsights.AspNetCore.Logging.ApplicationInsightsLoggerProvider(client, filter, options));
+                options = Options.Create(new Microsoft.ApplicationInsights.AspNetCore.Logging.ApplicationInsightsLoggerOptions());
             }
-             
+
+            if (debugLoggerControl != null)
+            {
+                debugLoggerControl.OnLoggerAdded();
+
+                if (loggerAddedCallback != null)
+                {
+                    debugLoggerControl.LoggerAdded += loggerAddedCallback;
+                }
+            }
+            factory.AddProvider(new Microsoft.ApplicationInsights.AspNetCore.Logging.ApplicationInsightsLoggerProvider(client, filter, options));
+                         
             return factory;
         }
     }

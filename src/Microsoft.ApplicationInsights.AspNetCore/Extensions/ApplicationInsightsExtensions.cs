@@ -208,20 +208,30 @@
                 services.AddSingleton<IConfigureOptions<TelemetryConfiguration>, TelemetryConfigurationOptionsSetup>();
 
                 // NetStandard2.0 has a package reference to Microsoft.Extensions.Logging.ApplicationInsights, and
-                // enables ApplicationInsightsLoggerProvider by default.
-                // This also adds LoggerMarker to the DI Container, which is used by LoggerFactory.AddApplicationInsights() method
-                // to detect ApplicationInsightsLoggerProvider as already added and back-off.
-                // Without this, there will be double logging if LoggerFactory.AddApplicationInsights() was already used.
+                // enables ApplicationInsightsLoggerProvider by default.                
 #if NETSTANDARD2_0
                 services.AddLogging(loggingBuilder =>
                 {
                      loggingBuilder.AddApplicationInsights();
 
-                     // By default, all logs Warning or above is captured.
-                     // AddFilter is additive
-                     loggingBuilder.AddFilter<Microsoft.Extensions.Logging.ApplicationInsights.ApplicationInsightsLoggerProvider>("Default", LogLevel.Warning);
-                });                
-                services.TryAddSingleton<LoggerMarker>();
+                    // The default behavior is to capture only logs above Warning level from all categories.
+                    // This can achieved with this code level filter -> loggingBuilder.AddFilter<Microsoft.Extensions.Logging.ApplicationInsights.ApplicationInsightsLoggerProvider>("",LogLevel.Warning);
+                    // However, this will make it impossible to override this behavior from Configuration like below using appsettings.json:
+                    //"ApplicationInsights": {
+                    // "LogLevel": {
+                    // "": "Error"
+                    // }
+                    // },
+                    // The reason is as both rules will match the filter, the last one added wins.
+                    // To ensure that the default filter is in the beginning of filter rules, so that user override from Configuration will always win, 
+                    // we add code filter rule to the 0th position as below.
+
+                    loggingBuilder.Services.Configure<LoggerFilterOptions>
+                    (options => options.Rules.Insert(0,
+                        new LoggerFilterRule(
+                            "Microsoft.Extensions.Logging.ApplicationInsights.ApplicationInsightsLoggerProvider", "",
+                            LogLevel.Warning, null)));
+                });                                
 #endif
             }
 
@@ -425,12 +435,5 @@
             // We treat TelemetryClient as a marker that AI services were added to service collection
             return services.Any(service => service.ServiceType == typeof(TelemetryClient));
         }
-    }
-
-    internal class LoggerMarker
-    {
-        // Serves no purpose other than acting as a Marker to indicate that ApplicationInsightsLoggerProvider was added.
-        // The presence of this marker is used by ILoggerFactory.AddApplicationInsights() method to detect
-        // ApplicationInsightsLoggerProvider as already added and back-off.
-    }
+    }   
 }
