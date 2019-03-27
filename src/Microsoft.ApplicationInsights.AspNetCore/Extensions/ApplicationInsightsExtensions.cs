@@ -435,5 +435,5 @@
             // We treat TelemetryClient as a marker that AI services were added to service collection
             return services.Any(service => service.ServiceType == typeof(TelemetryClient));
         }
-    }   
+    }
 }
