@@ -92,15 +92,13 @@
 
   <ItemGroup Condition=" '$(TargetFramework)' != 'netstandard2.0' ">
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="1.0.2" />
-    <PackageReference Include="Microsoft.Extensions.DiagnosticAdapter" Version="1.1.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="1.0.2" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="1.0.2" />
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
   <PackageReference Include="Microsoft.Extensions.Configuration" Version="2.1.0" />
-  <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.1.0" />
-  <PackageReference Include="Microsoft.Extensions.DiagnosticAdapter" Version="2.1.0" />
+  <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.1.0" />  
   <PackageReference Include="Microsoft.Extensions.Logging.ApplicationInsights" Version="2.9.1" />
   <PackageReference Include="System.Text.Encodings.Web" Version="4.3.1" />
   </ItemGroup>
