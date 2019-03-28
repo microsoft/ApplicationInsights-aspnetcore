@@ -54,7 +54,7 @@
         }
 
         [Fact]
-        public void TestIloggerDefaultsCanBeOverridenByUser1()
+        public void TestIloggerDefaultsCanBeOverridenByUserForAllCategories()
         {
 
 #if NETCOREAPP2_0
@@ -83,7 +83,7 @@
         }
 
         [Fact]
-        public void TestIloggerDefaultsCanBeOverridenByUser2()
+        public void TestIloggerDefaultsCanBeOverridenByUserForSpecificCategory()
         {
 
 #if NETCOREAPP2_0

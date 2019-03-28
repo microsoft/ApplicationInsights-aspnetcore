@@ -29,25 +29,6 @@
         }
 
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public TelemetryItem<MessageData> ValidateLoggerTelemetry(InProcessServer server, string requestPath, TraceTelemetry expected)
-        {            
-            var response = this.ExecuteRequest(server.BaseHost + requestPath);
-
-            var actual = server.Listener.ReceiveItemsOfType<TelemetryItem<MessageData>>(2, TestListenerTimeoutInMs);
-
-            this.DebugTelemetryItems(actual);            
-
-            var item = actual.OfType<TelemetryItem<MessageData>>().FirstOrDefault();
-            Assert.NotNull(item);
-            var data = ((TelemetryItem<MessageData>)item).data.baseData;
-
-            Assert.Equal(expected.Message, data.message);
-            // Assert.Equal(expected.SeverityLevel.ToString(), data.severityLevel);
-                        
-            return item;
-        }
-
-        [MethodImpl(MethodImplOptions.NoOptimization)]
         public TelemetryItem<RequestData> ValidateBasicRequest(InProcessServer server, string requestPath, RequestTelemetry expected, bool expectRequestContextInResponse = true)
         {
             return ValidateRequestWithHeaders(server, requestPath, null, expected, expectRequestContextInResponse);
