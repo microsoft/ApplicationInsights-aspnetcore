@@ -229,7 +229,7 @@
                     loggingBuilder.Services.Configure<LoggerFilterOptions>
                     (options => options.Rules.Insert(0,
                         new LoggerFilterRule(
-                            "Microsoft.Extensions.Logging.ApplicationInsights.ApplicationInsightsLoggerProvider", "",
+                            "Microsoft.Extensions.Logging.ApplicationInsights.ApplicationInsightsLoggerProvider", null,
                             LogLevel.Warning, null)));
                 });                                
 #endif
