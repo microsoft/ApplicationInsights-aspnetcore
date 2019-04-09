@@ -5,6 +5,7 @@ namespace Microsoft.ApplicationInsights.AspNetCore.DiagnosticListeners
     using System.Linq;
     using System.Text.RegularExpressions;
     using Microsoft.ApplicationInsights.Common;
+    using Microsoft.Extensions.Primitives;
 
     /// <summary>
     /// Generic functions that can be used to get and set Http headers.
@@ -20,7 +21,7 @@ namespace Microsoft.ApplicationInsights.AspNetCore.DiagnosticListeners
         public static string GetHeaderKeyValue(IEnumerable<string> headerValues, string keyName)
         {
             if (headerValues != null)
-            {
+            {                
                 foreach (string keyNameValue in headerValues)
                 {
                     string[] keyNameValueParts = keyNameValue.Trim().Split('=');
@@ -54,6 +55,27 @@ namespace Microsoft.ApplicationInsights.AspNetCore.DiagnosticListeners
                 : headerValues
                     .Where(headerValue => !HeaderMatchesKey(headerValue, keyName))
                     .Concat(newHeaderKeyValue);
+        }
+
+        internal static StringValues SetHeaderKeyValue(string[] currentHeaders, string key, string value)
+        {
+            if (currentHeaders != null)
+            {
+                for (int index = 0; index < currentHeaders.Length; index++)
+                {
+                    if (HeaderMatchesKey(currentHeaders[index], key))
+                    {
+                        currentHeaders[index] = string.Concat(key, "=", value);
+                        return currentHeaders;
+                    }
+                }
+
+                return StringValues.Concat(currentHeaders, string.Concat(key, "=", value));                
+            }
+            else
+            {
+                return string.Concat(key, "=", value);
+            }
         }
 
         /// <summary>

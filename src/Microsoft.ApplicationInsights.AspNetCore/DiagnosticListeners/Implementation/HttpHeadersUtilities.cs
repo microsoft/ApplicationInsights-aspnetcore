@@ -94,7 +94,7 @@ namespace Microsoft.ApplicationInsights.AspNetCore.DiagnosticListeners
                 throw new ArgumentNullException(nameof(headers));
             }
 
-            headers[headerName] = new StringValues(HeadersUtilities.SetHeaderKeyValue(headers[headerName].AsEnumerable(), keyName, keyValue).ToArray());
+            headers[headerName] = HeadersUtilities.SetHeaderKeyValue(headers[headerName], keyName, keyValue);
         }
 
         internal static string[] SafeGetCommaSeparatedHeaderValues(IHeaderDictionary headers, string headerName, int maxLength, int maxItems)
