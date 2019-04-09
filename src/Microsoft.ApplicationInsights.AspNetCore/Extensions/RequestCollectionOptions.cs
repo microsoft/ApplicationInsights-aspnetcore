@@ -11,7 +11,7 @@
         public RequestCollectionOptions()
         {
             this.InjectResponseHeaders = true;
-            this.TrackExceptions = true;
+            this.TrackExceptions = false;
             this.EnableW3CDistributedTracing = false;
         }
 
