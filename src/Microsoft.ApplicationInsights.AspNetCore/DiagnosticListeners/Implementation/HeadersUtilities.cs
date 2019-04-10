@@ -39,7 +39,7 @@ namespace Microsoft.ApplicationInsights.AspNetCore.DiagnosticListeners
         /// <summary>
         /// Given the provided list of header value strings, return a comma-separated list of key
         /// name/value pairs with the provided keyName and keyValue. If the initial header value
-        /// strings contains the key name, then the original key value should be replaced with the
+        /// string contains the key name, then the original key value should be replaced with the
         /// provided key value. If the initial header value strings don't contain the key name,
         /// then the key name/value pair should be added to the comma-separated list and returned.
         /// </summary>
@@ -47,16 +47,6 @@ namespace Microsoft.ApplicationInsights.AspNetCore.DiagnosticListeners
         /// <param name="keyName">The name of the key to add.</param>
         /// <param name="keyValue">The value of the key to add.</param>
         /// <returns>The result of setting the provided key name/value pair into the provided headerValues.</returns>
-        public static IEnumerable<string> SetHeaderKeyValue(IEnumerable<string> headerValues, string keyName, string keyValue)
-        {
-            string[] newHeaderKeyValue = new[] { string.Format(CultureInfo.InvariantCulture, "{0}={1}", keyName.Trim(), keyValue.Trim()) };
-            return headerValues == null || !headerValues.Any()
-                ? newHeaderKeyValue
-                : headerValues
-                    .Where(headerValue => !HeaderMatchesKey(headerValue, keyName))
-                    .Concat(newHeaderKeyValue);
-        }
-
         internal static StringValues SetHeaderKeyValue(string[] currentHeaders, string key, string value)
         {
             if (currentHeaders != null)
