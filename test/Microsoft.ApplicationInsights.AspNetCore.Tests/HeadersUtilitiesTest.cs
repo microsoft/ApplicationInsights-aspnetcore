@@ -45,7 +45,7 @@
             Assert.NotNull(result);
             Assert.Equal(2, result.Length);
             Assert.Equal("ExistKey=ExistValue", result[0]);
-            Assert.Equal("NewKey=NewValue", result[0]);
+            Assert.Equal("NewKey=NewValue", result[1]);
         }
 
         [Fact]
@@ -57,7 +57,7 @@
             Assert.NotNull(result);
             Assert.Equal(2, result.Length);
             Assert.Equal("ExistKey=NewValue", result[0]);
-            Assert.Equal("NoiseKey=NoiseValue", result[0]);
+            Assert.Equal("NoiseKey=NoiseValue", result[1]);
         }
     }
 }
