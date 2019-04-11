@@ -47,7 +47,7 @@ namespace Microsoft.ApplicationInsights.AspNetCore.DiagnosticListeners
         /// <param name="keyName">The name of the key to add.</param>
         /// <param name="keyValue">The value of the key to add.</param>
         /// <returns>The result of setting the provided key name/value pair into the provided headerValues.</returns>
-        internal static StringValues SetHeaderKeyValue(string[] currentHeaders, string key, string value)
+        public static StringValues SetHeaderKeyValue(string[] currentHeaders, string key, string value)
         {
             if (currentHeaders != null)
             {
