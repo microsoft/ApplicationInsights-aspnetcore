@@ -23,7 +23,6 @@
                     // via <see cref="TelemetryConfigurationOptionsSetup"/> class which triggers
                     // initialization of TelemetryModules and construction of TelemetryProcessor pipeline.
                     var tc = app.ApplicationServices.GetService<TelemetryConfiguration>();
-                    var applicationInsightsDebugLogger = app.ApplicationServices.GetService<ApplicationInsightsDebugLogger>();
                     next(app);
                 }
                 catch (Exception ex)

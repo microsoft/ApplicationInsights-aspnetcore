@@ -153,6 +153,16 @@ namespace Microsoft.ApplicationInsights.AspNetCore.Extensibility.Implementation.
             this.WriteEvent(16, listener, callback, errorMessage, this.ApplicationName);
         }
 
+        [Event(
+            17,
+            Keywords = Keywords.Diagnostics,
+            Message = "An error has occured while setting up TelemetryConfiguration. Error message: '{1}' ",
+            Level = EventLevel.Error)]
+        public void TelemetryConfigurationSetupFailure(string errorMessage, string appDomainName = "Incorrect")
+        {
+            this.WriteEvent(17, errorMessage, this.ApplicationName);
+        }
+
         /// <summary>
         /// Keywords for the AspNetEventSource.
         /// </summary>
