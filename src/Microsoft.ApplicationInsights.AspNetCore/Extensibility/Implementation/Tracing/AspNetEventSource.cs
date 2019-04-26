@@ -156,7 +156,7 @@ namespace Microsoft.ApplicationInsights.AspNetCore.Extensibility.Implementation.
         [Event(
             17,
             Keywords = Keywords.Diagnostics,
-            Message = "An error has occured while setting up TelemetryConfiguration. Error message: '{1}' ",
+            Message = "An error has occured while setting up TelemetryConfiguration. Error message: '{0}' ",
             Level = EventLevel.Error)]
         public void TelemetryConfigurationSetupFailure(string errorMessage, string appDomainName = "Incorrect")
         {
