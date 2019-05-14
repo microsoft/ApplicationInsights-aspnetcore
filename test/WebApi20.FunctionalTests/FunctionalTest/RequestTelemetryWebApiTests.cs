@@ -102,12 +102,12 @@
         {
             IWebHostBuilder Config(IWebHostBuilder builder)
             {
-                // disable Dependency tracking (i.e. header injection)
                 return builder.ConfigureServices(services =>
                 {
                     services.AddApplicationInsightsTelemetry();
-                    services.Remove(services.Single(sd =>
-                        sd.ImplementationType == typeof(DependencyTrackingTelemetryModule)));
+
+                    // disable Dependency tracking (i.e. header injection)
+                    services.Remove(services.FirstOrDefault(sd => sd.ImplementationType == typeof(DependencyTrackingTelemetryModule)));
                 });
             }
 
@@ -201,9 +201,6 @@
                 return builder.ConfigureServices(services =>
                 {
                     services.AddApplicationInsightsTelemetry(o => o.RequestCollectionOptions.EnableW3CDistributedTracing = true);
-                    var depCollectorSd = services.Single(sd =>
-                        sd.ImplementationType == typeof(DependencyTrackingTelemetryModule));
-                    services.Remove(depCollectorSd);
                 });
             }))
             {
@@ -279,6 +276,12 @@
                     return builder.ConfigureServices(services =>
                     {
                         services.AddApplicationInsightsTelemetry(o => o.RequestCollectionOptions.EnableW3CDistributedTracing = true);
+                        services.ConfigureTelemetryModule<DependencyTrackingTelemetryModule>((m, o) =>
+                        {
+                            // no correlation headers so we can test request
+                            // call without auto-injected w3c headers
+                            m.ExcludeComponentCorrelationHttpHeadersOnDomains.Add("localhost");
+                        });
                     });
                 }))
             {

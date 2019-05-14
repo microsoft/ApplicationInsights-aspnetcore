@@ -1,12 +1,55 @@
 # Changelog
 
+## Version 2.7.0-beta4
+- [RequestTrackingTelemetryModule is modified to stop tracking exceptions by default, as exceptions are captured by ApplicationInsightsLoggerProvider.](https://github.com/Microsoft/ApplicationInsights-aspnetcore/issues/861)
+- Updated Web/Base SDK version dependency to 2.10.0-beta4
+- Updated Microsoft.Extensions.Logging.ApplicationInsights to 2.10.0-beta4
+- Reliability improvements with additional exception handling.
+
+## Version 2.7.0-beta3
+- [Enables Microsoft.Extensions.Logging.ApplicationInsights.ApplicationInsightsLoggerProvider by default. If ApplicationInsightsLoggerProvider was enabled previously using ILoggerFactory extension method, please remove it to prevent duplicate logs.](https://github.com/Microsoft/ApplicationInsights-aspnetcore/issues/854)
+- [Remove reference to Microsoft.Extensions.DiagnosticAdapter and use DiagnosticSource subscription APIs directly](https://github.com/Microsoft/ApplicationInsights-aspnetcore/pull/852) 
+- [Fix: NullReferenceException in ApplicationInsightsLogger.Log when exception contains a Data entry with a null value](https://github.com/Microsoft/ApplicationInsights-aspnetcore/issues/848)
+- [Performance fixes for GetUri, SetKeyHeaderValue, ConcurrentDictionary use and Telemetry Initializers](https://github.com/Microsoft/ApplicationInsights-aspnetcore/pull/864)
+
+## Version 2.7.0-beta2
+- Added NetStandard2.0 target.
+- Updated Web/Base SDK version dependency to 2.10.0-beta2
+
+## Version 2.6.1
+- Updated Web/Base SDK version dependency to 2.9.1
+
+## Version 2.6.0
+- Updated Web/Base SDK version dependency to 2.9.0
+- [Fix: TypeInitializationException when Microsoft.AspNetCore.Hosting and Microsoft.AspNetCore.Hosting.Abstractions versions do not match](https://github.com/Microsoft/ApplicationInsights-aspnetcore/pull/821)
+
+## Version 2.6.0-beta3
+- Updated Web/Base SDK version dependency to 2.9.0-beta3
+- [Deprecate ApplicationInsightsLoggerFactoryExtensions.AddApplicationInsights logging extensions in favor of Microsoft.Extensions.Logging.ApplicationInsights package](https://github.com/Microsoft/ApplicationInsights-aspnetcore/issues/817)
+- [Fix: Do not track requests by each host in the process](https://github.com/Microsoft/ApplicationInsights-aspnetcore/issues/621)
+- [Fix: Correlation doesn't work for localhost](https://github.com/Microsoft/ApplicationInsights-dotnet-server/issues/1120)
+
+## Version 2.6.0-beta2
+- Updated Web/Base SDK version dependency to 2.9.0-beta2
+
+## Version 2.6.0-beta1
+- Updated Web/Base SDK version dependency to 2.9.0-beta1
+
+## Version 2.5.1
+- Update Web/Base SDK version dependency to 2.8.1
+
+## Version 2.5.0
+- Traces logged via ILogger is marked with SDK version prefix ilc (.net core) or ilf (.net framework).
+- Update Web/Base SDK version dependency to 2.8.0
+
 ## Version 2.5.0-beta2
 - ComVisible attribute is set to false for the project for compliance reasons.
+- [Log exception.Data properties as additional telemetry data](https://github.com/Microsoft/ApplicationInsights-aspnetcore/issues/754)
+- Update Web/Base SDK version dependency to 2.8.0-beta2
 Applicable if using additional Sinks to forward telemetry to:
   - [Default TelemetryProcessors are added to the DefaultSink instead of common TelemetryProcessor pipeline.](https://github.com/Microsoft/ApplicationInsights-aspnetcore/issues/752)
   - [TelemetryProcessors added via AddTelemetryProcesor extension method are added to the DefaultSink instead of common TelemetryProcessor pipeline.](https://github.com/Microsoft/ApplicationInsights-aspnetcore/issues/752)
-  - [Log exception.Data properties as additional telemetry data](https://github.com/Microsoft/ApplicationInsights-aspnetcore/issues/754)
-  - Update Web/Base SDK version dependency to 2.8.0-beta2
+  
 
 ## Version 2.5.0-beta1
 - [Adds opt-in support for W3C distributed tracing standard](https://github.com/Microsoft/ApplicationInsights-aspnetcore/pull/735)

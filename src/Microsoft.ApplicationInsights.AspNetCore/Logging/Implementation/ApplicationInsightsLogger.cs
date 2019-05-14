@@ -16,11 +16,17 @@
     /// </summary>
     internal class ApplicationInsightsLogger : ILogger
     {
+#if NET451 || NET46
+        public const string VersionPrefix = "ilf:";
+#else
+        public const string VersionPrefix = "ilc:";
+#endif
+
         private readonly string categoryName;
         private readonly TelemetryClient telemetryClient;
         private readonly Func<string, LogLevel, bool> filter;
         private readonly ApplicationInsightsLoggerOptions options;
-        private readonly string sdkVersion = SdkVersionUtils.GetVersion();
+        private readonly string sdkVersion = SdkVersionUtils.GetVersion(VersionPrefix);
 
         /// <summary>
         /// Creates a new instance of <see cref="ApplicationInsightsLogger"/>
@@ -63,7 +69,7 @@
                     exceptionTelemetry.Message = formatter(state, exception);
                     exceptionTelemetry.SeverityLevel = this.GetSeverityLevel(logLevel);
                     exceptionTelemetry.Properties["Exception"] = exception.ToString();
-                    exception.Data.Cast<DictionaryEntry>().ToList().ForEach((item) => exceptionTelemetry.Properties[item.Key.ToString()] = item.Value.ToString());
+                    exception.Data.Cast<DictionaryEntry>().ToList().ForEach((item) => exceptionTelemetry.Properties[item.Key.ToString()] = (item.Value ?? "null").ToString());
                     PopulateTelemetry(exceptionTelemetry, stateDictionary, eventId);
                     this.telemetryClient.TrackException(exceptionTelemetry);
                 }

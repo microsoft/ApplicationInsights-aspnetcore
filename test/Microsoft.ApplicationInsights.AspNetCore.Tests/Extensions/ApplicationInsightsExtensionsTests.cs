@@ -25,7 +25,7 @@ namespace Microsoft.Extensions.DependencyInjection.Test
     using Microsoft.ApplicationInsights.Extensibility.Implementation.Tracing;
     using Microsoft.ApplicationInsights.Extensibility.PerfCounterCollector;
     using Microsoft.ApplicationInsights.Extensibility.PerfCounterCollector.QuickPulse;
-    using Microsoft.ApplicationInsights.W3C;
+    using Microsoft.ApplicationInsights.Extensibility.W3C;
     using Microsoft.ApplicationInsights.WindowsServer;
     using Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel;
     using Microsoft.AspNetCore.Hosting;
@@ -145,10 +145,10 @@ namespace Microsoft.Extensions.DependencyInjection.Test
 
             /// <summary>
             /// We determine if Active telemtery needs to be configured based on the assumptions that 'default' configuration
-            // created by base SDK has single preset ITelemetryIntitializer. If it ever changes, change TelemetryConfigurationOptions.IsActiveConfigured method as well.
+            // created by base SDK has single preset ITelemetryInitializer. If it ever changes, change TelemetryConfigurationOptions.IsActiveConfigured method as well.
             /// </summary>
             [Fact]
-            public static void DefaultTelemetryconfigurationHasOneTelemetryInitializer()
+            public static void DefaultTelemetryConfigurationHasOneTelemetryInitializer()
             {
                 //
                 var defaultConfig = TelemetryConfiguration.CreateDefault();
@@ -509,6 +509,7 @@ namespace Microsoft.Extensions.DependencyInjection.Test
                 var quickPulseModuleDescriptor = services.FirstOrDefault<ServiceDescriptor>(t => t.ImplementationType == typeof(QuickPulseTelemetryModule));
                 Assert.NotNull(quickPulseModuleDescriptor);
             }
+
             [Fact]
             public static void RegistersTelemetryConfigurationFactoryMethodThatPopulatesDependencyCollectorWithDefaultValues()
             {
@@ -525,8 +526,35 @@ namespace Microsoft.Extensions.DependencyInjection.Test
                 var dependencyModule = modules.OfType<DependencyTrackingTelemetryModule>().Single();
 
                 //VALIDATE
-                Assert.True(dependencyModule.ExcludeComponentCorrelationHttpHeadersOnDomains.Count > 0);
+                Assert.Equal(4, dependencyModule.ExcludeComponentCorrelationHttpHeadersOnDomains.Count);
+                Assert.False(dependencyModule.ExcludeComponentCorrelationHttpHeadersOnDomains.Contains("localhost"));
+                Assert.False(dependencyModule.ExcludeComponentCorrelationHttpHeadersOnDomains.Contains("127.0.0.1"));
+            }
 
+            [Fact]
+            public static void RegistersTelemetryConfigurationFactoryMethodThatPopulatesDependencyCollectorWithCustomValues()
+            {
+                //ARRANGE
+                var services = CreateServicesAndAddApplicationinsightsTelemetry(
+                    null,
+                    null,
+                    o => { o.DependencyCollectionOptions.EnableLegacyCorrelationHeadersInjection = true; },
+                    false);
+
+                IServiceProvider serviceProvider = services.BuildServiceProvider();
+                var modules = serviceProvider.GetServices<ITelemetryModule>();
+
+                // Requesting TelemetryConfiguration from services trigger constructing the TelemetryConfiguration
+                // which in turn trigger configuration of all modules.
+                var telemetryConfiguration = serviceProvider.GetTelemetryConfiguration();
+
+                //ACT
+                var dependencyModule = modules.OfType<DependencyTrackingTelemetryModule>().Single();
+
+                //VALIDATE
+                Assert.Equal(6, dependencyModule.ExcludeComponentCorrelationHttpHeadersOnDomains.Count);
+                Assert.True(dependencyModule.ExcludeComponentCorrelationHttpHeadersOnDomains.Contains("localhost"));
+                Assert.True(dependencyModule.ExcludeComponentCorrelationHttpHeadersOnDomains.Contains("127.0.0.1"));
             }
 
             [Fact]
@@ -673,7 +701,11 @@ namespace Microsoft.Extensions.DependencyInjection.Test
                                                                                                                 == typeof(RequestTrackingTelemetryModule));
 
                 Assert.True(requestTrackingModule.CollectionOptions.InjectResponseHeaders);
+#if NETCOREAPP2_0
+                Assert.False(requestTrackingModule.CollectionOptions.TrackExceptions);
+#else
                 Assert.True(requestTrackingModule.CollectionOptions.TrackExceptions);
+#endif
             }
 
             [Fact]
@@ -975,7 +1007,6 @@ namespace Microsoft.Extensions.DependencyInjection.Test
                 Assert.False(heartbeatModule.IsHeartbeatEnabled);
             }
 
-#pragma warning disable 612, 618
             [Fact]
             public static void W3CIsDisabledByDefault()
             {
@@ -1018,7 +1049,6 @@ namespace Microsoft.Extensions.DependencyInjection.Test
                 Assert.True(requestTracking.Single().CollectionOptions.EnableW3CDistributedTracing);
                 Assert.True(dependencyTracking.Single().EnableW3CHeadersInjection);
             }
-#pragma warning restore 612, 618
 
             private static int GetTelemetryProcessorsCountInConfiguration<T>(TelemetryConfiguration telemetryConfiguration)
             {
@@ -1138,6 +1168,7 @@ namespace Microsoft.Extensions.DependencyInjection.Test
             {
                 services.AddSingleton<ITelemetryChannel>(new InMemoryChannel());
             }
+
             IConfigurationRoot config = null;
 
             if (jsonPath != null)

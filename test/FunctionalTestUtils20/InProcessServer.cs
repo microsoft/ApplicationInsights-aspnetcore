@@ -40,8 +40,9 @@ namespace FunctionalTestUtils
 
         private TelemetryHttpListenerObservable listener;
         private readonly Func<IWebHostBuilder, IWebHostBuilder> configureHost;
+        private readonly Action<IServiceCollection> configureServices;
 
-        public InProcessServer(string assemblyName, ITestOutputHelper output, Func<IWebHostBuilder, IWebHostBuilder> configureHost = null)
+        public InProcessServer(string assemblyName, ITestOutputHelper output, Func<IWebHostBuilder, IWebHostBuilder> configureHost = null, Action<IServiceCollection> configureServices = null)
         {
             this.output = output;
 
@@ -49,6 +50,7 @@ namespace FunctionalTestUtils
             var machineName = "localhost";
             this.url = "http://" + machineName + ":" + random.Next(5000, 14000).ToString();
             this.configureHost = configureHost;
+            this.configureServices = configureServices;
             this.httpListenerConnectionString = LauchApplicationAndStartListener(assemblyName);
         }
 
@@ -155,7 +157,12 @@ namespace FunctionalTestUtils
             {
                 builder = this.configureHost(builder);
             }
-            
+
+            if (this.configureServices != null)
+            {
+                builder.ConfigureServices(services => this.configureServices(services));
+            }
+
             this.hostingEngine = builder.Build();
             this.hostingEngine.Start();
 
@@ -164,19 +171,24 @@ namespace FunctionalTestUtils
             return ((EndpointAddress)this.hostingEngine.Services.GetService<EndpointAddress>()).ConnectionString;
         }
 
-        public void Dispose()
+        public void DisposeHost()
         {
             if (this.hostingEngine != null)
             {
                 this.output.WriteLine(string.Format("{0}:Disposing WebHost starting.....", DateTime.Now.ToString("G")));
-                this.hostingEngine.Dispose();                
+                this.hostingEngine.Dispose();
                 this.output.WriteLine(string.Format("{0}:Disposing WebHost completed.", DateTime.Now.ToString("G")));
+                this.hostingEngine = null;
             }
             else
             {
                 this.output.WriteLine(string.Format("{0}: Hosting engine is null.", DateTime.Now.ToString("G")));
             }
+        }
 
+        public void Dispose()
+        {
+            DisposeHost();
             if (this.listener != null)
             {
                 output.WriteLine(string.Format("{0}: Stopping listener at: {1}", DateTime.Now.ToString("G"), this.httpListenerConnectionString));

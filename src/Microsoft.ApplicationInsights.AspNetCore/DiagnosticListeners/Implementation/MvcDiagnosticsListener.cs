@@ -3,9 +3,10 @@ namespace Microsoft.ApplicationInsights.AspNetCore.DiagnosticListeners
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using Microsoft.ApplicationInsights.AspNetCore.DiagnosticListeners.Implementation;
+    using Microsoft.ApplicationInsights.AspNetCore.Extensibility.Implementation.Tracing;
     using Microsoft.ApplicationInsights.DataContracts;
     using Microsoft.AspNetCore.Http;
-    using Microsoft.Extensions.DiagnosticAdapter;
 
     /// <summary>
     /// <see cref="IApplicationInsightDiagnosticListener"/> implementation that listens for evens specific to AspNetCore Mvc layer
@@ -15,17 +16,20 @@ namespace Microsoft.ApplicationInsights.AspNetCore.DiagnosticListeners
         /// <inheritdoc />
         public string ListenerName { get; } = "Microsoft.AspNetCore";
 
+        private readonly  PropertyFetcher httpContextFetcher = new PropertyFetcher("httpContext");
+        private readonly PropertyFetcher routeDataFetcher = new PropertyFetcher("routeData");
+        private readonly PropertyFetcher routeValuesFetcher = new PropertyFetcher("Values");
+
         /// <summary>
         /// Diagnostic event handler method for 'Microsoft.AspNetCore.Mvc.BeforeAction' event
         /// </summary>
-        [DiagnosticName("Microsoft.AspNetCore.Mvc.BeforeAction")]
-        public void OnBeforeAction(HttpContext httpContext, IRouteData routeData)
+        public void OnBeforeAction(HttpContext httpContext, IDictionary<string, object> routeValues)
         {
             var telemetry = httpContext.Features.Get<RequestTelemetry>();
 
             if (telemetry != null && string.IsNullOrEmpty(telemetry.Name))
             {
-                string name = this.GetNameFromRouteContext(routeData);
+                string name = this.GetNameFromRouteContext(routeValues);
 
                 if (!string.IsNullOrEmpty(name))
                 {
@@ -35,14 +39,12 @@ namespace Microsoft.ApplicationInsights.AspNetCore.DiagnosticListeners
             }
         }
 
-        private string GetNameFromRouteContext(IRouteData routeData)
+        private string GetNameFromRouteContext(IDictionary<string, object> routeValues)
         {
             string name = null;
 
-            if (routeData.Values.Count > 0)
+            if (routeValues.Count > 0)
             {
-                var routeValues = routeData.Values;
-
                 object controller;
                 routeValues.TryGetValue("controller", out controller);
                 string controllerString = (controller == null) ? string.Empty : controller.ToString();
@@ -93,15 +95,47 @@ namespace Microsoft.ApplicationInsights.AspNetCore.DiagnosticListeners
             return name;
         }
 
-        /// <summary>
-        /// Proxy interface for <c>RouteData</c> class from Microsoft.AspNetCore.Routing.Abstractions
-        /// </summary>
-        public interface IRouteData
+        /// <inheritdoc />
+        public void OnSubscribe()
         {
-            /// <summary>
-            /// Gets the set of values produced by routes on the current routing path.
-            /// </summary>
-            IDictionary<string, object> Values { get; }
+        }
+
+        /// <inheritdoc />
+        public void OnNext(KeyValuePair<string, object> value)
+        {
+            try
+            {
+                if (value.Key == "Microsoft.AspNetCore.Mvc.BeforeAction")
+                {
+                    var context = httpContextFetcher.Fetch(value.Value) as HttpContext;
+                    var routeData = routeDataFetcher.Fetch(value.Value);
+                    var routeValues = routeValuesFetcher.Fetch(routeData) as IDictionary<string, object>;
+
+                    if (context != null && routeValues != null)
+                    {
+                        this.OnBeforeAction(context, routeValues);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                AspNetCoreEventSource.Instance.DiagnosticListenerWarning("MvcDiagnosticsListener", value.Key, ex.Message);
+            }
+        }
+
+        /// <inheritdoc />
+        public void OnError(Exception error)
+        {
+        }
+
+        /// <inheritdoc />
+        public void OnCompleted()
+        {
+        }
+
+        /// <inheritdoc />
+        public void Dispose()
+        {
         }
     }
 }

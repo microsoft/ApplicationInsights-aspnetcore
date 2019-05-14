@@ -4,10 +4,13 @@ namespace Microsoft.ApplicationInsights.AspNetCore
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.Reflection;
     using System.Threading;
     using Microsoft.ApplicationInsights.AspNetCore.DiagnosticListeners;
+    using Microsoft.ApplicationInsights.AspNetCore.Extensibility.Implementation.Tracing;
     using Microsoft.ApplicationInsights.AspNetCore.Extensions;
     using Microsoft.ApplicationInsights.Extensibility;
+    using Microsoft.AspNetCore.Hosting;
 
     /// <summary>
     /// Telemetry module tracking requests using Diagnostic Listeners.
@@ -51,31 +54,48 @@ namespace Microsoft.ApplicationInsights.AspNetCore
         /// <param name="configuration">Telemetry configuration to use for initialization.</param>
         public void Initialize(TelemetryConfiguration configuration)
         {
-            if (!this.isInitialized)
+            try
             {
-                lock (this.lockObject)
+                if (!this.isInitialized)
                 {
-                    if (!this.isInitialized)
+                    lock (this.lockObject)
                     {
-                        this.telemetryClient = new TelemetryClient(configuration);
+                        if (!this.isInitialized)
+                        {
+                            this.telemetryClient = new TelemetryClient(configuration);
 
-                        this.diagnosticListeners.Add
-                            (new HostingDiagnosticListener(
-                            this.telemetryClient,
-                            this.applicationIdProvider,
-                            this.CollectionOptions.InjectResponseHeaders,
-                            this.CollectionOptions.TrackExceptions,
-                            this.CollectionOptions.EnableW3CDistributedTracing));
+                            bool enableNewDiagnosticEvents = true;
+                            try
+                            {
+                                enableNewDiagnosticEvents = typeof(IWebHostBuilder).GetTypeInfo().Assembly.GetName().Version.Major >= 2;
+                            }
+                            catch (Exception)
+                            {
+                                // ignore any errors
+                            }
 
-                        this.diagnosticListeners.Add
-                            (new MvcDiagnosticsListener());
+                            this.diagnosticListeners.Add(new HostingDiagnosticListener(
+                                this.telemetryClient,
+                                this.applicationIdProvider,
+                                this.CollectionOptions.InjectResponseHeaders,
+                                this.CollectionOptions.TrackExceptions,
+                                this.CollectionOptions.EnableW3CDistributedTracing,
+                                enableNewDiagnosticEvents));
 
-                        this.subscriptions?.Add(DiagnosticListener.AllListeners.Subscribe(this));
+                            this.diagnosticListeners.Add
+                                (new MvcDiagnosticsListener());
 
-                        this.isInitialized = true;
+                            this.subscriptions?.Add(DiagnosticListener.AllListeners.Subscribe(this));
+
+                            this.isInitialized = true;
+                        }
                     }
                 }
             }
+            catch (Exception e)
+            {
+                AspNetCoreEventSource.Instance.RequestTrackingModuleInitializationFailed(e.Message);
+            }            
         }
 
         /// <inheritdoc />
@@ -91,7 +111,8 @@ namespace Microsoft.ApplicationInsights.AspNetCore
             {
                 if (applicationInsightDiagnosticListener.ListenerName == value.Name)
                 {
-                    subs.Add(value.SubscribeWithAdapter(applicationInsightDiagnosticListener));
+                    subs.Add(value.Subscribe(applicationInsightDiagnosticListener));
+                    applicationInsightDiagnosticListener.OnSubscribe();
                 }
             }
         }
@@ -128,6 +149,11 @@ namespace Microsoft.ApplicationInsights.AspNetCore
             foreach (var subscription in subs)
             {
                 subscription.Dispose();
+            }
+
+            foreach (var listener in this.diagnosticListeners)
+            {
+                listener.Dispose();
             }
         }
     }
