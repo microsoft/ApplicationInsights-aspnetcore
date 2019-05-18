@@ -74,6 +74,7 @@ namespace Microsoft.ApplicationInsights.AspNetCore
                         }
 
                         this.diagnosticListeners.Add(new HostingDiagnosticListener(
+                            configuration,
                             this.telemetryClient,
                             this.applicationIdProvider,
                             this.CollectionOptions.InjectResponseHeaders,
@@ -103,10 +104,22 @@ namespace Microsoft.ApplicationInsights.AspNetCore
 
             foreach (var applicationInsightDiagnosticListener in this.diagnosticListeners)
             {
-                if (applicationInsightDiagnosticListener.ListenerName == value.Name)
+                if (applicationInsightDiagnosticListener is HostingDiagnosticListener)
                 {
-                    subs.Add(value.Subscribe(applicationInsightDiagnosticListener));
-                    applicationInsightDiagnosticListener.OnSubscribe();
+                    if (applicationInsightDiagnosticListener.ListenerName == value.Name)
+                    {
+                        subs.Add(value.Subscribe(applicationInsightDiagnosticListener, (eventName) => !eventName?.StartsWith("Microsoft.AspNetCore.Mvc", StringComparison.Ordinal) ?? false));
+                        applicationInsightDiagnosticListener.OnSubscribe();
+                    }
+                }
+
+                if (applicationInsightDiagnosticListener is MvcDiagnosticsListener)
+                {
+                    if (applicationInsightDiagnosticListener.ListenerName == value.Name)
+                    {
+                        subs.Add(value.Subscribe(applicationInsightDiagnosticListener, (eventName) => eventName == "Microsoft.AspNetCore.Mvc.BeforeAction"));
+                        applicationInsightDiagnosticListener.OnSubscribe();
+                    }
                 }
             }
         }

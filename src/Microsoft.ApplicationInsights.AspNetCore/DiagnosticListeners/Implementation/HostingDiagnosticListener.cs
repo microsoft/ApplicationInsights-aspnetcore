@@ -1,15 +1,19 @@
 ﻿namespace Microsoft.ApplicationInsights.AspNetCore.DiagnosticListeners
 {
     using System;
+    using System.Buffers;
+    using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Globalization;
     using System.Linq;
     using System.Net.Http.Headers;
     using System.Text;
+    using System.Threading;
     using Extensibility.Implementation.Tracing;
     using Microsoft.ApplicationInsights.AspNetCore.DiagnosticListeners.Implementation;
     using Microsoft.ApplicationInsights.AspNetCore.Extensions;
+    using Microsoft.ApplicationInsights.Channel;
     using Microsoft.ApplicationInsights.Common;
     using Microsoft.ApplicationInsights.DataContracts;
     using Microsoft.ApplicationInsights.Extensibility;
@@ -17,6 +21,51 @@
     using Microsoft.ApplicationInsights.Extensibility.W3C;
     using Microsoft.AspNetCore.Http;
     using Microsoft.Extensions.Primitives;
+
+    // internal class ObjectPool<T>
+    // {
+    //    private ConcurrentBag<T> _objects;
+    //    private Func<T> _objectGenerator;
+
+    //    public ObjectPool(Func<T> objectGenerator)
+    //    {            
+    //        _objects = new ConcurrentBag<T>();
+    //        _objectGenerator = objectGenerator;
+    //    }
+
+    //    public T GetObject()
+    //    {
+    //        T item;
+    //        if (_objects.TryTake(out item)) return item;
+    //        return _objectGenerator();
+    //    }
+
+    //    public void PutObject(T item)
+    //    {
+    //        _objects.Add(item);
+    //    }
+    // }
+
+    internal class RequestPoolPolicy : Microsoft.Extensions.ObjectPool.IPooledObjectPolicy<RequestTelemetry>
+    {
+        public RequestTelemetry Create()
+        {
+            return new RequestTelemetry();
+        }
+
+        public bool Return(RequestTelemetry obj)
+        {
+            if (obj == null)
+            {
+                return false;
+            }
+            else
+            {
+                obj.ClearState();
+                return true;
+            }
+        }
+    }
 
     /// <summary>
     /// <see cref="IApplicationInsightDiagnosticListener"/> implementation that listens for events specific to AspNetCore hosting layer.
@@ -30,6 +79,7 @@
         /// </summary>
         private readonly bool enableNewDiagnosticEvents;
 
+        private readonly TelemetryConfiguration configuration;
         private readonly TelemetryClient client;
         private readonly IApplicationIdProvider applicationIdProvider;
         private readonly string sdkVersion = SdkVersionUtils.GetVersion();
@@ -38,6 +88,13 @@
         private readonly bool enableW3CHeaders;
         private static readonly ActiveSubsciptionManager SubscriptionManager = new ActiveSubsciptionManager();
         private const string ActivityCreatedByHostingDiagnosticListener = "ActivityCreatedByHostingDiagnosticListener";
+
+        // private static ObjectPool<RequestTelemetry> requestPool = new ObjectPool<RequestTelemetry>(() => new RequestTelemetry());
+
+        private static Microsoft.Extensions.ObjectPool.ObjectPool<RequestTelemetry> requestPool = new Microsoft.Extensions.ObjectPool.DefaultObjectPool<RequestTelemetry>(new RequestPoolPolicy());
+
+        private string lastIKeyLookedUp;
+        private string lastAppIdUsed;
 
         #region fetchers
 
@@ -75,6 +132,33 @@
             bool enableNewDiagnosticEvents = true)
         {
             this.enableNewDiagnosticEvents = enableNewDiagnosticEvents;
+            this.client = client ?? throw new ArgumentNullException(nameof(client));
+            this.applicationIdProvider = applicationIdProvider;
+            this.injectResponseHeaders = injectResponseHeaders;
+            this.trackExceptions = trackExceptions;
+            this.enableW3CHeaders = enableW3CHeaders;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="T:HostingDiagnosticListener"/> class.
+        /// </summary>
+        /// <param name="client"><see cref="TelemetryClient"/> to post traces to.</param>
+        /// <param name="applicationIdProvider">Provider for resolving application Id to be used in multiple instruemntation keys scenarios.</param>
+        /// <param name="injectResponseHeaders">Flag that indicates that response headers should be injected.</param>
+        /// <param name="trackExceptions">Flag that indicates that exceptions should be tracked.</param>
+        /// <param name="enableW3CHeaders">Flag that indicates that W3C header parsing should be enabled.</param>
+        /// <param name="enableNewDiagnosticEvents">Flag that indicates that new diagnostic events are supported by AspNetCore</param>
+        public HostingDiagnosticListener(
+            TelemetryConfiguration configuration,
+            TelemetryClient client,
+            IApplicationIdProvider applicationIdProvider,
+            bool injectResponseHeaders,
+            bool trackExceptions,
+            bool enableW3CHeaders,
+            bool enableNewDiagnosticEvents = true)
+        {
+            this.enableNewDiagnosticEvents = enableNewDiagnosticEvents;
+            this.configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             this.client = client ?? throw new ArgumentNullException(nameof(client));
             this.applicationIdProvider = applicationIdProvider;
             this.injectResponseHeaders = injectResponseHeaders;
@@ -186,7 +270,12 @@
                 }
 
                 requestTelemetry.Context.Operation.ParentId = originalParentId;
-                SetAppIdInResponseHeader(httpContext, requestTelemetry);
+
+                // Only reply back with AppId if we got an indication that we need to set one
+                if (!string.IsNullOrWhiteSpace(requestTelemetry.Source))
+                {
+                    SetAppIdInResponseHeader(httpContext, requestTelemetry);
+                }
             }
         }
 
@@ -348,7 +437,8 @@
 
         private RequestTelemetry InitializeRequestTelemetry(HttpContext httpContext, Activity activity, bool isActivityCreatedFromRequestIdHeader, long timestamp)
         {
-            var requestTelemetry = new RequestTelemetry();
+            // var requestTelemetry = new RequestTelemetry();
+            var requestTelemetry = requestPool.Get();
 
             if (!this.enableW3CHeaders)
             {
@@ -360,22 +450,59 @@
                 activity.UpdateTelemetry(requestTelemetry, false);
             }
 
-            foreach (var prop in activity.Baggage)
+            if (!string.IsNullOrEmpty(requestTelemetry.Context.Operation.Id))
             {
-                if (!requestTelemetry.Properties.ContainsKey(prop.Key))
-                {
-                    requestTelemetry.Properties[prop.Key] = prop.Value;
-                }
+                ((ISupportSampling)requestTelemetry).SamplingPercentage = GetSamplingScore(requestTelemetry);
             }
 
-            this.client.InitializeInstrumentationKey(requestTelemetry);
+            if (this.configuration.LastObservedRequestSamplingPercentage.HasValue
+                && ((ISupportSampling)requestTelemetry).SamplingPercentage < this.configuration.LastObservedRequestSamplingPercentage)
+            {
+                foreach (var prop in activity.Baggage)
+                {
+                    if (!requestTelemetry.Properties.ContainsKey(prop.Key))
+                    {
+                        requestTelemetry.Properties[prop.Key] = prop.Value;
+                    }
+                }
 
-            requestTelemetry.Source = GetAppIdFromRequestHeader(httpContext.Request.Headers, requestTelemetry.Context.InstrumentationKey);
+                this.client.InitializeInstrumentationKey(requestTelemetry);
+
+                requestTelemetry.Source = GetAppIdFromRequestHeader(httpContext.Request.Headers, requestTelemetry.Context.InstrumentationKey);
+            }
 
             requestTelemetry.Start(timestamp);
             httpContext.Features.Set(requestTelemetry);
 
             return requestTelemetry;
+        }
+
+        internal static double GetSamplingScore(ITelemetry telemetry)
+        {
+            double samplingScore = (double)GetSamplingHashCode(telemetry.Context.Operation.Id) / int.MaxValue;
+            return samplingScore * 100;
+        }
+
+        internal static int GetSamplingHashCode(string input)
+        {
+            if (string.IsNullOrEmpty(input))
+            {
+                return 0;
+            }
+
+            while (input.Length < 8)
+            {
+                input = input + input;
+            }
+
+            int hash = 5381;
+
+            for (int i = 0; i < input.Length; i++)
+            {
+                hash = ((hash << 5) + hash) + (int)input[i];
+            }
+
+            return hash == int.MinValue ? int.MaxValue : Math.Abs(hash);
         }
 
         private string GetAppIdFromRequestHeader(IHeaderDictionary requestHeaders, string instrumentationKey)
@@ -414,13 +541,13 @@
                      HttpHeadersUtilities.ContainsRequestContextKeyValue(responseHeaders,
                          RequestResponseHeaders.RequestContextTargetKey)))
                 {
-                    string applicationId = null;
-                    if (this.applicationIdProvider?.TryGetApplicationId(requestTelemetry.Context.InstrumentationKey,
-                            out applicationId) ?? false)
+                    if (this.lastIKeyLookedUp != requestTelemetry.Context.InstrumentationKey)
                     {
-                        HttpHeadersUtilities.SetRequestContextKeyValue(responseHeaders,
-                            RequestResponseHeaders.RequestContextTargetKey, applicationId);
+                        this.applicationIdProvider?.TryGetApplicationId(requestTelemetry.Context.InstrumentationKey, out this.lastAppIdUsed);
                     }
+
+                    HttpHeadersUtilities.SetRequestContextKeyValue(responseHeaders, 
+                        RequestResponseHeaders.RequestContextTargetKey, this.lastAppIdUsed);
                 }
             }
         }
@@ -463,10 +590,20 @@
                 {
                     telemetry.Name = httpContext.Request.Method + " " + httpContext.Request.Path.Value;
                 }
-                
-                telemetry.Url = httpContext.Request.GetUri();
+
+                if (this.configuration.LastObservedRequestSamplingPercentage.HasValue
+                    && ((ISupportSampling)telemetry).SamplingPercentage < this.configuration.LastObservedRequestSamplingPercentage)
+                {
+                    telemetry.Url = httpContext.Request.GetUri();
+                }
+
                 telemetry.Context.GetInternalContext().SdkVersion = this.sdkVersion;
+                ((ISupportSampling)telemetry).SamplingPercentage = null;
                 this.client.TrackRequest(telemetry);
+
+                // telemetry.ClearState();
+
+                requestPool.Return(telemetry);
 
                 var activity = httpContext?.Features.Get<Activity>();
                 if (activity != null && activity.OperationName == ActivityCreatedByHostingDiagnosticListener)
@@ -585,65 +722,124 @@
         {
             HttpContext httpContext = null;
             Exception exception = null;
-            long? timestamp = null;
+            long? timestamp = null;            
 
-            switch (value.Key)
+            if (value.Key == "Microsoft.AspNetCore.Hosting.HttpRequestIn.Start")
             {
-                case "Microsoft.AspNetCore.Hosting.HttpRequestIn.Start":
-                    httpContext = this.httpContextFetcherStart.Fetch(value.Value) as HttpContext;
-                    if (httpContext != null)
-                    {
-                        this.OnHttpRequestInStart(httpContext);
-                    }
-                    break;
-                case "Microsoft.AspNetCore.Hosting.HttpRequestIn.Stop":
-                    httpContext = this.httpContextFetcherStop.Fetch(value.Value) as HttpContext;
-                    if (httpContext != null)
-                    {
-                        this.OnHttpRequestInStop(httpContext);
-                    }
-                    break;
-                case "Microsoft.AspNetCore.Hosting.BeginRequest":
-                    httpContext = this.httpContextFetcherBeginRequest.Fetch(value.Value) as HttpContext;
-                    timestamp = this.timestampFetcherBeginRequest.Fetch(value.Value) as long?;
-                    if (httpContext != null && timestamp.HasValue)
-                    {
-                        this.OnBeginRequest(httpContext, timestamp.Value);
-                    }
-                    break;
-                case "Microsoft.AspNetCore.Hosting.EndRequest":
-                    httpContext = this.httpContextFetcherEndRequest.Fetch(value.Value) as HttpContext;
-                    timestamp = this.timestampFetcherEndRequest.Fetch(value.Value) as long?;
-                    if (httpContext != null && timestamp.HasValue)
-                    {
-                        this.OnEndRequest(httpContext, timestamp.Value);
-                    }
-                    break;
-                case "Microsoft.AspNetCore.Diagnostics.UnhandledException":
-                    httpContext = this.httpContextFetcherDiagExceptionUnhandled.Fetch(value.Value) as HttpContext;
-                    exception = this.exceptionFetcherDiagExceptionUnhandled.Fetch(value.Value) as Exception;
-                    if (httpContext != null && exception != null)
-                    {
-                        this.OnDiagnosticsUnhandledException(httpContext, exception);
-                    }
-                    break;
-                case "Microsoft.AspNetCore.Diagnostics.HandledException":
-                    httpContext = this.httpContextFetcherDiagExceptionHandled.Fetch(value.Value) as HttpContext;
-                    exception = this.exceptionFetcherDiagExceptionHandled.Fetch(value.Value) as Exception;
-                    if (httpContext != null && exception != null)
-                    {
-                        this.OnDiagnosticsHandledException(httpContext, exception);
-                    }
-                    break;
-                case "Microsoft.AspNetCore.Hosting.UnhandledException":
-                    httpContext = this.httpContextFetcherHostingExceptionUnhandled.Fetch(value.Value) as HttpContext;
-                    exception = this.exceptionFetcherHostingExceptionUnhandled.Fetch(value.Value) as Exception;
-                    if (httpContext != null && exception != null)
-                    {
-                        this.OnHostingException(httpContext, exception);
-                    }
-                    break;
+                httpContext = this.httpContextFetcherStart.Fetch(value.Value) as HttpContext;
+                if (httpContext != null)
+                {
+                    this.OnHttpRequestInStart(httpContext);
+                }
+            } else if (value.Key == "Microsoft.AspNetCore.Hosting.HttpRequestIn.Stop")
+            {
+                httpContext = this.httpContextFetcherStop.Fetch(value.Value) as HttpContext;
+                if (httpContext != null)
+                {
+                    this.OnHttpRequestInStop(httpContext);
+                }
+            } else if (value.Key == "Microsoft.AspNetCore.Hosting.BeginRequest")
+            {
+                httpContext = this.httpContextFetcherBeginRequest.Fetch(value.Value) as HttpContext;
+                timestamp = this.timestampFetcherBeginRequest.Fetch(value.Value) as long?;
+                if (httpContext != null && timestamp.HasValue)
+                {
+                    this.OnBeginRequest(httpContext, timestamp.Value);
+                }
+            } else if (value.Key == "Microsoft.AspNetCore.Hosting.EndRequest")
+            {
+                httpContext = this.httpContextFetcherEndRequest.Fetch(value.Value) as HttpContext;
+                timestamp = this.timestampFetcherEndRequest.Fetch(value.Value) as long?;
+                if (httpContext != null && timestamp.HasValue)
+                {
+                    this.OnEndRequest(httpContext, timestamp.Value);
+                }
+            } else if (value.Key == "Microsoft.AspNetCore.Diagnostics.UnhandledException")
+            {
+                httpContext = this.httpContextFetcherDiagExceptionUnhandled.Fetch(value.Value) as HttpContext;
+                exception = this.exceptionFetcherDiagExceptionUnhandled.Fetch(value.Value) as Exception;
+                if (httpContext != null && exception != null)
+                {
+                    this.OnDiagnosticsUnhandledException(httpContext, exception);
+                }
+            } else if (value.Key == "Microsoft.AspNetCore.Diagnostics.HandledException")
+            {
+                httpContext = this.httpContextFetcherDiagExceptionHandled.Fetch(value.Value) as HttpContext;
+                exception = this.exceptionFetcherDiagExceptionHandled.Fetch(value.Value) as Exception;
+                if (httpContext != null && exception != null)
+                {
+                    this.OnDiagnosticsHandledException(httpContext, exception);
+                }
+            } else if (value.Key == "Microsoft.AspNetCore.Hosting.UnhandledException")
+            {
+                httpContext = this.httpContextFetcherHostingExceptionUnhandled.Fetch(value.Value) as HttpContext;
+                exception = this.exceptionFetcherHostingExceptionUnhandled.Fetch(value.Value) as Exception;
+                if (httpContext != null && exception != null)
+                {
+                    this.OnHostingException(httpContext, exception);
+                }
+            } else
+            {
+                AspNetCoreEventSource.Instance.NotActiveListenerNoTracking("Dmitry DS Event: " + value.Key, string.Empty);
             }
+            
+            // switch (value.Key)
+            // {
+            //    case "Microsoft.AspNetCore.Hosting.HttpRequestIn.Start":
+            //        httpContext = this.httpContextFetcherStart.Fetch(value.Value) as HttpContext;
+            //        if (httpContext != null)
+            //        {
+            //            this.OnHttpRequestInStart(httpContext);
+            //        }
+            //        break;
+            //    case "Microsoft.AspNetCore.Hosting.HttpRequestIn.Stop":
+            //        httpContext = this.httpContextFetcherStop.Fetch(value.Value) as HttpContext;
+            //        if (httpContext != null)
+            //        {
+            //            this.OnHttpRequestInStop(httpContext);
+            //        }
+            //        break;
+            //    case "Microsoft.AspNetCore.Hosting.BeginRequest":
+            //        httpContext = this.httpContextFetcherBeginRequest.Fetch(value.Value) as HttpContext;
+            //        timestamp = this.timestampFetcherBeginRequest.Fetch(value.Value) as long?;
+            //        if (httpContext != null && timestamp.HasValue)
+            //        {
+            //            this.OnBeginRequest(httpContext, timestamp.Value);
+            //        }
+            //        break;
+            //    case "Microsoft.AspNetCore.Hosting.EndRequest":
+            //        httpContext = this.httpContextFetcherEndRequest.Fetch(value.Value) as HttpContext;
+            //        timestamp = this.timestampFetcherEndRequest.Fetch(value.Value) as long?;
+            //        if (httpContext != null && timestamp.HasValue)
+            //        {
+            //            this.OnEndRequest(httpContext, timestamp.Value);
+            //        }
+            //        break;
+            //    case "Microsoft.AspNetCore.Diagnostics.UnhandledException":
+            //        httpContext = this.httpContextFetcherDiagExceptionUnhandled.Fetch(value.Value) as HttpContext;
+            //        exception = this.exceptionFetcherDiagExceptionUnhandled.Fetch(value.Value) as Exception;
+            //        if (httpContext != null && exception != null)
+            //        {
+            //            this.OnDiagnosticsUnhandledException(httpContext, exception);
+            //        }
+            //        break;
+            //    case "Microsoft.AspNetCore.Diagnostics.HandledException":
+            //        httpContext = this.httpContextFetcherDiagExceptionHandled.Fetch(value.Value) as HttpContext;
+            //        exception = this.exceptionFetcherDiagExceptionHandled.Fetch(value.Value) as Exception;
+            //        if (httpContext != null && exception != null)
+            //        {
+            //            this.OnDiagnosticsHandledException(httpContext, exception);
+            //        }
+            //        break;
+            //    case "Microsoft.AspNetCore.Hosting.UnhandledException":
+            //        httpContext = this.httpContextFetcherHostingExceptionUnhandled.Fetch(value.Value) as HttpContext;
+            //        exception = this.exceptionFetcherHostingExceptionUnhandled.Fetch(value.Value) as Exception;
+            //        if (httpContext != null && exception != null)
+            //        {
+            //            this.OnHostingException(httpContext, exception);
+            //        }
+            //        break;
+            // }
         }
 
         /// <inheritdoc />
