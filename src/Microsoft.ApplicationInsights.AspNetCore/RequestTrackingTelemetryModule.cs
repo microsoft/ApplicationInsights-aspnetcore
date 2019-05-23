@@ -82,8 +82,8 @@ namespace Microsoft.ApplicationInsights.AspNetCore
                             this.CollectionOptions.EnableW3CDistributedTracing,
                             enableNewDiagnosticEvents));
 
-                        this.diagnosticListeners.Add
-                            (new MvcDiagnosticsListener());
+                        // this.diagnosticListeners.Add
+                        //    (new MvcDiagnosticsListener());
 
                         this.subscriptions?.Add(DiagnosticListener.AllListeners.Subscribe(this));
 
@@ -108,19 +108,21 @@ namespace Microsoft.ApplicationInsights.AspNetCore
                 {
                     if (applicationInsightDiagnosticListener.ListenerName == value.Name)
                     {
-                        subs.Add(value.Subscribe(applicationInsightDiagnosticListener, (eventName) => !eventName?.StartsWith("Microsoft.AspNetCore.Mvc", StringComparison.Ordinal) ?? false));
+                        Predicate<string> hostingPredicate = (string eventName) => (eventName != null) ? !(eventName[21] == 'M') || eventName == "Microsoft.AspNetCore.Mvc.BeforeAction" : false;
+                        subs.Add(value.Subscribe(applicationInsightDiagnosticListener, hostingPredicate));
                         applicationInsightDiagnosticListener.OnSubscribe();
                     }
                 }
 
-                if (applicationInsightDiagnosticListener is MvcDiagnosticsListener)
-                {
-                    if (applicationInsightDiagnosticListener.ListenerName == value.Name)
-                    {
-                        subs.Add(value.Subscribe(applicationInsightDiagnosticListener, (eventName) => eventName == "Microsoft.AspNetCore.Mvc.BeforeAction"));
-                        applicationInsightDiagnosticListener.OnSubscribe();
-                    }
-                }
+                //if (applicationInsightDiagnosticListener is MvcDiagnosticsListener)
+                //{
+                //    if (applicationInsightDiagnosticListener.ListenerName == value.Name)
+                //    {
+                //        Predicate<string> mvcPredicate = (string eventName) => eventName == "Microsoft.AspNetCore.Mvc.BeforeAction";
+                //        subs.Add(value.Subscribe(applicationInsightDiagnosticListener, mvcPredicate));
+                //        applicationInsightDiagnosticListener.OnSubscribe();
+                //    }
+                //}
             }
         }
 
