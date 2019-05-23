@@ -6,7 +6,7 @@
     using Microsoft.Extensions.Options;
 
     /// <summary>
-    /// A telemetry initializer that populates telemetry.Context.Component.Version to the value read from configuration
+    /// A telemetry initializer that populates telemetry.Context.Component.Version to the value read from configuration.
     /// </summary>
     public class ComponentVersionTelemetryInitializer : ITelemetryInitializer
     {
