@@ -2,6 +2,7 @@
 
 ## Version 2.7.0
  - Updated Web/Base SDK version dependency to 2.10.0
+- [Remove unused reference to System.Net.Http](https://github.com/microsoft/ApplicationInsights-aspnetcore/pull/879)
 
 ## Version 2.7.0-beta4
 - [RequestTrackingTelemetryModule is modified to stop tracking exceptions by default, as exceptions are captured by ApplicationInsightsLoggerProvider.](https://github.com/Microsoft/ApplicationInsights-aspnetcore/issues/861)
