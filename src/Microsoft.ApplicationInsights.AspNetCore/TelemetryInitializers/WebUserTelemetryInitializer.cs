@@ -6,7 +6,7 @@
     using Microsoft.AspNetCore.Http;
 
     /// <summary>
-    /// 
+    /// This initializer sets the User Id on telemetry.
     /// </summary>
     public class WebUserTelemetryInitializer : TelemetryInitializerBase
     {
