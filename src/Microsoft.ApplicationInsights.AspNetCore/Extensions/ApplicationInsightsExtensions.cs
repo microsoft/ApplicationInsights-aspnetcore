@@ -360,7 +360,7 @@
             {
                 telemetryConfigValues.Add(new KeyValuePair<string, string>(DeveloperModeForWebSites,
 #if !NETSTANDARD1_6
-                    developerMode.Value.ToString(CultureInfo.InvariantCulture)));
+                    developerMode.Value.ToString(System.Globalization.CultureInfo.InvariantCulture)));
 #else
                     developerMode.Value.ToString()));
 #endif
