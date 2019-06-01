@@ -119,6 +119,7 @@
                 o.ApplicationVersion = options.ApplicationVersion;
                 o.DeveloperMode = options.DeveloperMode;
                 o.EnableAdaptiveSampling = options.EnableAdaptiveSampling;
+                o.EnableAuthenticationTracking = options.EnableAuthenticationTracking;
                 o.EnableAuthenticationTrackingJavaScript = options.EnableAuthenticationTrackingJavaScript;
                 o.EnableDebugLogger = options.EnableDebugLogger;
                 o.EnableQuickPulseMetricStream = options.EnableQuickPulseMetricStream;
@@ -157,6 +158,7 @@
                     services.AddSingleton<ITelemetryInitializer, WebUserTelemetryInitializer>();
                     services.AddSingleton<ITelemetryInitializer, AspNetCoreEnvironmentTelemetryInitializer>();
                     services.AddSingleton<ITelemetryInitializer, HttpDependenciesParsingTelemetryInitializer>();
+                    services.AddSingleton<ITelemetryInitializer, AuthenticatedUserIdTelemetryInitializer>();
                     services.TryAddSingleton<ITelemetryChannel, ServerTelemetryChannel>();
 
                     services.AddSingleton<ITelemetryModule, DependencyTrackingTelemetryModule>();

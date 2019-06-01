@@ -17,6 +17,7 @@
             this.EnableQuickPulseMetricStream = true;
             this.EnableAdaptiveSampling = true;
             this.EnableDebugLogger = true;
+            this.EnableAuthenticationTracking = false;
             this.EnableAuthenticationTrackingJavaScript = false;
             this.EnableHeartbeat = true;
             this.AddAutoCollectedMetricExtractor = true;
@@ -61,6 +62,11 @@
         /// Gets or sets a value indicating whether a logger would be registered automatically in debug mode.
         /// </summary>
         public bool EnableDebugLogger { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether the currently authenticated user is added to telemetries or not.
+        /// </summary>
+        public bool EnableAuthenticationTracking { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether a JavaScript snippet to track the current authenticated user should

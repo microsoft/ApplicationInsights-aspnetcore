@@ -62,6 +62,7 @@ namespace Microsoft.Extensions.DependencyInjection.Test
             [InlineData(typeof(ITelemetryInitializer), typeof(SyntheticTelemetryInitializer), ServiceLifetime.Singleton)]
             [InlineData(typeof(ITelemetryInitializer), typeof(WebSessionTelemetryInitializer), ServiceLifetime.Singleton)]
             [InlineData(typeof(ITelemetryInitializer), typeof(WebUserTelemetryInitializer), ServiceLifetime.Singleton)]
+            [InlineData(typeof(ITelemetryInitializer), typeof(AuthenticatedUserIdTelemetryInitializer), ServiceLifetime.Singleton)]
             [InlineData(typeof(TelemetryConfiguration), null, ServiceLifetime.Singleton)]
             [InlineData(typeof(TelemetryClient), typeof(TelemetryClient), ServiceLifetime.Singleton)]
             public static void RegistersExpectedServices(Type serviceType, Type implementationType, ServiceLifetime lifecycle)
@@ -80,6 +81,7 @@ namespace Microsoft.Extensions.DependencyInjection.Test
             [InlineData(typeof(ITelemetryInitializer), typeof(SyntheticTelemetryInitializer), ServiceLifetime.Singleton)]
             [InlineData(typeof(ITelemetryInitializer), typeof(WebSessionTelemetryInitializer), ServiceLifetime.Singleton)]
             [InlineData(typeof(ITelemetryInitializer), typeof(WebUserTelemetryInitializer), ServiceLifetime.Singleton)]
+            [InlineData(typeof(ITelemetryInitializer), typeof(AuthenticatedUserIdTelemetryInitializer), ServiceLifetime.Singleton)]
             [InlineData(typeof(TelemetryConfiguration), null, ServiceLifetime.Singleton)]
             [InlineData(typeof(TelemetryClient), typeof(TelemetryClient), ServiceLifetime.Singleton)]
             public static void RegistersExpectedServicesOnlyOnce(Type serviceType, Type implementationType, ServiceLifetime lifecycle)
@@ -454,6 +456,7 @@ namespace Microsoft.Extensions.DependencyInjection.Test
                     ApplicationVersion = "test",
                     DeveloperMode = true,
                     EnableAdaptiveSampling = false,
+                    EnableAuthenticationTracking = false,
                     EnableAuthenticationTrackingJavaScript = false,
                     EnableDebugLogger = true,
                     EnableQuickPulseMetricStream = false,
