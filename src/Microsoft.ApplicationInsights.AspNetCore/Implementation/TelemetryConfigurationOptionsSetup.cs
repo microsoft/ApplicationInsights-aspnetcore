@@ -162,10 +162,10 @@ namespace Microsoft.Extensions.DependencyInjection
                     configuration.LastObservedRequestSamplingPercentage = newPercentage;
                 };
                 SamplingPercentageEstimatorSettings settings = new SamplingPercentageEstimatorSettings();
-                settings.InitialSamplingPercentage = 0.1;
+                settings.InitialSamplingPercentage = 1;
                 settings.MaxTelemetryItemsPerSecond = 5;
                 configuration.DefaultTelemetrySink.TelemetryProcessorChainBuilder.UseAdaptiveSampling(settings, samplingCallback, excludedTypes: "Event");
-                configuration.LastObservedRequestSamplingPercentage = 5;
+                configuration.LastObservedRequestSamplingPercentage = 1;
 
                 configuration.DefaultTelemetrySink.TelemetryProcessorChainBuilder.UseAdaptiveSampling(5, includedTypes: "Event");
             }

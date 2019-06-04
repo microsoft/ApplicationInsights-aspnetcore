@@ -528,13 +528,14 @@
                 activity.UpdateTelemetry(requestTelemetry, false);
             }
 
-            if (!string.IsNullOrEmpty(requestTelemetry.Context.Operation.Id))
+            if (!string.IsNullOrEmpty(requestTelemetry.Context.Operation.Id)
+                && this.configuration.LastObservedRequestSamplingPercentage.HasValue
+                && GetSamplingScore(requestTelemetry) >= this.configuration.LastObservedRequestSamplingPercentage)
             {
-                ((ISupportSampling)requestTelemetry).SamplingPercentage = GetSamplingScore(requestTelemetry);
-            }
+                ((ISupportSampling)requestTelemetry).IsProactivelySampledOut = true;
+            }            
 
-            if (this.configuration.LastObservedRequestSamplingPercentage.HasValue
-                && ((ISupportSampling)requestTelemetry).SamplingPercentage < this.configuration.LastObservedRequestSamplingPercentage)
+            if (!((ISupportSampling)requestTelemetry).IsProactivelySampledOut)
             {
                 foreach (var prop in activity.Baggage)
                 {
@@ -669,17 +670,13 @@
                     telemetry.Name = httpContext.Request.Method + " " + httpContext.Request.Path.Value;
                 }
 
-                if (this.configuration.LastObservedRequestSamplingPercentage.HasValue
-                    && ((ISupportSampling)telemetry).SamplingPercentage < this.configuration.LastObservedRequestSamplingPercentage)
+                if (!((ISupportSampling)telemetry).IsProactivelySampledOut)
                 {
                     telemetry.Url = httpContext.Request.GetUri();
                 }
 
-                telemetry.Context.GetInternalContext().SdkVersion = this.sdkVersion;
-                ((ISupportSampling)telemetry).SamplingPercentage = null;
+                telemetry.Context.GetInternalContext().SdkVersion = this.sdkVersion;                
                 this.client.TrackRequest(telemetry);
-
-                // telemetry.ClearState();
 
                 requestPool.Return(telemetry);
 
