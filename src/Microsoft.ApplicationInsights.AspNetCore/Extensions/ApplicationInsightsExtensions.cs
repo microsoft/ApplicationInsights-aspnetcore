@@ -255,6 +255,107 @@
         }
 
         /// <summary>
+        /// Adds Application Insights services into service collection.
+        /// </summary>
+        /// <param name="services">The <see cref="IServiceCollection"/> instance.</param>
+        /// <returns>
+        /// The <see cref="IServiceCollection"/>.
+        /// </returns>
+        public static IServiceCollection AddApplicationInsightsTelemetryNoHttp(this IServiceCollection services, string instrumentationKey)
+        {
+            try
+            {
+                if (!IsApplicationInsightsAdded(services))
+                {
+                    services.Configure<ApplicationInsightsServiceOptions>(options => options.InstrumentationKey = instrumentationKey);
+
+                    services
+                        .AddSingleton<ITelemetryInitializer, ApplicationInsights.AspNetCore.TelemetryInitializers.
+                            DomainNameRoleInstanceTelemetryInitializer>();
+                    services.AddSingleton<ITelemetryInitializer, AzureWebAppRoleEnvironmentTelemetryInitializer>();
+                    services.AddSingleton<ITelemetryInitializer, ComponentVersionTelemetryInitializer>();
+                    services.AddSingleton<ITelemetryInitializer, HttpDependenciesParsingTelemetryInitializer>();
+                    services.TryAddSingleton<ITelemetryChannel, ServerTelemetryChannel>();
+
+                    services.AddSingleton<ITelemetryModule, DependencyTrackingTelemetryModule>();
+                    services.ConfigureTelemetryModule<DependencyTrackingTelemetryModule>((module, o) =>
+                    {
+                        module.EnableLegacyCorrelationHeadersInjection =
+                            o.DependencyCollectionOptions.EnableLegacyCorrelationHeadersInjection;
+
+                        var excludedDomains = module.ExcludeComponentCorrelationHttpHeadersOnDomains;
+                        excludedDomains.Add("core.windows.net");
+                        excludedDomains.Add("core.chinacloudapi.cn");
+                        excludedDomains.Add("core.cloudapi.de");
+                        excludedDomains.Add("core.usgovcloudapi.net");
+
+                        if (module.EnableLegacyCorrelationHeadersInjection)
+                        {
+                            excludedDomains.Add("localhost");
+                            excludedDomains.Add("127.0.0.1");
+                        }
+
+                        var includedActivities = module.IncludeDiagnosticSourceActivities;
+                        includedActivities.Add("Microsoft.Azure.EventHubs");
+                        includedActivities.Add("Microsoft.Azure.ServiceBus");
+
+                        module.EnableW3CHeadersInjection = o.RequestCollectionOptions.EnableW3CDistributedTracing;
+                    });
+
+                    services.AddSingleton<ITelemetryModule, PerformanceCollectorModule>();
+                    services.AddSingleton<ITelemetryModule, AppServicesHeartbeatTelemetryModule>();
+                    services.AddSingleton<ITelemetryModule, AzureInstanceMetadataTelemetryModule>();
+                    services.AddSingleton<ITelemetryModule, QuickPulseTelemetryModule>();
+                    services.AddSingleton<TelemetryConfiguration>(provider =>
+                        provider.GetService<IOptions<TelemetryConfiguration>>().Value);
+
+                    services.TryAddSingleton<IApplicationIdProvider, ApplicationInsightsApplicationIdProvider>();
+
+                    services.AddSingleton<TelemetryClient>();
+
+                    services.AddOptions();
+                    services.AddSingleton<IOptions<TelemetryConfiguration>, TelemetryConfigurationOptions>();
+                    services
+                        .AddSingleton<IConfigureOptions<TelemetryConfiguration>, TelemetryConfigurationOptionsSetup>();
+
+                    // NetStandard2.0 has a package reference to Microsoft.Extensions.Logging.ApplicationInsights, and
+                    // enables ApplicationInsightsLoggerProvider by default.
+#if NETSTANDARD2_0
+                    services.AddLogging(loggingBuilder =>
+                    {
+                         loggingBuilder.AddApplicationInsights();
+
+                        // The default behavior is to capture only logs above Warning level from all categories.
+                        // This can achieved with this code level filter -> loggingBuilder.AddFilter<Microsoft.Extensions.Logging.ApplicationInsights.ApplicationInsightsLoggerProvider>("",LogLevel.Warning);
+                        // However, this will make it impossible to override this behavior from Configuration like below using appsettings.json:
+                        // "ApplicationInsights": {
+                        // "LogLevel": {
+                        // "": "Error"
+                        // }
+                        // },
+                        // The reason is as both rules will match the filter, the last one added wins.
+                        // To ensure that the default filter is in the beginning of filter rules, so that user override from Configuration will always win,
+                        // we add code filter rule to the 0th position as below.
+                         loggingBuilder.Services.Configure<LoggerFilterOptions>(
+                        options => options.Rules.Insert(
+                            0,
+                            new LoggerFilterRule(
+                                "Microsoft.Extensions.Logging.ApplicationInsights.ApplicationInsightsLoggerProvider", null,
+                                LogLevel.Trace, null)));
+                    });
+#endif
+                }
+
+                return services;
+            }
+            catch (Exception e)
+            {
+                AspNetCoreEventSource.Instance.LogWarning(e.Message);
+                return services;
+            }
+        }
+
+        /// <summary>
         /// Adds an Application Insights Telemetry Processor into a service collection via a <see cref="ITelemetryProcessorFactory"/>.
         /// </summary>
         /// <typeparam name="T">Type of the telemetry processor to add.</typeparam>
