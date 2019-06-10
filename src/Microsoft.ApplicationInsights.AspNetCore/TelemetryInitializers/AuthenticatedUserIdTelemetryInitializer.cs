@@ -1,5 +1,6 @@
 ﻿namespace Microsoft.ApplicationInsights.AspNetCore.TelemetryInitializers
 {
+    using Microsoft.ApplicationInsights.AspNetCore.Extensibility.Implementation.Tracing;
     using Microsoft.ApplicationInsights.AspNetCore.Extensions;
     using Microsoft.ApplicationInsights.Channel;
     using Microsoft.ApplicationInsights.DataContracts;
@@ -29,16 +30,32 @@
         {
             if (this.enabled)
             {
-                if (string.IsNullOrEmpty(telemetry.Context.User.AuthenticatedUserId))
+                if (!string.IsNullOrEmpty(telemetry.Context.User.AuthenticatedUserId))
                 {
-                    var userIdentity = platformContext.User?.Identity;
-
-                    if (userIdentity != null &&
-                        userIdentity.IsAuthenticated)                    
-                    {
-                        telemetry.Context.User.AuthenticatedUserId = userIdentity.Name;
-                    }
+                    AspNetCoreEventSource.Instance.LogAuthenticatedUserIdTelemetryInitializerOnInitializeTelemetryAuthenticatedUserIdAlreadySet();
+                    return;
                 }
+
+                if (string.IsNullOrEmpty(requestTelemetry.Context.User.AuthenticatedUserId))
+                {
+                    UpdateRequestTelemetryFromPlatformContext(requestTelemetry, platformContext);
+                }
+
+                if (!string.IsNullOrEmpty(requestTelemetry.Context.User.AuthenticatedUserId))
+                {
+                    telemetry.Context.User.AuthenticatedUserId = requestTelemetry.Context.User.AuthenticatedUserId;
+                }
+            }
+        }
+
+        private static void UpdateRequestTelemetryFromPlatformContext(RequestTelemetry requestTelemetry, HttpContext platformContext)
+        {
+            var userIdentity = platformContext.User?.Identity;
+
+            if (userIdentity != null &&
+                userIdentity.IsAuthenticated)
+            {
+                requestTelemetry.Context.User.AuthenticatedUserId = userIdentity.Name;
             }
         }
     }

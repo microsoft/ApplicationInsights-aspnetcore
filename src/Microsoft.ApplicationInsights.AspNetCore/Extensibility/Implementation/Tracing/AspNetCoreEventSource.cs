@@ -102,6 +102,16 @@ namespace Microsoft.ApplicationInsights.AspNetCore.Extensibility.Implementation.
         }
 
         /// <summary>
+        /// Logs an event for the AuthenticatedUserIdTelemetryInitializer OnInitializeTelemetry method when the AuthenticatedUserId is already set.
+        /// </summary>
+        /// <param name="appDomainName">An ignored placeholder to make EventSource happy.</param>
+        [Event(8, Message = "AuthenticatedUserIdTelemetryInitializer.OnInitializeTelemetry - telemetry.Context.User.AuthenticatedUserId is already set, returning.", Level = EventLevel.Warning, Keywords = Keywords.Diagnostics)]
+        public void LogAuthenticatedUserIdTelemetryInitializerOnInitializeTelemetryAuthenticatedUserIdAlreadySet(string appDomainName = "Incorrect")
+        {
+            this.WriteEvent(8, this.ApplicationName);
+        }
+
+        /// <summary>
         /// Logs an event for the HostingDiagnosticListener OnHttpRequestInStart method when the current activity is null.
         /// </summary>
         /// <param name="appDomainName">An ignored placeholder to make EventSource happy.</param>
