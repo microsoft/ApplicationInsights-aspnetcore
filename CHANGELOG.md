@@ -2,6 +2,7 @@
 
 ## Version develop
 - [Fix: Add `IJavaScriptSnippet` service interface and update the `IServiceCollection` extension to register it for `JavaScriptSnippet`.](https://github.com/microsoft/ApplicationInsights-aspnetcore/issues/890)
+- [Added option EnableAuthenticationTracking to add AuthenticatedUserId to server-side telemetries](https://github.com/Microsoft/ApplicationInsights-aspnetcore/issues/894)
 
 ## Version 2.7.0
 - Updated Web/Base SDK version dependency to 2.10.0
