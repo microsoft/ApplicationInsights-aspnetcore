@@ -65,6 +65,7 @@
 
         /// <summary>
         /// Gets or sets a value indicating whether the currently authenticated user is added to telemetries or not.
+        /// This applies to server-side telemetry only, see <see cref="EnableAuthenticationTrackingJavaScript"/> for client-side telemetry.
         /// </summary>
         public bool EnableAuthenticationTracking { get; set; }
 
