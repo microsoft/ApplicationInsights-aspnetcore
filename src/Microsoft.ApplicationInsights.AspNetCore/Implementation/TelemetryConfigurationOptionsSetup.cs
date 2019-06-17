@@ -14,6 +14,7 @@ namespace Microsoft.Extensions.DependencyInjection
     using Microsoft.ApplicationInsights.Extensibility.Implementation.Tracing;
     using Microsoft.ApplicationInsights.Extensibility.W3C;
     using Microsoft.ApplicationInsights.WindowsServer.Channel.Implementation;
+    using Microsoft.ApplicationInsights.DataContracts;
 
     /// <summary>
     /// Initializes TelemetryConfiguration based on values in <see cref="ApplicationInsightsServiceOptions"/>
@@ -159,13 +160,16 @@ namespace Microsoft.Extensions.DependencyInjection
             {
                 AdaptiveSamplingPercentageEvaluatedCallback samplingCallback = (ratePerSecond, currentPercentage, newPercentage, isChanged, estimatorSettings) =>
                 {
-                    configuration.LastObservedRequestSamplingPercentage = newPercentage;
+                    if (isChanged)
+                    {
+                        configuration.SetLastObservedSamplingPercentage(SamplingTelemetryItemTypes.Request, newPercentage);
+                    }
                 };
                 SamplingPercentageEstimatorSettings settings = new SamplingPercentageEstimatorSettings();
                 settings.InitialSamplingPercentage = 1;
                 settings.MaxTelemetryItemsPerSecond = 5;
                 configuration.DefaultTelemetrySink.TelemetryProcessorChainBuilder.UseAdaptiveSampling(settings, samplingCallback, excludedTypes: "Event");
-                configuration.LastObservedRequestSamplingPercentage = 1;
+                configuration.SetLastObservedSamplingPercentage(SamplingTelemetryItemTypes.Request, 1);
 
                 configuration.DefaultTelemetrySink.TelemetryProcessorChainBuilder.UseAdaptiveSampling(5, includedTypes: "Event");
             }

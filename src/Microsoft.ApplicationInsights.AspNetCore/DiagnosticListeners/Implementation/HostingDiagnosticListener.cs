@@ -1,15 +1,12 @@
 ﻿namespace Microsoft.ApplicationInsights.AspNetCore.DiagnosticListeners
 {
-    using System;
-    using System.Buffers;
-    using System.Collections.Concurrent;
+    using System;    
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Globalization;
     using System.Linq;
     using System.Net.Http.Headers;
-    using System.Text;
-    using System.Threading;
+    using System.Text;    
     using Extensibility.Implementation.Tracing;
     using Microsoft.ApplicationInsights.AspNetCore.DiagnosticListeners.Implementation;
     using Microsoft.ApplicationInsights.AspNetCore.Extensions;
@@ -21,51 +18,6 @@
     using Microsoft.ApplicationInsights.Extensibility.W3C;
     using Microsoft.AspNetCore.Http;
     using Microsoft.Extensions.Primitives;
-
-    // internal class ObjectPool<T>
-    // {
-    //    private ConcurrentBag<T> _objects;
-    //    private Func<T> _objectGenerator;
-
-    //    public ObjectPool(Func<T> objectGenerator)
-    //    {            
-    //        _objects = new ConcurrentBag<T>();
-    //        _objectGenerator = objectGenerator;
-    //    }
-
-    //    public T GetObject()
-    //    {
-    //        T item;
-    //        if (_objects.TryTake(out item)) return item;
-    //        return _objectGenerator();
-    //    }
-
-    //    public void PutObject(T item)
-    //    {
-    //        _objects.Add(item);
-    //    }
-    // }
-
-    internal class RequestPoolPolicy : Microsoft.Extensions.ObjectPool.IPooledObjectPolicy<RequestTelemetry>
-    {
-        public RequestTelemetry Create()
-        {
-            return new RequestTelemetry();
-        }
-
-        public bool Return(RequestTelemetry obj)
-        {
-            if (obj == null)
-            {
-                return false;
-            }
-            else
-            {
-                obj.ClearState();
-                return true;
-            }
-        }
-    }
 
     /// <summary>
     /// <see cref="IApplicationInsightDiagnosticListener"/> implementation that listens for events specific to AspNetCore hosting layer.
@@ -91,10 +43,6 @@
         private readonly PropertyFetcher routeValuesFetcher = new PropertyFetcher("Values");
         private static readonly ActiveSubsciptionManager SubscriptionManager = new ActiveSubsciptionManager();
         private const string ActivityCreatedByHostingDiagnosticListener = "ActivityCreatedByHostingDiagnosticListener";
-
-        // private static ObjectPool<RequestTelemetry> requestPool = new ObjectPool<RequestTelemetry>(() => new RequestTelemetry());
-
-        private static Microsoft.Extensions.ObjectPool.ObjectPool<RequestTelemetry> requestPool = new Microsoft.Extensions.ObjectPool.DefaultObjectPool<RequestTelemetry>(new RequestPoolPolicy());
 
         private string lastIKeyLookedUp;
         private string lastAppIdUsed;
@@ -515,8 +463,7 @@
 
         private RequestTelemetry InitializeRequestTelemetry(HttpContext httpContext, Activity activity, bool isActivityCreatedFromRequestIdHeader, long timestamp)
         {
-            // var requestTelemetry = new RequestTelemetry();
-            var requestTelemetry = requestPool.Get();
+            var requestTelemetry = new RequestTelemetry();
 
             if (!this.enableW3CHeaders)
             {
@@ -529,13 +476,12 @@
             }
 
             if (!string.IsNullOrEmpty(requestTelemetry.Context.Operation.Id)
-                && this.configuration.LastObservedRequestSamplingPercentage.HasValue
-                && GetSamplingScore(requestTelemetry) >= this.configuration.LastObservedRequestSamplingPercentage)
+                && SamplingScoreGenerator.GetSamplingScore(requestTelemetry.Context.Operation.Id) >= this.configuration.GetLastObservedSamplingPercentage(requestTelemetry.ItemTypeFlag))
             {
-                ((ISupportSampling)requestTelemetry).IsProactivelySampledOut = true;
+                requestTelemetry.IsProactivelySampledOut = true;
             }            
 
-            if (!((ISupportSampling)requestTelemetry).IsProactivelySampledOut)
+            if (!requestTelemetry.IsProactivelySampledOut)
             {
                 foreach (var prop in activity.Baggage)
                 {
@@ -554,34 +500,6 @@
             httpContext.Features.Set(requestTelemetry);
 
             return requestTelemetry;
-        }
-
-        internal static double GetSamplingScore(ITelemetry telemetry)
-        {
-            double samplingScore = (double)GetSamplingHashCode(telemetry.Context.Operation.Id) / int.MaxValue;
-            return samplingScore * 100;
-        }
-
-        internal static int GetSamplingHashCode(string input)
-        {
-            if (string.IsNullOrEmpty(input))
-            {
-                return 0;
-            }
-
-            while (input.Length < 8)
-            {
-                input = input + input;
-            }
-
-            int hash = 5381;
-
-            for (int i = 0; i < input.Length; i++)
-            {
-                hash = ((hash << 5) + hash) + (int)input[i];
-            }
-
-            return hash == int.MinValue ? int.MaxValue : Math.Abs(hash);
         }
 
         private string GetAppIdFromRequestHeader(IHeaderDictionary requestHeaders, string instrumentationKey)
@@ -622,6 +540,7 @@
                 {
                     if (this.lastIKeyLookedUp != requestTelemetry.Context.InstrumentationKey)
                     {
+                        this.lastIKeyLookedUp = requestTelemetry.Context.InstrumentationKey;
                         this.applicationIdProvider?.TryGetApplicationId(requestTelemetry.Context.InstrumentationKey, out this.lastAppIdUsed);
                     }
 
@@ -670,15 +589,13 @@
                     telemetry.Name = httpContext.Request.Method + " " + httpContext.Request.Path.Value;
                 }
 
-                if (!((ISupportSampling)telemetry).IsProactivelySampledOut)
+                if (!telemetry.IsProactivelySampledOut)
                 {
                     telemetry.Url = httpContext.Request.GetUri();
                 }
 
                 telemetry.Context.GetInternalContext().SdkVersion = this.sdkVersion;                
                 this.client.TrackRequest(telemetry);
-
-                requestPool.Return(telemetry);
 
                 var activity = httpContext?.Features.Get<Activity>();
                 if (activity != null && activity.OperationName == ActivityCreatedByHostingDiagnosticListener)
@@ -872,68 +789,6 @@
                     this.OnHostingException(httpContext, exception);
                 }
             }
-            else
-            {
-                AspNetCoreEventSource.Instance.NotActiveListenerNoTracking("Dmitry DS Event: " + value.Key, string.Empty);
-            }
-            
-            // switch (value.Key)
-            // {
-            //    case "Microsoft.AspNetCore.Hosting.HttpRequestIn.Start":
-            //        httpContext = this.httpContextFetcherStart.Fetch(value.Value) as HttpContext;
-            //        if (httpContext != null)
-            //        {
-            //            this.OnHttpRequestInStart(httpContext);
-            //        }
-            //        break;
-            //    case "Microsoft.AspNetCore.Hosting.HttpRequestIn.Stop":
-            //        httpContext = this.httpContextFetcherStop.Fetch(value.Value) as HttpContext;
-            //        if (httpContext != null)
-            //        {
-            //            this.OnHttpRequestInStop(httpContext);
-            //        }
-            //        break;
-            //    case "Microsoft.AspNetCore.Hosting.BeginRequest":
-            //        httpContext = this.httpContextFetcherBeginRequest.Fetch(value.Value) as HttpContext;
-            //        timestamp = this.timestampFetcherBeginRequest.Fetch(value.Value) as long?;
-            //        if (httpContext != null && timestamp.HasValue)
-            //        {
-            //            this.OnBeginRequest(httpContext, timestamp.Value);
-            //        }
-            //        break;
-            //    case "Microsoft.AspNetCore.Hosting.EndRequest":
-            //        httpContext = this.httpContextFetcherEndRequest.Fetch(value.Value) as HttpContext;
-            //        timestamp = this.timestampFetcherEndRequest.Fetch(value.Value) as long?;
-            //        if (httpContext != null && timestamp.HasValue)
-            //        {
-            //            this.OnEndRequest(httpContext, timestamp.Value);
-            //        }
-            //        break;
-            //    case "Microsoft.AspNetCore.Diagnostics.UnhandledException":
-            //        httpContext = this.httpContextFetcherDiagExceptionUnhandled.Fetch(value.Value) as HttpContext;
-            //        exception = this.exceptionFetcherDiagExceptionUnhandled.Fetch(value.Value) as Exception;
-            //        if (httpContext != null && exception != null)
-            //        {
-            //            this.OnDiagnosticsUnhandledException(httpContext, exception);
-            //        }
-            //        break;
-            //    case "Microsoft.AspNetCore.Diagnostics.HandledException":
-            //        httpContext = this.httpContextFetcherDiagExceptionHandled.Fetch(value.Value) as HttpContext;
-            //        exception = this.exceptionFetcherDiagExceptionHandled.Fetch(value.Value) as Exception;
-            //        if (httpContext != null && exception != null)
-            //        {
-            //            this.OnDiagnosticsHandledException(httpContext, exception);
-            //        }
-            //        break;
-            //    case "Microsoft.AspNetCore.Hosting.UnhandledException":
-            //        httpContext = this.httpContextFetcherHostingExceptionUnhandled.Fetch(value.Value) as HttpContext;
-            //        exception = this.exceptionFetcherHostingExceptionUnhandled.Fetch(value.Value) as Exception;
-            //        if (httpContext != null && exception != null)
-            //        {
-            //            this.OnHostingException(httpContext, exception);
-            //        }
-            //        break;
-            // }
         }
 
         /// <inheritdoc />
