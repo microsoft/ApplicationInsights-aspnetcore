@@ -82,9 +82,6 @@ namespace Microsoft.ApplicationInsights.AspNetCore
                             this.CollectionOptions.EnableW3CDistributedTracing,
                             enableNewDiagnosticEvents));
 
-                        // this.diagnosticListeners.Add
-                        //    (new MvcDiagnosticsListener());
-
                         this.subscriptions?.Add(DiagnosticListener.AllListeners.Subscribe(this));
 
                         this.isInitialized = true;
@@ -113,16 +110,6 @@ namespace Microsoft.ApplicationInsights.AspNetCore
                         applicationInsightDiagnosticListener.OnSubscribe();
                     }
                 }
-
-                //if (applicationInsightDiagnosticListener is MvcDiagnosticsListener)
-                //{
-                //    if (applicationInsightDiagnosticListener.ListenerName == value.Name)
-                //    {
-                //        Predicate<string> mvcPredicate = (string eventName) => eventName == "Microsoft.AspNetCore.Mvc.BeforeAction";
-                //        subs.Add(value.Subscribe(applicationInsightDiagnosticListener, mvcPredicate));
-                //        applicationInsightDiagnosticListener.OnSubscribe();
-                //    }
-                //}
             }
         }
 

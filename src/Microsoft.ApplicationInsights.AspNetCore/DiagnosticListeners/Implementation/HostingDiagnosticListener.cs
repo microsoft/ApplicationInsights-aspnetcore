@@ -1,12 +1,12 @@
 ﻿namespace Microsoft.ApplicationInsights.AspNetCore.DiagnosticListeners
 {
-    using System;    
+    using System;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Globalization;
     using System.Linq;
     using System.Net.Http.Headers;
-    using System.Text;    
+    using System.Text;
     using Extensibility.Implementation.Tracing;
     using Microsoft.ApplicationInsights.AspNetCore.DiagnosticListeners.Implementation;
     using Microsoft.ApplicationInsights.AspNetCore.Extensions;
@@ -123,7 +123,7 @@
             SubscriptionManager.Attach(this);
         }
 
-        /// <inheritdoc />
+        /// <inheritdoc/>
         public string ListenerName { get; } = "Microsoft.AspNetCore";
 
         /// <summary>
