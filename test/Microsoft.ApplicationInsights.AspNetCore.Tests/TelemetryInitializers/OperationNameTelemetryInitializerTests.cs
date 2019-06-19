@@ -16,9 +16,26 @@ namespace Microsoft.ApplicationInsights.AspNetCore.Tests.TelemetryInitializers
     using Xunit;
     using Microsoft.AspNetCore.Routing.Tree;
     using Microsoft.AspNetCore.Http;
+    using System.Reflection.Metadata.Ecma335;
+
     public class OperationNameTelemetryInitializerTests
     {
         private const string TestListenerName = "TestListener";
+
+        private HostingDiagnosticListener CreateHostingListener(bool aspNetCore2)
+        {
+            var hostingListener = new HostingDiagnosticListener(
+                CommonMocks.MockTelemetryClient(telemetry => {}),
+                CommonMocks.GetMockApplicationIdProvider(),
+                injectResponseHeaders: true,
+                trackExceptions: true,
+                enableW3CHeaders: false,
+                enableNewDiagnosticEvents: aspNetCore2);
+            hostingListener.OnSubscribe();
+
+            return hostingListener;
+        }
+
         [Fact]
         public void InitializeThrowIfHttpContextAccessorIsNull()
         {
@@ -85,7 +102,7 @@ namespace Microsoft.ApplicationInsights.AspNetCore.Tests.TelemetryInitializers
             var contextAccessor = HttpContextAccessorHelper.CreateHttpContextAccessor(new RequestTelemetry(), actionContext);
 
             var telemetryListener = new DiagnosticListener(TestListenerName);
-            var initializer = new MvcDiagnosticsListener();
+            var initializer = CreateHostingListener(false);
             telemetryListener.Subscribe(initializer);
             telemetryListener.Write("Microsoft.AspNetCore.Mvc.BeforeAction",
                 new { httpContext = contextAccessor.HttpContext, routeData = actionContext.RouteData });
@@ -106,7 +123,7 @@ namespace Microsoft.ApplicationInsights.AspNetCore.Tests.TelemetryInitializers
             var contextAccessor = HttpContextAccessorHelper.CreateHttpContextAccessor(new RequestTelemetry(), actionContext);
 
             var telemetryListener = new DiagnosticListener(TestListenerName);
-            var initializer = new MvcDiagnosticsListener();
+            var initializer = CreateHostingListener(false);
             telemetryListener.Subscribe(initializer);
             telemetryListener.Write("Microsoft.AspNetCore.Mvc.BeforeAction",
                 new { httpContext = contextAccessor.HttpContext, routeData = actionContext.RouteData });
@@ -126,7 +143,7 @@ namespace Microsoft.ApplicationInsights.AspNetCore.Tests.TelemetryInitializers
             var contextAccessor = HttpContextAccessorHelper.CreateHttpContextAccessor(new RequestTelemetry(), actionContext);
 
             var telemetryListener = new DiagnosticListener(TestListenerName);
-            var initializer = new MvcDiagnosticsListener();
+            var initializer = CreateHostingListener(false);
             telemetryListener.Subscribe(initializer);
             telemetryListener.Write("Microsoft.AspNetCore.Mvc.BeforeAction",
                 new { httpContext = contextAccessor.HttpContext, routeData = actionContext.RouteData });
@@ -148,7 +165,7 @@ namespace Microsoft.ApplicationInsights.AspNetCore.Tests.TelemetryInitializers
             var contextAccessor = HttpContextAccessorHelper.CreateHttpContextAccessor(new RequestTelemetry(), actionContext);
 
             var telemetryListener = new DiagnosticListener(TestListenerName);
-            var initializer = new MvcDiagnosticsListener();
+            var initializer = CreateHostingListener(false);
             telemetryListener.Subscribe(initializer);
             telemetryListener.Write("Microsoft.AspNetCore.Mvc.BeforeAction",
                 new { httpContext = contextAccessor.HttpContext, routeData = actionContext.RouteData });
@@ -172,7 +189,7 @@ namespace Microsoft.ApplicationInsights.AspNetCore.Tests.TelemetryInitializers
             var contextAccessor = HttpContextAccessorHelper.CreateHttpContextAccessor(new RequestTelemetry(), actionContext);
 
             var telemetryListener = new DiagnosticListener(TestListenerName);
-            var initializer = new MvcDiagnosticsListener();
+            var initializer = CreateHostingListener(false);
             telemetryListener.Subscribe(initializer);
             telemetryListener.Write("Microsoft.AspNetCore.Mvc.BeforeAction",
                 new { httpContext = contextAccessor.HttpContext, routeData = actionContext.RouteData });
@@ -193,7 +210,7 @@ namespace Microsoft.ApplicationInsights.AspNetCore.Tests.TelemetryInitializers
 
             var contextAccessor = HttpContextAccessorHelper.CreateHttpContextAccessor(new RequestTelemetry(), actionContext);
             var telemetryListener = new DiagnosticListener(TestListenerName);
-            var initializer = new MvcDiagnosticsListener();
+            var initializer = CreateHostingListener(false);
             telemetryListener.Subscribe(initializer);
             telemetryListener.Write("Microsoft.AspNetCore.Mvc.BeforeAction",
                 new { httpContext = contextAccessor.HttpContext, routeData = actionContext.RouteData });
