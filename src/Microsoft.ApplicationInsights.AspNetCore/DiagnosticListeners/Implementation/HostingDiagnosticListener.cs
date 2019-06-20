@@ -415,7 +415,12 @@
 
                 // fix parent that may be modified by non-W3C operation correlation
                 requestTelemetry.Context.Operation.ParentId = originalParentId;
-                SetAppIdInResponseHeader(httpContext, requestTelemetry);
+
+                // Only reply back with AppId if we got an indication that we need to set one
+                if (!string.IsNullOrWhiteSpace(requestTelemetry.Source))
+                {
+                    SetAppIdInResponseHeader(httpContext, requestTelemetry);
+                }
             }
         }
 
@@ -475,7 +480,7 @@
                 activity.UpdateTelemetry(requestTelemetry, false);
             }
 
-            if (!string.IsNullOrEmpty(requestTelemetry.Context.Operation.Id)
+            if (this.configuration != null && !string.IsNullOrEmpty(requestTelemetry.Context.Operation.Id)
                 && SamplingScoreGenerator.GetSamplingScore(requestTelemetry.Context.Operation.Id) >= this.configuration.GetLastObservedSamplingPercentage(requestTelemetry.ItemTypeFlag))
             {
                 requestTelemetry.IsProactivelySampledOut = true;
