@@ -82,11 +82,11 @@
   </ItemGroup>
   
   <ItemGroup>
-    <PackageReference Include="Microsoft.ApplicationInsights" Version="2.11.0-dmitry1-build40219" />
+    <PackageReference Include="Microsoft.ApplicationInsights" Version="2.11.0-dmitry2-build41916" />
     <PackageReference Include="Microsoft.ApplicationInsights.DependencyCollector" Version="2.10.0-beta4" />
     <PackageReference Include="Microsoft.ApplicationInsights.PerfCounterCollector" Version="2.10.0-beta4" />
     <PackageReference Include="Microsoft.ApplicationInsights.WindowsServer" Version="2.10.0-beta4" />
-    <PackageReference Include="Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel" Version="2.11.0-dmitry1-build40219" />
+    <PackageReference Include="Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel" Version="2.11.0-dmitry2-build41916" />
     <PackageReference Include="Microsoft.AspNetCore.Hosting" Version="1.0.2" />           
     <PackageReference Include="System.Text.Encodings.Web" Version="4.3.1" />
   </ItemGroup>
