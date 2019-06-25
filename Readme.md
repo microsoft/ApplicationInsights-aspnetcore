@@ -11,14 +11,12 @@ Linux :[![Build Status](https://mseng.visualstudio.com/AppInsights/_apis/build/s
 Microsoft Application Insights for ASP.NET Core applications
 =============================================================
 
-This repository has a code for [Application Insights monitoring](http://azure.microsoft.com/en-us/services/application-insights/) of [ASP.NET Core](https://github.com/aspnet/home) applications. Read about contribution policies on Application Insights Home [repository](https://github.com/microsoft/ApplicationInsights-home)
+This repository has a code for [Application Insights monitoring](http://azure.microsoft.com/en-us/services/application-insights/) of [ASP.NET Core](https://docs.microsoft.com/aspnet/core) applications. Read about contribution policies on Application Insights Home [repository](https://github.com/microsoft/ApplicationInsights-home)
 
 Getting Started
 ---------------
 
-[Application Insights monitoring](http://azure.microsoft.com/en-us/services/application-insights/) is a service that allows you to collect monitoring and diagnostics information about your application. The [getting started](https://github.com/Microsoft/ApplicationInsights-aspnet5/wiki/Getting-Started) guide shows how you can onboard your ASP.NET Core web application to use the Application Insights SDK.
-
-Application Insights collects a lot of information out-of-the-box such as requests, dependencies, exceptions, and usage. It also allows you to configure additional data collection.  The [configure](https://github.com/Microsoft/ApplicationInsights-aspnet5/wiki/Configure) guide demonstrates the most common tasks you may want to do.
+[Application Insights monitoring](http://azure.microsoft.com/en-us/services/application-insights/) is a service that allows you to collect monitoring and diagnostics information about your application. The [getting started](https://docs.microsoft.com/azure/azure-monitor/app/asp-net-core) guide shows how you can onboard your ASP.NET Core web application to use the Application Insights SDK.
 
 
 Repository structure
@@ -34,9 +32,9 @@ root\
     test\
         ApplicationInsights.AspNetCore.Tests - Unit tests
         FunctionalTestUtils - Test utilities for functional tests
-        MVCFramework.FunctionalTests - functional tests for MVC application targetting NetCore1.1,NetCore2.0 and NET45
-        WebApi.FunctionalTests - functional tests for Web API application targetting NetCore1.1,NetCore2.0 and NET45
-		EmptyApp.FunctionalTests - functional tests for an Empty application targetting NetCore1.1,NetCore2.0 and NET45
+        MVCFramework.FunctionalTests - functional tests for MVC application targeting NetCore1.1,NetCore2.0 and NET45
+        WebApi.FunctionalTests - functional tests for Web API application targeting NetCore1.1,NetCore2.0 and NET45
+		EmptyApp.FunctionalTests - functional tests for an Empty application targeting NetCore1.1,NetCore2.0 and NET45
         PerfTest - performance test
 ```
 
@@ -57,7 +55,7 @@ Execute the ```RunTests.cmd``` script in the repository root.
 
 You can also open the solution in Visual Studio and run tests directly from Visual Studio Test Explorer. However, as the tests has multiple targets, Test Explorer only shows the first target
 from <TargetFrameworks> in .csproj. To debug/run tests from a particular TargetFramework with Visual Studio, only option is to re-arrange the <TargetFrameworks>
-such that the intented target comes first. This is a Visual Studio limitation and is likely removed in the future.
+such that the intended target comes first. This is a Visual Studio limitation and is likely removed in the future.
 
 
 Running and writing tests

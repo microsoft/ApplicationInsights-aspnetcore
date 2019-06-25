@@ -5,8 +5,8 @@ namespace Microsoft.ApplicationInsights.AspNetCore
     using System.Diagnostics;
     using System.Reflection;
     using System.Threading;
-
     using Microsoft.ApplicationInsights.AspNetCore.DiagnosticListeners;
+    using Microsoft.ApplicationInsights.AspNetCore.Extensibility.Implementation.Tracing;
     using Microsoft.ApplicationInsights.AspNetCore.Extensions;
     using Microsoft.ApplicationInsights.Extensibility;
     using Microsoft.AspNetCore.Hosting;
@@ -26,9 +26,10 @@ namespace Microsoft.ApplicationInsights.AspNetCore
         private static readonly Predicate<string> hostingPredicate = (string eventName) => (eventName != null) ? !(eventName[21] == 'M') || eventName == "Microsoft.AspNetCore.Mvc.BeforeAction" : false;
 
         /// <summary>
-        /// RequestTrackingTelemetryModule
+        /// RequestTrackingTelemetryModule.
         /// </summary>
-        public RequestTrackingTelemetryModule() : this(null)
+        public RequestTrackingTelemetryModule() 
+            : this(null)
         {
             this.CollectionOptions = new RequestCollectionOptions();
         }
@@ -54,23 +55,25 @@ namespace Microsoft.ApplicationInsights.AspNetCore
         /// <param name="configuration">Telemetry configuration to use for initialization.</param>
         public void Initialize(TelemetryConfiguration configuration)
         {
-            if (!this.isInitialized)
+            try
             {
-                lock (this.lockObject)
+                if (!this.isInitialized)
                 {
-                    if (!this.isInitialized)
+                    lock (this.lockObject)
                     {
-                        this.telemetryClient = new TelemetryClient(configuration);
+                        if (!this.isInitialized)
+                        {
+                            this.telemetryClient = new TelemetryClient(configuration);
 
-                        bool enableNewDiagnosticEvents = true;
-                        try
-                        {
-                            enableNewDiagnosticEvents = typeof(IWebHostBuilder).GetTypeInfo().Assembly.GetName().Version.Major >= 2;
-                        }
-                        catch (Exception)
-                        {
-                            // ignore any errors
-                        }
+                            bool enableNewDiagnosticEvents = true;
+                            try
+                            {
+                                enableNewDiagnosticEvents = typeof(IWebHostBuilder).GetTypeInfo().Assembly.GetName().Version.Major >= 2;
+                            }
+                            catch (Exception)
+                            {
+                                // ignore any errors
+                            }
 
                         this.diagnosticListener = new HostingDiagnosticListener(
                             configuration,
@@ -81,11 +84,16 @@ namespace Microsoft.ApplicationInsights.AspNetCore
                             this.CollectionOptions.EnableW3CDistributedTracing,
                             enableNewDiagnosticEvents);
 
-                        this.subscriptions?.Add(DiagnosticListener.AllListeners.Subscribe(this));
+                            this.subscriptions?.Add(DiagnosticListener.AllListeners.Subscribe(this));
 
-                        this.isInitialized = true;
+                            this.isInitialized = true;
+                        }
                     }
                 }
+            }
+            catch (Exception e)
+            {
+                AspNetCoreEventSource.Instance.RequestTrackingModuleInitializationFailed(e.Message);
             }
         }
 
@@ -118,6 +126,10 @@ namespace Microsoft.ApplicationInsights.AspNetCore
             this.Dispose(true);
         }
 
+        /// <summary>
+        /// Dispose the class.
+        /// </summary>
+        /// <param name="disposing">Indicates if this class is currently being disposed.</param>
         protected virtual void Dispose(bool disposing)
         {
             if (!disposing)
