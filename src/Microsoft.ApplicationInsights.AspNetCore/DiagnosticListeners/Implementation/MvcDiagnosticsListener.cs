@@ -103,15 +103,6 @@ namespace Microsoft.ApplicationInsights.AspNetCore.DiagnosticListeners
         /// <inheritdoc />
         public void OnNext(KeyValuePair<string, object> value)
         {
-            // var context = httpContextFetcher.Fetch(value.Value) as HttpContext;
-            // var routeData = routeDataFetcher.Fetch(value.Value);
-            // var routeValues = routeValuesFetcher.Fetch(routeData) as IDictionary<string, object>;
-
-            // if (context != null && routeValues != null)
-            // {
-            //    this.OnBeforeAction(context, routeValues);
-            // }
-
             if (value.Key == "Microsoft.AspNetCore.Mvc.BeforeAction")
             {
                 var context = httpContextFetcher.Fetch(value.Value) as HttpContext;

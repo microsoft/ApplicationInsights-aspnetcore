@@ -38,9 +38,6 @@
         private readonly bool injectResponseHeaders;
         private readonly bool trackExceptions;
         private readonly bool enableW3CHeaders;
-        private readonly PropertyFetcher httpContextFetcher = new PropertyFetcher("httpContext");
-        private readonly PropertyFetcher routeDataFetcher = new PropertyFetcher("routeData");
-        private readonly PropertyFetcher routeValuesFetcher = new PropertyFetcher("Values");
         private static readonly ActiveSubsciptionManager SubscriptionManager = new ActiveSubsciptionManager();
         private const string ActivityCreatedByHostingDiagnosticListener = "ActivityCreatedByHostingDiagnosticListener";
 
@@ -50,6 +47,9 @@
         #region fetchers
 
         // fetch is unique per event and per property
+        private readonly PropertyFetcher httpContextFetcherOnBeforeAction = new PropertyFetcher("httpContext");
+        private readonly PropertyFetcher routeDataFetcher = new PropertyFetcher("routeData");
+        private readonly PropertyFetcher routeValuesFetcher = new PropertyFetcher("Values");
         private readonly PropertyFetcher httpContextFetcherStart = new PropertyFetcher("HttpContext");
         private readonly PropertyFetcher httpContextFetcherStop = new PropertyFetcher("HttpContext");
         private readonly PropertyFetcher httpContextFetcherBeginRequest = new PropertyFetcher("httpContext");
@@ -159,13 +159,9 @@
                 {
                     name = controllerString;
 
-                    object action;
-                    routeValues.TryGetValue("action", out action);
-                    string actionString = (action == null) ? string.Empty : action.ToString();
-
-                    if (!string.IsNullOrEmpty(actionString))
+                    if (routeValues.TryGetValue("action", out var action) && action != null)
                     {
-                        name += "/" + actionString;
+                        name += "/" + action.ToString();
                     }
 
                     if (routeValues.Keys.Count > 2)
@@ -298,7 +294,7 @@
                 requestTelemetry.Context.Operation.ParentId = originalParentId;
 
                 // Only reply back with AppId if we got an indication that we need to set one
-                if (!string.IsNullOrWhiteSpace(requestTelemetry.Source))
+                if (requestTelemetry.Source != null)
                 {
                     SetAppIdInResponseHeader(httpContext, requestTelemetry);
                 }
@@ -417,7 +413,7 @@
                 requestTelemetry.Context.Operation.ParentId = originalParentId;
 
                 // Only reply back with AppId if we got an indication that we need to set one
-                if (!string.IsNullOrWhiteSpace(requestTelemetry.Source))
+                if (requestTelemetry.Source != null)
                 {
                     SetAppIdInResponseHeader(httpContext, requestTelemetry);
                 }
@@ -597,9 +593,9 @@
                 if (!telemetry.IsProactivelySampledOut)
                 {
                     telemetry.Url = httpContext.Request.GetUri();
+                    telemetry.Context.GetInternalContext().SdkVersion = this.sdkVersion;
                 }
-
-                telemetry.Context.GetInternalContext().SdkVersion = this.sdkVersion;                
+                
                 this.client.TrackRequest(telemetry);
 
                 var activity = httpContext?.Features.Get<Activity>();
@@ -739,7 +735,7 @@
             }
             else if (value.Key == "Microsoft.AspNetCore.Mvc.BeforeAction")
             {
-                var context = httpContextFetcher.Fetch(value.Value) as HttpContext;
+                var context = httpContextFetcherOnBeforeAction.Fetch(value.Value) as HttpContext;
                 var routeData = routeDataFetcher.Fetch(value.Value);
                 var routeValues = routeValuesFetcher.Fetch(routeData) as IDictionary<string, object>;
 

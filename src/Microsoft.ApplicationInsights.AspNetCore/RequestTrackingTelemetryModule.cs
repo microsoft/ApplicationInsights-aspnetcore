@@ -2,7 +2,6 @@ namespace Microsoft.ApplicationInsights.AspNetCore
 {
     using System;
     using System.Collections.Concurrent;
-    using System.Collections.Generic;
     using System.Diagnostics;
     using System.Reflection;
     using System.Threading;
@@ -10,7 +9,6 @@ namespace Microsoft.ApplicationInsights.AspNetCore
     using Microsoft.ApplicationInsights.AspNetCore.DiagnosticListeners;
     using Microsoft.ApplicationInsights.AspNetCore.Extensions;
     using Microsoft.ApplicationInsights.Extensibility;
-
     using Microsoft.AspNetCore.Hosting;
 
     /// <summary>
@@ -21,9 +19,11 @@ namespace Microsoft.ApplicationInsights.AspNetCore
         private TelemetryClient telemetryClient;
         private readonly IApplicationIdProvider applicationIdProvider;
         private ConcurrentBag<IDisposable> subscriptions;
-        private readonly List<IApplicationInsightDiagnosticListener> diagnosticListeners;
+        private HostingDiagnosticListener diagnosticListener;
         private bool isInitialized = false;
         private readonly object lockObject = new object();
+
+        private static readonly Predicate<string> hostingPredicate = (string eventName) => (eventName != null) ? !(eventName[21] == 'M') || eventName == "Microsoft.AspNetCore.Mvc.BeforeAction" : false;
 
         /// <summary>
         /// RequestTrackingTelemetryModule
@@ -41,7 +41,6 @@ namespace Microsoft.ApplicationInsights.AspNetCore
         {
             this.applicationIdProvider = applicationIdProvider;
             this.subscriptions = new ConcurrentBag<IDisposable>();
-            this.diagnosticListeners = new List<IApplicationInsightDiagnosticListener>();
         }
 
         /// <summary>
@@ -73,14 +72,14 @@ namespace Microsoft.ApplicationInsights.AspNetCore
                             // ignore any errors
                         }
 
-                        this.diagnosticListeners.Add(new HostingDiagnosticListener(
+                        this.diagnosticListener = new HostingDiagnosticListener(
                             configuration,
                             this.telemetryClient,
                             this.applicationIdProvider,
                             this.CollectionOptions.InjectResponseHeaders,
                             this.CollectionOptions.TrackExceptions,
                             this.CollectionOptions.EnableW3CDistributedTracing,
-                            enableNewDiagnosticEvents));
+                            enableNewDiagnosticEvents);
 
                         this.subscriptions?.Add(DiagnosticListener.AllListeners.Subscribe(this));
 
@@ -99,18 +98,8 @@ namespace Microsoft.ApplicationInsights.AspNetCore
                 return;
             }
 
-            foreach (var applicationInsightDiagnosticListener in this.diagnosticListeners)
-            {
-                if (applicationInsightDiagnosticListener is HostingDiagnosticListener)
-                {
-                    if (applicationInsightDiagnosticListener.ListenerName == value.Name)
-                    {
-                        Predicate<string> hostingPredicate = (string eventName) => (eventName != null) ? !(eventName[21] == 'M') || eventName == "Microsoft.AspNetCore.Mvc.BeforeAction" : false;
-                        subs.Add(value.Subscribe(applicationInsightDiagnosticListener, hostingPredicate));
-                        applicationInsightDiagnosticListener.OnSubscribe();
-                    }
-                }
-            }
+            subs.Add(value.Subscribe(this.diagnosticListener, hostingPredicate));
+            this.diagnosticListener.OnSubscribe();
         }
 
         /// <inheritdoc />
@@ -147,9 +136,9 @@ namespace Microsoft.ApplicationInsights.AspNetCore
                 subscription.Dispose();
             }
 
-            foreach (var listener in this.diagnosticListeners)
+            if (this.diagnosticListener != null)
             {
-                listener.Dispose();
+                this.diagnosticListener.Dispose();
             }
         }
     }
