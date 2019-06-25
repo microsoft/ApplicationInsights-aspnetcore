@@ -63,6 +63,7 @@
 
         private readonly PropertyFetcher timestampFetcherBeginRequest = new PropertyFetcher("timestamp");
         private readonly PropertyFetcher timestampFetcherEndRequest = new PropertyFetcher("timestamp");
+        #endregion
 
         /// <summary>
         /// Initializes a new instance of the <see cref="HostingDiagnosticListener"/> class.
@@ -460,7 +461,7 @@
             this.OnException(httpContext, exception);
         }
 
-        private RequestTelemetry InitializeRequestTelemetry(HttpContext httpContext, Activity activity, bool isActivityCreatedFromRequestIdHeader, long timestamp)
+        private RequestTelemetry InitializeRequestTelemetry(HttpContext httpContext, Activity activity, long timestamp)
         {
             var requestTelemetry = new RequestTelemetry();
 
