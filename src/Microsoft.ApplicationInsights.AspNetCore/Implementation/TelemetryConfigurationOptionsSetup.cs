@@ -173,10 +173,10 @@ namespace Microsoft.Extensions.DependencyInjection
                     }
                 };
                 SamplingPercentageEstimatorSettings settings = new SamplingPercentageEstimatorSettings();
-                settings.InitialSamplingPercentage = 1;
+                //settings.InitialSamplingPercentage = 1;
                 settings.MaxTelemetryItemsPerSecond = 5;
                 configuration.DefaultTelemetrySink.TelemetryProcessorChainBuilder.UseAdaptiveSampling(settings, samplingCallback, excludedTypes: "Event");
-                configuration.SetLastObservedSamplingPercentage(SamplingTelemetryItemTypes.Request, 1);
+                //configuration.SetLastObservedSamplingPercentage(SamplingTelemetryItemTypes.Request, 1);
 
                 configuration.DefaultTelemetrySink.TelemetryProcessorChainBuilder.UseAdaptiveSampling(5, includedTypes: "Event");
             }

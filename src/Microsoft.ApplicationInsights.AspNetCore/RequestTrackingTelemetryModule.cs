@@ -106,8 +106,11 @@ namespace Microsoft.ApplicationInsights.AspNetCore
                 return;
             }
 
-            subs.Add(value.Subscribe(this.diagnosticListener, hostingPredicate));
-            this.diagnosticListener.OnSubscribe();
+            if (this.diagnosticListener.ListenerName == value.Name)
+            {
+                subs.Add(value.Subscribe(this.diagnosticListener));
+                this.diagnosticListener.OnSubscribe();
+            }
         }
 
         /// <inheritdoc />
