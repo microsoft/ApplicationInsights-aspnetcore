@@ -294,7 +294,7 @@
                 requestTelemetry.Context.Operation.ParentId = originalParentId;
 
                 // Only reply back with AppId if we got an indication that we need to set one
-                if (requestTelemetry.Source != null)
+                if (!string.IsNullOrWhiteSpace(requestTelemetry.Source))
                 {
                     SetAppIdInResponseHeader(httpContext, requestTelemetry);
                 }
