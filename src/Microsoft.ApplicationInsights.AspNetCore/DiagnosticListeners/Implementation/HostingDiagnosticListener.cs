@@ -6,14 +6,15 @@
     using System.Globalization;
     using System.Linq;
     using System.Text;
-    using Extensibility.Implementation.Tracing;
     using Microsoft.ApplicationInsights.AspNetCore.DiagnosticListeners.Implementation;
+    using Microsoft.ApplicationInsights.AspNetCore.Extensibility.Implementation.Tracing;
     using Microsoft.ApplicationInsights.AspNetCore.Extensions;
     using Microsoft.ApplicationInsights.Channel;
     using Microsoft.ApplicationInsights.Common;
     using Microsoft.ApplicationInsights.DataContracts;
     using Microsoft.ApplicationInsights.Extensibility;
     using Microsoft.ApplicationInsights.Extensibility.Implementation;
+    using Microsoft.ApplicationInsights.Extensibility.Implementation.Experimental;
     using Microsoft.ApplicationInsights.Extensibility.W3C;
     using Microsoft.AspNetCore.Http;
     using Microsoft.Extensions.Primitives;
@@ -32,6 +33,8 @@
         /// </summary>
         private readonly bool enableNewDiagnosticEvents;
 
+        private readonly bool proactiveSamplingEnabled = false;
+
         private readonly TelemetryConfiguration configuration;
         private readonly TelemetryClient client;
         private readonly IApplicationIdProvider applicationIdProvider;
@@ -40,9 +43,6 @@
         private readonly bool trackExceptions;
         private readonly bool enableW3CHeaders;
         private static readonly ActiveSubsciptionManager SubscriptionManager = new ActiveSubsciptionManager();
-
-        private string lastIKeyLookedUp;
-        private string lastAppIdUsed;
 
         #region fetchers
 
@@ -64,6 +64,9 @@
         private readonly PropertyFetcher timestampFetcherBeginRequest = new PropertyFetcher("timestamp");
         private readonly PropertyFetcher timestampFetcherEndRequest = new PropertyFetcher("timestamp");
         #endregion
+
+        private string lastIKeyLookedUp;
+        private string lastAppIdUsed;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="HostingDiagnosticListener"/> class.
@@ -91,8 +94,9 @@
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="T:HostingDiagnosticListener"/> class.
+        /// Initializes a new instance of the <see cref="HostingDiagnosticListener"/> class.
         /// </summary>
+        /// <param name="configuration"><see cref="TelemetryConfiguration"/> as a settings source.</param>
         /// <param name="client"><see cref="TelemetryClient"/> to post traces to.</param>
         /// <param name="applicationIdProvider">Provider for resolving application Id to be used in multiple instruemntation keys scenarios.</param>
         /// <param name="injectResponseHeaders">Flag that indicates that response headers should be injected.</param>
@@ -115,6 +119,7 @@
             this.injectResponseHeaders = injectResponseHeaders;
             this.trackExceptions = trackExceptions;
             this.enableW3CHeaders = enableW3CHeaders;
+            this.proactiveSamplingEnabled = this.configuration.EvaluateExperimentalFeature("proactiveSampling");
         }
 
         /// <inheritdoc />
@@ -475,11 +480,13 @@
                 activity.UpdateTelemetry(requestTelemetry, false);
             }
 
-            if (this.configuration != null && !string.IsNullOrEmpty(requestTelemetry.Context.Operation.Id)
+            if (this.proactiveSamplingEnabled
+                && this.configuration != null
+                && !string.IsNullOrEmpty(requestTelemetry.Context.Operation.Id)
                 && SamplingScoreGenerator.GetSamplingScore(requestTelemetry.Context.Operation.Id) >= this.configuration.GetLastObservedSamplingPercentage(requestTelemetry.ItemTypeFlag))
             {
                 requestTelemetry.IsProactivelySampledOut = true;
-            }            
+            }
 
             if (!requestTelemetry.IsProactivelySampledOut)
             {
@@ -595,7 +602,7 @@
                     telemetry.Url = httpContext.Request.GetUri();
                     telemetry.Context.GetInternalContext().SdkVersion = this.sdkVersion;
                 }
-                
+
                 this.client.TrackRequest(telemetry);
 
                 var activity = httpContext?.Features.Get<Activity>();
