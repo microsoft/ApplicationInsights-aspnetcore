@@ -499,9 +499,9 @@
                 }
 
                 this.client.InitializeInstrumentationKey(requestTelemetry);
-
-                requestTelemetry.Source = GetAppIdFromRequestHeader(httpContext.Request.Headers, requestTelemetry.Context.InstrumentationKey);
             }
+
+            requestTelemetry.Source = GetAppIdFromRequestHeader(httpContext.Request.Headers, requestTelemetry.Context.InstrumentationKey);
 
             requestTelemetry.Start(timestamp);
             httpContext.Features.Set(requestTelemetry);
