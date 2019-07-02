@@ -25,6 +25,7 @@
     internal class HostingDiagnosticListener : IApplicationInsightDiagnosticListener
     {
         private const string ActivityCreatedByHostingDiagnosticListener = "ActivityCreatedByHostingDiagnosticListener";
+        private const string ProactiveSamplingFeatureFlagName = "proactiveSampling";
 
         /// <summary>
         /// Determine whether the running AspNetCore Hosting version is 2.0 or higher. This will affect what DiagnosticSource events we receive.
@@ -111,15 +112,10 @@
             bool trackExceptions,
             bool enableW3CHeaders,
             bool enableNewDiagnosticEvents = true)
+            : this(client, applicationIdProvider, injectResponseHeaders, trackExceptions, enableW3CHeaders, enableNewDiagnosticEvents)
         {
-            this.enableNewDiagnosticEvents = enableNewDiagnosticEvents;
             this.configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
-            this.client = client ?? throw new ArgumentNullException(nameof(client));
-            this.applicationIdProvider = applicationIdProvider;
-            this.injectResponseHeaders = injectResponseHeaders;
-            this.trackExceptions = trackExceptions;
-            this.enableW3CHeaders = enableW3CHeaders;
-            this.proactiveSamplingEnabled = this.configuration.EvaluateExperimentalFeature("proactiveSampling");
+            this.proactiveSamplingEnabled = this.configuration.EvaluateExperimentalFeature(ProactiveSamplingFeatureFlagName);
         }
 
         /// <inheritdoc />
@@ -417,7 +413,7 @@
                 requestTelemetry.Context.Operation.ParentId = originalParentId;
 
                 // Only reply back with AppId if we got an indication that we need to set one
-                if (requestTelemetry.Source != null)
+                if (!string.IsNullOrWhiteSpace(requestTelemetry.Source))
                 {
                     SetAppIdInResponseHeader(httpContext, requestTelemetry);
                 }
@@ -488,6 +484,9 @@
                 requestTelemetry.IsProactivelySampledOut = true;
             }
 
+            //// When the item is proactively sampled out, we can avoid heavy operations that do not have known dependency later in the pipeline.
+            //// We mostly exclude operations that were deemed heavy as per the corresponding profiler trace of this code path.
+
             if (!requestTelemetry.IsProactivelySampledOut)
             {
                 foreach (var prop in activity.Baggage)
@@ -497,10 +496,9 @@
                         requestTelemetry.Properties[prop.Key] = prop.Value;
                     }
                 }
-
-                this.client.InitializeInstrumentationKey(requestTelemetry);
             }
 
+            this.client.InitializeInstrumentationKey(requestTelemetry);
             requestTelemetry.Source = GetAppIdFromRequestHeader(httpContext.Request.Headers, requestTelemetry.Context.InstrumentationKey);
 
             requestTelemetry.Start(timestamp);

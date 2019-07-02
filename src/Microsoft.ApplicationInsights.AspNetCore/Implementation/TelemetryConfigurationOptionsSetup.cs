@@ -180,7 +180,6 @@ namespace Microsoft.Extensions.DependencyInjection
 
                 // configuration.SetLastObservedSamplingPercentage(SamplingTelemetryItemTypes.Request, 0.1);
                 // configuration.ExperimentalFeatures.Add("proactiveSampling");
-
                 configuration.DefaultTelemetrySink.TelemetryProcessorChainBuilder.UseAdaptiveSampling(5, includedTypes: "Event");
             }
         }
