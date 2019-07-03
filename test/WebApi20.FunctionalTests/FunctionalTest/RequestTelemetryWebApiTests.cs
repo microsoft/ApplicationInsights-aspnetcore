@@ -139,7 +139,7 @@
                 expectedRequestTelemetry.Success = true;
                 expectedRequestTelemetry.Url = new System.Uri(server.BaseHost + RequestPath);
 
-                var item = this.ValidateBasicRequest(server, RequestPath, expectedRequestTelemetry, false);
+                var item = this.ValidateBasicRequest(server, RequestPath, expectedRequestTelemetry);
 
                 // W3C compatible-Id ( should go away when W3C is implemented in .NET https://github.com/dotnet/corefx/issues/30331)
                 Assert.Equal(32, item.tags["ai.operation.id"].Length);
@@ -168,7 +168,7 @@
                     ["tracestate"] = "some=state"
                 };
 
-                var actualRequest = this.ValidateRequestWithHeaders(server, RequestPath, headers, expectedRequestTelemetry, expectRequestContextInResponse: false);
+                var actualRequest = this.ValidateRequestWithHeaders(server, RequestPath, headers, expectedRequestTelemetry);
 
                 Assert.Equal(activity.RootId, actualRequest.tags["ai.operation.id"]);
                 Assert.Contains(activity.Id, actualRequest.tags["ai.operation.parentId"]);
@@ -202,7 +202,7 @@
                     ["Correlation-Context"] = "k1=v1,k2=v2"
                 };
 
-                var actualRequest = this.ValidateRequestWithHeaders(server, RequestPath, headers, expectedRequestTelemetry, expectRequestContextInResponse: false);
+                var actualRequest = this.ValidateRequestWithHeaders(server, RequestPath, headers, expectedRequestTelemetry);
 
                 Assert.Equal("4bf92f3577b34da6a3ce929d0e0e4736", actualRequest.tags["ai.operation.id"]);
                 Assert.Equal("|4bf92f3577b34da6a3ce929d0e0e4736.00f067aa0ba902b7.", actualRequest.tags["ai.operation.parentId"]);
@@ -313,7 +313,7 @@
 
                 // this will force Request-Id header injection, it will start with |abc.123.
                 var activity = new Activity("dummy").SetParentId("|abc.123.").Start();
-                var actualRequest = this.ValidateBasicRequest(server, RequestPath, expectedRequestTelemetry, expectRequestContextInResponse: false);
+                var actualRequest = this.ValidateBasicRequest(server, RequestPath, expectedRequestTelemetry);
 
                 Assert.Equal(32, actualRequest.tags["ai.operation.id"].Length);
                 Assert.StartsWith("|abc.123.", actualRequest.tags["ai.operation.parentId"]);
@@ -340,7 +340,7 @@
                 expectedRequestTelemetry.Success = true;
                 expectedRequestTelemetry.Url = new Uri(server.BaseHost + RequestPath);
 
-                var actualRequest = this.ValidateBasicRequest(server, RequestPath, expectedRequestTelemetry, expectRequestContextInResponse: false);
+                var actualRequest = this.ValidateBasicRequest(server, RequestPath, expectedRequestTelemetry);
 
                 Assert.Equal(32, actualRequest.tags["ai.operation.id"].Length);
                 Assert.Equal(1 + 32 + 1 + 16 + 1, actualRequest.data.baseData.id.Length);

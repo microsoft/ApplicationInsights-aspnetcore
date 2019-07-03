@@ -26,6 +26,7 @@
     {
         private const string ActivityCreatedByHostingDiagnosticListener = "ActivityCreatedByHostingDiagnosticListener";
         private const string ProactiveSamplingFeatureFlagName = "proactiveSampling";
+        private const string ConditionalAppIdFeatureFlagName = "conditionalAppId";
 
         /// <summary>
         /// Determine whether the running AspNetCore Hosting version is 2.0 or higher. This will affect what DiagnosticSource events we receive.
@@ -35,6 +36,7 @@
         private readonly bool enableNewDiagnosticEvents;
 
         private readonly bool proactiveSamplingEnabled = false;
+        private readonly bool conditionalAppIdEnabled = false;
 
         private readonly TelemetryConfiguration configuration;
         private readonly TelemetryClient client;
@@ -116,6 +118,7 @@
         {
             this.configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             this.proactiveSamplingEnabled = this.configuration.EvaluateExperimentalFeature(ProactiveSamplingFeatureFlagName);
+            this.conditionalAppIdEnabled = this.configuration.EvaluateExperimentalFeature(ConditionalAppIdFeatureFlagName);
         }
 
         /// <inheritdoc />
@@ -294,10 +297,17 @@
 
                 requestTelemetry.Context.Operation.ParentId = originalParentId;
 
-                // Only reply back with AppId if we got an indication that we need to set one
-                if (!string.IsNullOrWhiteSpace(requestTelemetry.Source))
+                if (this.conditionalAppIdEnabled)
                 {
-                    SetAppIdInResponseHeader(httpContext, requestTelemetry);
+                    // Only reply back with AppId if we got an indication that we need to set one
+                    if (!string.IsNullOrWhiteSpace(requestTelemetry.Source))
+                    {
+                        this.SetAppIdInResponseHeader(httpContext, requestTelemetry);
+                    }
+                }
+                else
+                {
+                    this.SetAppIdInResponseHeader(httpContext, requestTelemetry);
                 }
             }
         }
@@ -412,10 +422,17 @@
                 // fix parent that may be modified by non-W3C operation correlation
                 requestTelemetry.Context.Operation.ParentId = originalParentId;
 
-                // Only reply back with AppId if we got an indication that we need to set one
-                if (!string.IsNullOrWhiteSpace(requestTelemetry.Source))
+                if (this.conditionalAppIdEnabled)
                 {
-                    SetAppIdInResponseHeader(httpContext, requestTelemetry);
+                    // Only reply back with AppId if we got an indication that we need to set one
+                    if (!string.IsNullOrWhiteSpace(requestTelemetry.Source))
+                    {
+                        this.SetAppIdInResponseHeader(httpContext, requestTelemetry);
+                    }
+                }
+                else
+                {
+                    this.SetAppIdInResponseHeader(httpContext, requestTelemetry);
                 }
             }
         }

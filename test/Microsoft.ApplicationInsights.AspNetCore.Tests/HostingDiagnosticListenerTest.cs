@@ -105,8 +105,10 @@
         public void TestSdkVersionIsPopulatedByMiddleware(bool isAspNetCore2)
         {
             HttpContext context = CreateContext(HttpRequestScheme, HttpRequestHost);
+            TelemetryConfiguration config = TelemetryConfiguration.CreateDefault();
+            config.ExperimentalFeatures.Add("conditionalAppId");
 
-            using (var hostingListener = CreateHostingListener(isAspNetCore2))
+            using (var hostingListener = CreateHostingListener(isAspNetCore2, config))
             {
                 HandleRequestBegin(hostingListener, context, 0, isAspNetCore2);
 
@@ -143,8 +145,8 @@
                 HandleRequestBegin(hostingListener, context, 0, isAspNetCore2);
 
                 Assert.NotNull(context.Features.Get<RequestTelemetry>());
-                Assert.Null(HttpHeadersUtilities.GetRequestContextKeyValue(context.Response.Headers,
-                        RequestResponseHeaders.RequestContextTargetKey));
+                Assert.Equal(CommonMocks.TestApplicationId,
+                    HttpHeadersUtilities.GetRequestContextKeyValue(context.Response.Headers, RequestResponseHeaders.RequestContextTargetKey));
 
                 HandleRequestEnd(hostingListener, context, 0, isAspNetCore2);
             }
@@ -174,8 +176,8 @@
                 HandleRequestBegin(hostingListener, context, 0, isAspNetCore2);
 
                 Assert.NotNull(context.Features.Get<RequestTelemetry>());
-                Assert.Null(HttpHeadersUtilities.GetRequestContextKeyValue(context.Response.Headers,
-                        RequestResponseHeaders.RequestContextTargetKey));
+                Assert.Equal(CommonMocks.TestApplicationId,
+                    HttpHeadersUtilities.GetRequestContextKeyValue(context.Response.Headers, RequestResponseHeaders.RequestContextTargetKey));
 
                 hostingListener.OnDiagnosticsUnhandledException(context, null);
                 HandleRequestEnd(hostingListener, context, 0, isAspNetCore2);
@@ -356,8 +358,8 @@
                 HandleRequestBegin(hostingListener, context, 0, isAspNetCore2);
 
                 Assert.NotNull(context.Features.Get<RequestTelemetry>());
-                Assert.Null(HttpHeadersUtilities.GetRequestContextKeyValue(context.Response.Headers,
-                        RequestResponseHeaders.RequestContextTargetKey));
+                Assert.Equal(CommonMocks.TestApplicationId,
+                    HttpHeadersUtilities.GetRequestContextKeyValue(context.Response.Headers, RequestResponseHeaders.RequestContextTargetKey));
 
                 HandleRequestEnd(hostingListener, context, 0, isAspNetCore2);
             }
@@ -381,8 +383,10 @@
         public void OnEndRequestSetsRequestNameToMethodAndPath(bool isAspNetCore2)
         {
             HttpContext context = CreateContext(HttpRequestScheme, HttpRequestHost, "/Test", method: "GET");
+            TelemetryConfiguration config = TelemetryConfiguration.CreateDefault();
+            config.ExperimentalFeatures.Add("conditionalAppId");
 
-            using (var hostingListener = CreateHostingListener(isAspNetCore2))
+            using (var hostingListener = CreateHostingListener(isAspNetCore2, config))
             {
                 HandleRequestBegin(hostingListener, context, 0, isAspNetCore2);
 
@@ -419,9 +423,8 @@
                 HandleRequestBegin(hostingListener, context, 0, isAspNetCore2);
 
                 Assert.NotNull(context.Features.Get<RequestTelemetry>());
-
-                Assert.Null(HttpHeadersUtilities.GetRequestContextKeyValue(context.Response.Headers,
-                    RequestResponseHeaders.RequestContextTargetKey));
+                Assert.Equal(CommonMocks.TestApplicationId,
+                    HttpHeadersUtilities.GetRequestContextKeyValue(context.Response.Headers, RequestResponseHeaders.RequestContextTargetKey));                
 
                 HandleRequestEnd(hostingListener, context, 0, isAspNetCore2);
             }
