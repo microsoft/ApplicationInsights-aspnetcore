@@ -942,7 +942,7 @@
                 Assert.Equal(requestTelemetry.Id, Activity.Current.Id);
                 Assert.Equal(requestTelemetry.Context.Operation.Id, Activity.Current.RootId);
                 Assert.Null(requestTelemetry.Context.Operation.ParentId);
-                Assert.True(requestTelemetry.IsProactivelySampledOut);
+                Assert.True(requestTelemetry.IsSampledOutAtHead);
             }
         }
 
@@ -967,7 +967,7 @@
                 Assert.Equal(requestTelemetry.Id, Activity.Current.Id);
                 Assert.Equal(requestTelemetry.Context.Operation.Id, Activity.Current.RootId);
                 Assert.Null(requestTelemetry.Context.Operation.ParentId);
-                Assert.False(requestTelemetry.IsProactivelySampledOut);
+                Assert.False(requestTelemetry.IsSampledOutAtHead);
             }
         }
 

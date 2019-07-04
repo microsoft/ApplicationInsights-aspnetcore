@@ -16,17 +16,20 @@ namespace Microsoft.ApplicationInsights.AspNetCore
     /// </summary>
     public class RequestTrackingTelemetryModule : ITelemetryModule, IObserver<DiagnosticListener>, IDisposable
     {
-        private TelemetryClient telemetryClient;
+        // We are only interested in BeforeAction event from Microsoft.AspNetCore.Mvc source.
+        // We are interested in Microsoft.AspNetCore.Hosting and Microsoft.AspNetCore.Diagnostics as well.
+        // Below filter achieves acceptable performance, character 22 shoudl not be M unless event is BeforeAction.
+        private static readonly Predicate<string> HostingPredicate = (string eventName) => (eventName != null) ? !(eventName[21] == 'M') || eventName == "Microsoft.AspNetCore.Mvc.BeforeAction" : false;
+        private readonly object lockObject = new object();
         private readonly IApplicationIdProvider applicationIdProvider;
+
+        private TelemetryClient telemetryClient;
         private ConcurrentBag<IDisposable> subscriptions;
         private HostingDiagnosticListener diagnosticListener;
         private bool isInitialized = false;
-        private readonly object lockObject = new object();
-
-        private static readonly Predicate<string> hostingPredicate = (string eventName) => (eventName != null) ? !(eventName[21] == 'M') || eventName == "Microsoft.AspNetCore.Mvc.BeforeAction" : false;
 
         /// <summary>
-        /// RequestTrackingTelemetryModule.
+        /// Initializes a new instance of the <see cref="RequestTrackingTelemetryModule"/> class.
         /// </summary>
         public RequestTrackingTelemetryModule() 
             : this(null)
@@ -35,9 +38,9 @@ namespace Microsoft.ApplicationInsights.AspNetCore
         }
 
         /// <summary>
-        /// Creates RequestTrackingTelemetryModule.
+        /// Initializes a new instance of the <see cref="RequestTrackingTelemetryModule"/> class.
         /// </summary>
-        /// <param name="applicationIdProvider"></param>
+        /// <param name="applicationIdProvider">Provider to resolve Application Id</param>
         public RequestTrackingTelemetryModule(IApplicationIdProvider applicationIdProvider)
         {
             this.applicationIdProvider = applicationIdProvider;
@@ -75,14 +78,14 @@ namespace Microsoft.ApplicationInsights.AspNetCore
                                 // ignore any errors
                             }
 
-                        this.diagnosticListener = new HostingDiagnosticListener(
-                            configuration,
-                            this.telemetryClient,
-                            this.applicationIdProvider,
-                            this.CollectionOptions.InjectResponseHeaders,
-                            this.CollectionOptions.TrackExceptions,
-                            this.CollectionOptions.EnableW3CDistributedTracing,
-                            enableNewDiagnosticEvents);
+                            this.diagnosticListener = new HostingDiagnosticListener(
+                                configuration,
+                                this.telemetryClient,
+                                this.applicationIdProvider,
+                                this.CollectionOptions.InjectResponseHeaders,
+                                this.CollectionOptions.TrackExceptions,
+                                this.CollectionOptions.EnableW3CDistributedTracing,
+                                enableNewDiagnosticEvents);
 
                             this.subscriptions?.Add(DiagnosticListener.AllListeners.Subscribe(this));
 
@@ -108,7 +111,7 @@ namespace Microsoft.ApplicationInsights.AspNetCore
 
             if (this.diagnosticListener.ListenerName == value.Name)
             {
-                subs.Add(value.Subscribe(this.diagnosticListener));
+                subs.Add(value.Subscribe(this.diagnosticListener, HostingPredicate));
                 this.diagnosticListener.OnSubscribe();
             }
         }

@@ -498,13 +498,14 @@
                 && !string.IsNullOrEmpty(requestTelemetry.Context.Operation.Id)
                 && SamplingScoreGenerator.GetSamplingScore(requestTelemetry.Context.Operation.Id) >= this.configuration.GetLastObservedSamplingPercentage(requestTelemetry.ItemTypeFlag))
             {
-                requestTelemetry.IsProactivelySampledOut = true;
+                requestTelemetry.IsSampledOutAtHead = true;
+                AspNetCoreEventSource.Instance.TelemetryItemWasSampledOutAtHead(requestTelemetry.Context.Operation.Id);
             }
 
             //// When the item is proactively sampled out, we can avoid heavy operations that do not have known dependency later in the pipeline.
             //// We mostly exclude operations that were deemed heavy as per the corresponding profiler trace of this code path.
 
-            if (!requestTelemetry.IsProactivelySampledOut)
+            if (!requestTelemetry.IsSampledOutAtHead)
             {
                 foreach (var prop in activity.Baggage)
                 {
@@ -612,7 +613,7 @@
                     telemetry.Name = httpContext.Request.Method + " " + httpContext.Request.Path.Value;
                 }
 
-                if (!telemetry.IsProactivelySampledOut)
+                if (!telemetry.IsSampledOutAtHead)
                 {
                     telemetry.Url = httpContext.Request.GetUri();
                     telemetry.Context.GetInternalContext().SdkVersion = this.sdkVersion;
@@ -744,6 +745,9 @@
             Exception exception = null;
             long? timestamp = null;
 
+            //// Top messages in if-else are the most often used messages.
+            //// It starts with ASP.NET Core 2.0 events, then 1.0 events, then exception events.
+            //// Switch is compiled into GetHashCode() and binary search, if-else without GetHashCode() is faster if 2.0 events are used.
             if (value.Key == "Microsoft.AspNetCore.Hosting.HttpRequestIn.Start")
             {
                 httpContext = this.httpContextFetcherStart.Fetch(value.Value) as HttpContext;
@@ -762,9 +766,9 @@
             }
             else if (value.Key == "Microsoft.AspNetCore.Mvc.BeforeAction")
             {
-                var context = httpContextFetcherOnBeforeAction.Fetch(value.Value) as HttpContext;
-                var routeData = routeDataFetcher.Fetch(value.Value);
-                var routeValues = routeValuesFetcher.Fetch(routeData) as IDictionary<string, object>;
+                var context = this.httpContextFetcherOnBeforeAction.Fetch(value.Value) as HttpContext;
+                var routeData = this.routeDataFetcher.Fetch(value.Value);
+                var routeValues = this.routeValuesFetcher.Fetch(routeData) as IDictionary<string, object>;
 
                 if (context != null && routeValues != null)
                 {
