@@ -1,6 +1,7 @@
 # Changelog
 
 ## Version 2.8.0-beta1
+- [Performance fixes: One DiagSource Listener; Head Sampling Feature; No Concurrent Dictionary; etc...](https://github.com/microsoft/ApplicationInsights-aspnetcore/pull/907)
 - [Fix: Add `IJavaScriptSnippet` service interface and update the `IServiceCollection` extension to register it for `JavaScriptSnippet`.](https://github.com/microsoft/ApplicationInsights-aspnetcore/issues/890)
 - [Fix - ApplicationInsights StartupFilter should not swallow exceptions from downstream ApplicationBuilder.](https://github.com/microsoft/ApplicationInsights-aspnetcore/issues/897)
 
