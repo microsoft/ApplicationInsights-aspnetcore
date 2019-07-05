@@ -297,18 +297,7 @@
 
                 requestTelemetry.Context.Operation.ParentId = originalParentId;
 
-                if (this.conditionalAppIdEnabled)
-                {
-                    // Only reply back with AppId if we got an indication that we need to set one
-                    if (!string.IsNullOrWhiteSpace(requestTelemetry.Source))
-                    {
-                        this.SetAppIdInResponseHeader(httpContext, requestTelemetry);
-                    }
-                }
-                else
-                {
-                    this.SetAppIdInResponseHeader(httpContext, requestTelemetry);
-                }
+                this.AddAppIdToResponseIfRequired(httpContext, requestTelemetry);
             }
         }
 
@@ -422,18 +411,7 @@
                 // fix parent that may be modified by non-W3C operation correlation
                 requestTelemetry.Context.Operation.ParentId = originalParentId;
 
-                if (this.conditionalAppIdEnabled)
-                {
-                    // Only reply back with AppId if we got an indication that we need to set one
-                    if (!string.IsNullOrWhiteSpace(requestTelemetry.Source))
-                    {
-                        this.SetAppIdInResponseHeader(httpContext, requestTelemetry);
-                    }
-                }
-                else
-                {
-                    this.SetAppIdInResponseHeader(httpContext, requestTelemetry);
-                }
+                this.AddAppIdToResponseIfRequired(httpContext, requestTelemetry);
             }
         }
 
@@ -477,6 +455,22 @@
         public void OnDiagnosticsUnhandledException(HttpContext httpContext, Exception exception)
         {
             this.OnException(httpContext, exception);
+        }
+
+        private void AddAppIdToResponseIfRequired(HttpContext httpContext, RequestTelemetry requestTelemetry)
+        {
+            if (this.conditionalAppIdEnabled)
+            {
+                // Only reply back with AppId if we got an indication that we need to set one
+                if (!string.IsNullOrWhiteSpace(requestTelemetry.Source))
+                {
+                    this.SetAppIdInResponseHeader(httpContext, requestTelemetry);
+                }
+            }
+            else
+            {
+                this.SetAppIdInResponseHeader(httpContext, requestTelemetry);
+            }
         }
 
         private RequestTelemetry InitializeRequestTelemetry(HttpContext httpContext, Activity activity, long timestamp)
