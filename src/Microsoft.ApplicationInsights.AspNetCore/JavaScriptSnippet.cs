@@ -41,7 +41,7 @@
             TelemetryConfiguration telemetryConfiguration,
             IOptions<ApplicationInsightsServiceOptions> serviceOptions,
             IHttpContextAccessor httpContextAccessor,
-            JavaScriptEncoder encoder)
+            JavaScriptEncoder encoder = null)
         {
             this.telemetryConfiguration = telemetryConfiguration;
             this.httpContextAccessor = httpContextAccessor;
@@ -63,6 +63,7 @@
                     string additionalJS = string.Empty;
                     IIdentity identity = this.httpContextAccessor?.HttpContext?.User?.Identity;
                     if (enableAuthSnippet &&
+                        this.encoder != null &&
                         identity != null &&
                         identity.IsAuthenticated)
                     {
