@@ -46,7 +46,7 @@
             this.telemetryConfiguration = telemetryConfiguration;
             this.httpContextAccessor = httpContextAccessor;
             this.enableAuthSnippet = serviceOptions.Value.EnableAuthenticationTrackingJavaScript;
-            this.encoder = encoder;
+            this.encoder = (encoder == null) ? JavaScriptEncoder.Default : encoder;
         }
 
         /// <summary>
@@ -62,11 +62,10 @@
                 {
                     string additionalJS = string.Empty;
                     IIdentity identity = this.httpContextAccessor?.HttpContext?.User?.Identity;
-                    if (enableAuthSnippet &&
-                        this.encoder != null &&
+                    if (enableAuthSnippet &&                        
                         identity != null &&
                         identity.IsAuthenticated)
-                    {
+                    {                        
                         string escapedUserName = encoder.Encode(identity.Name);
                         additionalJS = string.Format(CultureInfo.InvariantCulture, AuthSnippet, escapedUserName);
                     }
