@@ -62,10 +62,10 @@
                 {
                     string additionalJS = string.Empty;
                     IIdentity identity = this.httpContextAccessor?.HttpContext?.User?.Identity;
-                    if (enableAuthSnippet &&                        
+                    if (enableAuthSnippet &&
                         identity != null &&
                         identity.IsAuthenticated)
-                    {                        
+                    {
                         string escapedUserName = encoder.Encode(identity.Name);
                         additionalJS = string.Format(CultureInfo.InvariantCulture, AuthSnippet, escapedUserName);
                     }
