@@ -3,7 +3,7 @@
 ## Version 2.8.0-beta1
 - [Fix: Add `IJavaScriptSnippet` service interface and update the `IServiceCollection` extension to register it for `JavaScriptSnippet`.](https://github.com/microsoft/ApplicationInsights-aspnetcore/issues/890)
 - [Make JavaScriptEncoder optional and Fallback to JavaScriptEncoder.Default.](https://github.com/microsoft/ApplicationInsights-aspnetcore/pull/918)
-
+- Update to 2.11.0-beta1 of base and web SDK.
 ## Version 2.7.1
 - [Fix - ApplicationInsights StartupFilter should not swallow exceptions from downstream ApplicationBuilder.](https://github.com/microsoft/ApplicationInsights-aspnetcore/issues/897)
 
