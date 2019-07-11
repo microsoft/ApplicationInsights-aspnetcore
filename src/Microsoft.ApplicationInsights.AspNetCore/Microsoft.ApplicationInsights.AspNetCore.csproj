@@ -1,13 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\..\Nupkg.props" />
+  
   <PropertyGroup>
     <AssemblyName>Microsoft.ApplicationInsights.AspNetCore</AssemblyName>
     <VersionPrefix>2.7.0</VersionPrefix>
-    <Authors>Microsoft</Authors>
-    <Copyright>© Microsoft Corporation. All rights reserved.</Copyright>
-    <AssemblyTitle>Application Insights for ASP.NET Core Web Applications</AssemblyTitle>
-    <Description>Application Insights for ASP.NET Core web applications. See https://azure.microsoft.com/documentation/articles/app-insights-asp-net-five/ for more information. Privacy statement: https://go.microsoft.com/fwlink/?LinkId=512156</Description>
-    <RepositoryType>git</RepositoryType>
-    <RepositoryUrl>https://github.com/Microsoft/ApplicationInsights-aspnetcore.git</RepositoryUrl>
     
     <TargetFrameworks>net451;net46;netstandard1.6;netstandard2.0</TargetFrameworks>
     <TargetFrameworks Condition=" '$(OS)' != 'Windows_NT' ">netstandard1.6;netstandard2.0</TargetFrameworks>
@@ -18,16 +14,16 @@
   </PropertyGroup>
 
   <PropertyGroup>
+    <!--Nupkg properties-->
+    <PackageId>Microsoft.ApplicationInsights.AspNetCore</PackageId>
+    <AssemblyTitle>Application Insights for ASP.NET Core Web Applications</AssemblyTitle>
+    <Title>Application Insights for ASP.NET Core Web Applications</Title>
+    <Description>Application Insights for ASP.NET Core web applications. See https://azure.microsoft.com/documentation/articles/app-insights-asp-net-five/ for more information. Privacy statement: https://go.microsoft.com/fwlink/?LinkId=512156</Description>
+  </PropertyGroup>
+  
+  <PropertyGroup>
     <!--Package Settings-->
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <IncludeSymbols>True</IncludeSymbols>
-    <PackageId>Microsoft.ApplicationInsights.AspNetCore</PackageId>
-    <PackageTags>Azure;Monitoring;Analytics;ApplicationInsights;Telemetry;AppInsights;aspnetcore;</PackageTags>
-    <PackageIconUrl>https://appanacdn.blob.core.windows.net/cdn/icons/aic.png</PackageIconUrl>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageProjectUrl>https://go.microsoft.com/fwlink/?LinkId=392727</PackageProjectUrl>
-    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
