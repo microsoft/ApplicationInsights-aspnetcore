@@ -14,6 +14,9 @@
     using Microsoft.ApplicationInsights.Channel;
     using Microsoft.ApplicationInsights.DependencyCollector;
     using Microsoft.ApplicationInsights.Extensibility;
+#if NETSTANDARD2_0
+    using Microsoft.ApplicationInsights.Extensibility.EventCounterCollector;
+#endif
     using Microsoft.ApplicationInsights.Extensibility.Implementation.ApplicationId;
     using Microsoft.ApplicationInsights.Extensibility.PerfCounterCollector;
     using Microsoft.ApplicationInsights.Extensibility.PerfCounterCollector.QuickPulse;
@@ -194,6 +197,36 @@
                     services.AddSingleton<ITelemetryModule, AzureInstanceMetadataTelemetryModule>();
                     services.AddSingleton<ITelemetryModule, QuickPulseTelemetryModule>();
                     services.AddSingleton<ITelemetryModule, RequestTrackingTelemetryModule>();
+#if NETSTANDARD2_0
+                    services.AddSingleton<ITelemetryModule, EventCounterCollectionModule>();
+                    services.ConfigureTelemetryModule<EventCounterCollectionModule>((eventCounterModule, options) =>
+                    {
+                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "cpu-usage"));
+                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "working-set"));
+                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "gc-heap-size"));
+                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "gen-0-gc-count"));
+                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "gen-1-gc-count"));
+                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "gen-2-gc-count"));
+                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "time-in-gc"));
+                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "gen-0-size"));
+                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "gen-1-size"));
+                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "gen-2-size"));
+                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "loh-size"));
+                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "alloc-rate"));
+                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "assembly-count"));
+                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "exception-count"));
+                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "threadpool-thread-count"));
+                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "monitor-lock-contention-count"));
+                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "threadpool-queue-length"));
+                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "threadpool-completed-items-count"));
+                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "active-timer-count"));
+
+                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("Microsoft.AspNetCore", "requests-per-second"));
+                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("Microsoft.AspNetCore", "total-requests"));
+                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("Microsoft.AspNetCore", "current-requests"));
+                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("Microsoft.AspNetCore", "failed-requests"));
+                    });
+#endif
                     services.AddSingleton<TelemetryConfiguration>(provider =>
                         provider.GetService<IOptions<TelemetryConfiguration>>().Value);
 
@@ -227,20 +260,25 @@
                         // The default behavior is to capture only logs above Warning level from all categories.
                         // This can achieved with this code level filter -> loggingBuilder.AddFilter<Microsoft.Extensions.Logging.ApplicationInsights.ApplicationInsightsLoggerProvider>("",LogLevel.Warning);
                         // However, this will make it impossible to override this behavior from Configuration like below using appsettings.json:
-                        // "ApplicationInsights": {
-                        // "LogLevel": {
-                        // "": "Error"
+                        // {
+                        //   "Logging": {
+                        //     "ApplicationInsights": {
+                        //       "LogLevel": {
+                        //         "": "Error"
+                        //       }
+                        //     }
+                        //   },
+                        //   ...
                         // }
-                        // },
                         // The reason is as both rules will match the filter, the last one added wins.
                         // To ensure that the default filter is in the beginning of filter rules, so that user override from Configuration will always win,
                         // we add code filter rule to the 0th position as below.
-                         loggingBuilder.Services.Configure<LoggerFilterOptions>(
-                        options => options.Rules.Insert(
-                            0,
-                            new LoggerFilterRule(
-                                "Microsoft.Extensions.Logging.ApplicationInsights.ApplicationInsightsLoggerProvider", null,
-                                LogLevel.Warning, null)));
+                        loggingBuilder.Services.Configure<LoggerFilterOptions>(
+                            options => options.Rules.Insert(
+                                0,
+                                new LoggerFilterRule(
+                                    "Microsoft.Extensions.Logging.ApplicationInsights.ApplicationInsightsLoggerProvider", null,
+                                    LogLevel.Warning, null)));
                     });
 #endif
                 }
