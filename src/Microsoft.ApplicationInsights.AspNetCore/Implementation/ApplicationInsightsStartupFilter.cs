@@ -15,7 +15,7 @@
     {
         private readonly ILogger<ApplicationInsightsStartupFilter> logger;
         
-        internal ApplicationInsightsStartupFilter(ILogger<ApplicationInsightsStartupFilter> logger)
+        public ApplicationInsightsStartupFilter(ILogger<ApplicationInsightsStartupFilter> logger)
         {
             this.logger = logger;
         }
