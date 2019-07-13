@@ -34,7 +34,7 @@
                 }
                 catch (Exception ex)
                 {
-                    this.logger.LogWarning(ex, "Failed to resolve TelemetryConfiguration.");
+                    this.logger.LogWarning(0, ex, "Failed to resolve TelemetryConfiguration.");
                     AspNetCoreEventSource.Instance.LogWarning(ex.Message);
                 }
 
