@@ -3,7 +3,8 @@
   
   <PropertyGroup>
     <AssemblyName>Microsoft.ApplicationInsights.AspNetCore</AssemblyName>
-    <VersionPrefix>2.7.0</VersionPrefix>
+
+    <VersionPrefix>2.8.0-beta1</VersionPrefix>
     
     <TargetFrameworks>net451;net46;netstandard1.6;netstandard2.0</TargetFrameworks>
     <TargetFrameworks Condition=" '$(OS)' != 'Windows_NT' ">netstandard1.6;netstandard2.0</TargetFrameworks>
@@ -33,32 +34,37 @@
   </PropertyGroup>
 
   <ItemGroup Condition=" '$(Configuration)' == 'Release' And $(OS) == 'Windows_NT'">
+    <!--Analyzers-->
     <PackageReference Include="Desktop.Analyzers" Version="1.1.0">
-      <PrivateAssets>All</PrivateAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="2.9.2">
-      <PrivateAssets>All</PrivateAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="2.9.2">
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
-    <PackageReference Include="Roslyn.Diagnostics.Analyzers" Version="2.9.2">
       <PrivateAssets>All</PrivateAssets>
     </PackageReference>
     <PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
       <PrivateAssets>All</PrivateAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="2.9.2">
+      <PrivateAssets>All</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="2.9.2">
+      <PrivateAssets>All</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Roslyn.Diagnostics.Analyzers" Version="2.9.2">
+      <PrivateAssets>All</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--Build Infrastructure-->
     <PackageReference Include="MicroBuild.Core" Version="0.3.0">
       <PrivateAssets>All</PrivateAssets>
     </PackageReference>
   </ItemGroup>
-  
+
   <ItemGroup>
-    <PackageReference Include="Microsoft.ApplicationInsights" Version="2.10.0" />
-    <PackageReference Include="Microsoft.ApplicationInsights.DependencyCollector" Version="2.10.0" />
-    <PackageReference Include="Microsoft.ApplicationInsights.PerfCounterCollector" Version="2.10.0" />
-    <PackageReference Include="Microsoft.ApplicationInsights.WindowsServer" Version="2.10.0" />
-    <PackageReference Include="Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel" Version="2.10.0" />
+    <PackageReference Include="Microsoft.ApplicationInsights" Version="2.11.0-beta1" />
+    <PackageReference Include="Microsoft.ApplicationInsights.DependencyCollector" Version="2.11.0-beta1" />
+    <PackageReference Include="Microsoft.ApplicationInsights.PerfCounterCollector" Version="2.11.0-beta1" />
+    <PackageReference Include="Microsoft.ApplicationInsights.WindowsServer" Version="2.11.0-beta1" />
+    <PackageReference Include="Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel" Version="2.11.0-beta1" />
     <PackageReference Include="Microsoft.AspNetCore.Hosting" Version="1.0.2" />           
     <PackageReference Include="System.Text.Encodings.Web" Version="4.3.1" />
     <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="4.5.0" />
@@ -71,7 +77,8 @@
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">  
   <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.1.0" />  
-  <PackageReference Include="Microsoft.Extensions.Logging.ApplicationInsights" Version="2.10.0" />
+  <PackageReference Include="Microsoft.Extensions.Logging.ApplicationInsights" Version="2.11.0-beta1" />
+  <PackageReference Include="Microsoft.ApplicationInsights.EventCounterCollector" Version="2.11.0-beta1" />
   <PackageReference Include="System.Text.Encodings.Web" Version="4.3.1" />
   </ItemGroup>
 
@@ -85,9 +92,7 @@
   </ItemGroup>
 
   <ImportGroup Condition=" '$(OS)' == 'Windows_NT' ">
-    <!--3 files are required for signing in this order: Signing.props, MicroBuild.Core.props, and MicroBuild.Core.targets-->
+    <!-- 1 file is required for signing: Signing.props -->
     <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), 'Signing.props'))\Signing.props" />
-    <Import Project="..\..\..\packages\MicroBuild.Core.0.3.0\build\MicroBuild.Core.props" Condition="Exists('..\..\..\packages\MicroBuild.Core.0.3.0\build\MicroBuild.Core.props')" />
-    <Import Project="..\..\..\packages\MicroBuild.Core.0.3.0\build\MicroBuild.Core.targets" Condition="Exists('..\..\..\packages\MicroBuild.Core.0.3.0\build\MicroBuild.Core.targets')" />
   </ImportGroup>
 </Project>
