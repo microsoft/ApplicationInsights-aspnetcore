@@ -72,7 +72,7 @@
     <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="4.5.0" />
     
     <!--explicit reference to fix Component Governance-->
-    <PackageReference Include="System.Net.Security" Version="4.3.1" />
+    <PackageReference Include="System.Net.Security" Version="4.3.2" />
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' != 'netstandard2.0' ">
