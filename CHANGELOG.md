@@ -3,6 +3,7 @@
 ## Version 2.8.0-beta2
 - [Obsolete extension methods on IWebHostBuilder in favor of AddApplicationInsights extension method on IServiceCollection.](https://github.com/microsoft/ApplicationInsights-aspnetcore/issues/919)
 - [Remove support for deprecated x-ms based correlation headers.](https://github.com/microsoft/ApplicationInsights-aspnetcore/issues/939)
+- [SDK Error logging to include exception stack, and modified log level to error.](https://github.com/microsoft/ApplicationInsights-aspnetcore/pull/946)
 
 ## Version 2.8.0-beta1
 - [Add EventCounter collection.](https://github.com/microsoft/ApplicationInsights-aspnetcore/issues/913)
