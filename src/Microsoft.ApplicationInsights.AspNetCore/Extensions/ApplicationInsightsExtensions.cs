@@ -18,6 +18,7 @@
     using Microsoft.ApplicationInsights.Extensibility.EventCounterCollector;
 #endif
     using Microsoft.ApplicationInsights.Extensibility.Implementation.ApplicationId;
+    using Microsoft.ApplicationInsights.Extensibility.Implementation.Tracing;
     using Microsoft.ApplicationInsights.Extensibility.PerfCounterCollector;
     using Microsoft.ApplicationInsights.Extensibility.PerfCounterCollector.QuickPulse;
     using Microsoft.ApplicationInsights.WindowsServer;
@@ -289,7 +290,7 @@
             }
             catch (Exception e)
             {
-                AspNetCoreEventSource.Instance.LogWarning(e.Message);
+                AspNetCoreEventSource.Instance.LogError(e.ToInvariantString());
                 return services;
             }
         }
