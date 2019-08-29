@@ -9,7 +9,7 @@
 
     public class RequestTelemetryEmptyAppTests : TelemetryTestsBase
     {
-        private const string assemblyName = "EmptyApp.FunctionalTests10";
+        private const string assemblyName = "EmptyApp.FunctionalTests";
         public RequestTelemetryEmptyAppTests(ITestOutputHelper output) : base(output)
         {
         }

@@ -11,7 +11,7 @@ namespace MVCFramework.FunctionalTests.FunctionalTest
 
     public class ExceptionTelemetryMvcTests : TelemetryTestsBase
     {
-        private const string assemblyName = "MVCFramework.FunctionalTests10";
+        private const string assemblyName = "MVCFramework.FunctionalTests";
 
         public ExceptionTelemetryMvcTests(ITestOutputHelper output) : base(output)
         {

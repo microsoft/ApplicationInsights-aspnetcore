@@ -13,7 +13,7 @@
         {
         }
 
-        private const string assemblyName = "WebApi.FunctionalTests10";
+        private const string assemblyName = "WebApi.FunctionalTests";
 
         [Fact]
         public void TestBasicRequestPropertiesAfterRequestingControllerThatThrows()
