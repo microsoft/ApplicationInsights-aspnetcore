@@ -6,7 +6,7 @@
 
     public class TelemetryModuleWorkingEmptyAppTests : TelemetryTestsBase
     {
-        private const string assemblyName = "EmptyApp.FunctionalTests";
+        private const string assemblyName = "EmptyApp.FunctionalTests10";
         public TelemetryModuleWorkingEmptyAppTests(ITestOutputHelper output) : base(output)
         {
         }

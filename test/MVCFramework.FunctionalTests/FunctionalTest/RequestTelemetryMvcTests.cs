@@ -12,7 +12,7 @@ namespace MVCFramework.FunctionalTests.FunctionalTest
 
     public class RequestTelemetryMvcTests : TelemetryTestsBase
     {
-        private const string assemblyName = "MVCFramework.FunctionalTests";
+        private const string assemblyName = "MVCFramework.FunctionalTests10";
         public RequestTelemetryMvcTests(ITestOutputHelper output) : base(output)
         {
         }

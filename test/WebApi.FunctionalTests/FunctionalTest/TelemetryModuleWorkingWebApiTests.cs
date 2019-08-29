@@ -8,7 +8,7 @@ namespace WebApi.FunctionalTests.FunctionalTest
 
     public class TelemetryModuleWorkingWebApiTests : TelemetryTestsBase
     {
-        private const string assemblyName = "WebApi.FunctionalTests";
+        private const string assemblyName = "WebApi.FunctionalTests10";
 
         public TelemetryModuleWorkingWebApiTests(ITestOutputHelper output) : base (output)
         {
