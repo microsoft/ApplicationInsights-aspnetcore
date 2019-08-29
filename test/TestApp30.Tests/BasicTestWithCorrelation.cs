@@ -45,8 +45,8 @@ namespace TestApp30.Tests
 
             // Assert
             response.EnsureSuccessStatusCode();
-
-            this.output.WriteLine(response.Content.ReadAsStringAsync().Result);
+            
+            this.output.WriteLine(await response.Content.ReadAsStringAsync());
 
             Task.Delay(1000).Wait();
             var items = _factory.sentItems;
@@ -88,7 +88,7 @@ namespace TestApp30.Tests
 
             // Assert
             Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
-            this.output.WriteLine(response.Content.ReadAsStringAsync().Result);
+            this.output.WriteLine(await response.Content.ReadAsStringAsync());
 
             Task.Delay(1000).Wait();
             var items = _factory.sentItems;
@@ -129,7 +129,7 @@ namespace TestApp30.Tests
 
             // Assert
             response.EnsureSuccessStatusCode();
-            this.output.WriteLine(response.Content.ReadAsStringAsync().Result);
+            this.output.WriteLine(await response.Content.ReadAsStringAsync());
 
             Task.Delay(1000).Wait();
             var items = _factory.sentItems;
@@ -172,7 +172,7 @@ namespace TestApp30.Tests
 
             // Assert
             Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
-            this.output.WriteLine(response.Content.ReadAsStringAsync().Result);
+            this.output.WriteLine(await response.Content.ReadAsStringAsync());
 
             Task.Delay(1000).Wait();
             var items = _factory.sentItems;
@@ -193,22 +193,7 @@ namespace TestApp30.Tests
 
             Assert.Equal("http://localhost/" + url, req.Url.ToString());
             Assert.False(req.Success);
-        }
-
-        private HttpRequestMessage CreateRequestMessage(Dictionary<string, string> requestHeaders)
-        {
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage();
-            httpRequestMessage.Method = HttpMethod.Get;
-            if (requestHeaders != null)
-            {
-                foreach (var h in requestHeaders)
-                {
-                    httpRequestMessage.Headers.Add(h.Key, h.Value);
-                }
-            }
-
-            return httpRequestMessage;
-        }
+        }        
 
         [Fact]
         public async Task ARequestSuccessWithNonW3CCompatibleRequestId()
@@ -229,7 +214,7 @@ namespace TestApp30.Tests
 
             // Assert
             response.EnsureSuccessStatusCode();
-            this.output.WriteLine(response.Content.ReadAsStringAsync().Result);
+            this.output.WriteLine(await response.Content.ReadAsStringAsync());
 
             Task.Delay(1000).Wait();
             var items = _factory.sentItems;
@@ -252,6 +237,21 @@ namespace TestApp30.Tests
 
             Assert.Equal("http://localhost/" + url, req.Url.ToString());
             Assert.True(req.Success);
+        }
+
+        private HttpRequestMessage CreateRequestMessage(Dictionary<string, string> requestHeaders)
+        {
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage();
+            httpRequestMessage.Method = HttpMethod.Get;
+            if (requestHeaders != null)
+            {
+                foreach (var h in requestHeaders)
+                {
+                    httpRequestMessage.Headers.Add(h.Key, h.Value);
+                }
+            }
+
+            return httpRequestMessage;
         }
 
         private T GetFirstTelemetryOfType<T>(ConcurrentBag<ITelemetry> items)
