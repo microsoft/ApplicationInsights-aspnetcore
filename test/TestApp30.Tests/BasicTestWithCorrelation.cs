@@ -7,22 +7,26 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace TestApp30.Tests
 {
     public class BasicTestWithCorrelation : IClassFixture<CustomWebApplicationFactory<TestApp30.Startup>>
     {
         private readonly CustomWebApplicationFactory<TestApp30.Startup> _factory;
+        protected readonly ITestOutputHelper output;
 
-        public BasicTestWithCorrelation(CustomWebApplicationFactory<TestApp30.Startup> factory)
+
+        public BasicTestWithCorrelation(CustomWebApplicationFactory<TestApp30.Startup> factory, ITestOutputHelper output)
         {
+            this.output = output;
             _factory = factory;
             _factory.sentItems.Clear();
         }
 
         [Fact]
         public async Task RequestSuccessWithTraceParent()
-        {
+        {            
             // Arrange
             var client = _factory.CreateClient();
             var url = "/Home/Index";
@@ -38,6 +42,7 @@ namespace TestApp30.Tests
                 response.Content.Headers.ContentType.ToString());
 
             var items = _factory.sentItems;
+            PrintItems(items);
             // 1 Trace from Ilogger, 1 Request
             Assert.Equal(2, items.Count);
 
@@ -72,6 +77,7 @@ namespace TestApp30.Tests
             Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
             
             var items = _factory.sentItems;
+            PrintItems(items);
             Assert.Equal(2, items.Count);
 
             var req = GetFirstTelemetryOfType<RequestTelemetry>(items);
@@ -107,6 +113,7 @@ namespace TestApp30.Tests
                 response.Content.Headers.ContentType.ToString());
 
             var items = _factory.sentItems;
+            PrintItems(items);
             // 1 Trace from Ilogger, 1 Request
             Assert.Equal(2, items.Count);
 
@@ -142,6 +149,7 @@ namespace TestApp30.Tests
             Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
 
             var items = _factory.sentItems;
+            PrintItems(items);
             Assert.Equal(2, items.Count);
 
             var req = GetFirstTelemetryOfType<RequestTelemetry>(items);
@@ -178,6 +186,7 @@ namespace TestApp30.Tests
                 response.Content.Headers.ContentType.ToString());
 
             var items = _factory.sentItems;
+            PrintItems(items);
             // 1 Trace from Ilogger, 1 Request
             Assert.Equal(2, items.Count);
 
@@ -209,6 +218,43 @@ namespace TestApp30.Tests
             }
 
             return default(T);
+        }
+
+        private void PrintItems(IList<ITelemetry> items)
+        {
+            int i = 1;
+            foreach (var item in items)
+            {
+                this.output.WriteLine("Item " + (i++) + ".");
+
+                if (item is RequestTelemetry req)
+                {
+                    this.output.WriteLine("RequestTelemetry");
+                    this.output.WriteLine(req.Name);
+                }
+                else if (item is DependencyTelemetry dep)
+                {
+                    this.output.WriteLine("DependencyTelemetry");
+                    this.output.WriteLine(dep.Name);
+                }
+                else if (item is TraceTelemetry trace)
+                {
+                    this.output.WriteLine("TraceTelemetry");
+                    this.output.WriteLine(trace.Message);
+                }
+                else if (item is ExceptionTelemetry exc)
+                {
+                    this.output.WriteLine("ExceptionTelemetry");
+                    this.output.WriteLine(exc.Message);
+                }
+                else if (item is MetricTelemetry met)
+                {
+                    this.output.WriteLine("MetricTelemetry");
+                    this.output.WriteLine(met.Name + "" + met.Sum);
+                }
+
+                this.output.WriteLine("----------------------------");
+            }
         }
 
     }
