@@ -88,9 +88,9 @@ namespace Microsoft.ApplicationInsights.AspNetCore
                                     aspNetCoreMajorVersion = AspNetCoreMajorVersion.Three;
                                 }                                
                             }
-                            catch (Exception)
+                            catch (Exception e)
                             {
-                                // ignore any errors
+                                AspNetCoreEventSource.Instance.LogError($"Exception occured while attempting to find Asp.Net Core Major version. Assuming {aspNetCoreMajorVersion.ToString()} and continuing. Exception: {e.Message}");
                             }
 
                             this.diagnosticListener = new HostingDiagnosticListener(

@@ -106,6 +106,7 @@
             this.injectResponseHeaders = injectResponseHeaders;
             this.trackExceptions = trackExceptions;
             this.enableW3CHeaders = enableW3CHeaders;
+            AspNetCoreEventSource.Instance.HostingListenerInformational(this.aspNetCoreMajorVersion, "HostingDiagnosticListener constructed.");
         }
 
         /// <summary>
@@ -213,14 +214,14 @@
                         InjectionGuardConstants.TraceParentHeaderMaxLength);
                     originalParentId = parentTraceParent;
                     traceParentPresent = true;
-                    AspNetCoreEventSource.Instance.HostingListenerInformational("2", "Retrieved trace parent from headers.");
+                    AspNetCoreEventSource.Instance.HostingListenerInformational(this.aspNetCoreMajorVersion, "Retrieved trace parent from headers.");
                 }
 
                 // Scenario #1. No incoming correlation headers.
                 if (originalParentId == null)
                 {
                     // Nothing to do here.
-                    AspNetCoreEventSource.Instance.HostingListenerInformational("2", "OriginalParentId is null.");
+                    AspNetCoreEventSource.Instance.HostingListenerInformational(this.aspNetCoreMajorVersion, "OriginalParentId is null.");
                 }
                 else if (traceParentPresent)
                 {
@@ -228,7 +229,7 @@
                     // We need to ignore the Activity created by Hosting, as it did not take W3CTraceParent into consideration.
                     newActivity = new Activity(ActivityCreatedByHostingDiagnosticListener);
                     newActivity.SetParentId(originalParentId);
-                    AspNetCoreEventSource.Instance.HostingListenerInformational("2", "Ignoring original Activity from Hosting to create new one using traceparent header retrieved by sdk.");
+                    AspNetCoreEventSource.Instance.HostingListenerInformational(this.aspNetCoreMajorVersion, "Ignoring original Activity from Hosting to create new one using traceparent header retrieved by sdk.");
 
                     // read and populate tracestate
                     ReadTraceState(httpContext.Request.Headers, newActivity);
@@ -240,9 +241,10 @@
                 }
                 else if (this.aspNetCoreMajorVersion == AspNetCoreMajorVersion.Three && headers.ContainsKey(W3CConstants.TraceParentHeader))
                 {
+                    AspNetCoreEventSource.Instance.HostingListenerInformational(this.aspNetCoreMajorVersion, "Incoming request has traceparent. Using Activity created from Hosting.");
                     // scenario #3b Use Activity created by Hosting layer when W3C Headers Present.
                     // but ignore parent if user disabled w3c.
-                   if(currentActivity.IdFormat != ActivityIdFormat.W3C)
+                    if (currentActivity.IdFormat != ActivityIdFormat.W3C)
                     {
                         originalParentId = null;
                     }
@@ -256,7 +258,7 @@
                         {
                             newActivity = new Activity(ActivityCreatedByHostingDiagnosticListener);
                             newActivity.SetParentId(ActivityTraceId.CreateFromString(traceId), default(ActivitySpanId), ActivityTraceFlags.None);
-                            AspNetCoreEventSource.Instance.HostingListenerInformational("2", "Ignoring original Activity from Hosting to create new one using w3c compatible request-id.");
+                            AspNetCoreEventSource.Instance.HostingListenerInformational(this.aspNetCoreMajorVersion, "Ignoring original Activity from Hosting to create new one using w3c compatible request-id.");
 
                             foreach (var bag in currentActivity.Baggage)
                             {
@@ -267,7 +269,7 @@
                         {
                             // store rootIdFromOriginalParentId in custom Property
                             legacyRootId = ExtractOperationIdFromRequestId(originalParentId);
-                            AspNetCoreEventSource.Instance.HostingListenerInformational("2", "Incoming Request-ID is not W3C Compatible, and hence will be ignored for ID generation, but stored in custom property legacy_rootID.");
+                            AspNetCoreEventSource.Instance.HostingListenerInformational(this.aspNetCoreMajorVersion, "Incoming Request-ID is not W3C Compatible, and hence will be ignored for ID generation, but stored in custom property legacy_rootID.");
                         }
                     }
                 }
