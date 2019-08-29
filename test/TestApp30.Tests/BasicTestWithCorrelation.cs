@@ -225,7 +225,7 @@ namespace TestApp30.Tests
             int i = 1;
             foreach (var item in items)
             {
-                this.output.WriteLine("Item " + (i++) + ".");
+                this.output.WriteLine("Item " + (i++) + ".");                
 
                 if (item is RequestTelemetry req)
                 {
@@ -253,7 +253,16 @@ namespace TestApp30.Tests
                     this.output.WriteLine(met.Name + "" + met.Sum);
                 }
 
+                PrintProperties(item as ISupportProperties);
                 this.output.WriteLine("----------------------------");
+            }
+        }
+
+        private void PrintProperties(ISupportProperties itemProps)
+        {
+            foreach (var prop in itemProps.Properties)
+            {
+                this.output.WriteLine(prop.Key + ":" + prop.Value);
             }
         }
 
