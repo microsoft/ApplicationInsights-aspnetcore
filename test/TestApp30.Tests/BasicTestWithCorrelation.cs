@@ -10,11 +10,11 @@ using Xunit;
 
 namespace TestApp30.Tests
 {
-    public class BaicTests : IClassFixture<CustomWebApplicationFactory<TestApp30.Startup>>
+    public class BasicTestWithCorrelation : IClassFixture<CustomWebApplicationFactory<TestApp30.Startup>>
     {
         private readonly CustomWebApplicationFactory<TestApp30.Startup> _factory;
 
-        public BaicTests(CustomWebApplicationFactory<TestApp30.Startup> factory)
+        public BasicTestWithCorrelation(CustomWebApplicationFactory<TestApp30.Startup> factory)
         {
             _factory = factory;
             _factory.sentItems.Clear();
