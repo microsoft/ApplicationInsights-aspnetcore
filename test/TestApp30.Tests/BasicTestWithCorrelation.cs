@@ -1,10 +1,13 @@
 ﻿using Microsoft.ApplicationInsights.Channel;
 using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.DependencyInjection;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
@@ -29,18 +32,23 @@ namespace TestApp30.Tests
         {            
             // Arrange
             var client = _factory.CreateClient();
-            var url = "/Home/Index";
+            var url = "Home/Index";
 
             // Act
-            client.DefaultRequestHeaders.Add("traceparent", "00-4e3083444c10254ba40513c7316332eb-e2a5f830c0ee2c46-00");
-            var response = await client.GetAsync(url);
-            Task.Delay(3000).Wait();
+            Dictionary<string, string> requestHeaders = new Dictionary<string, string>()
+                {
+                    { "traceparent", "00-4e3083444c10254ba40513c7316332eb-e2a5f830c0ee2c46-00"}
+                };
+            var request = CreateRequestMessage(requestHeaders);
+            request.RequestUri = new Uri(client.BaseAddress + url);
+            var response = await client.SendAsync(request);
 
             // Assert
             response.EnsureSuccessStatusCode();
-            Assert.Equal("text/html; charset=utf-8",
-                response.Content.Headers.ContentType.ToString());
 
+            this.output.WriteLine(response.Content.ReadAsStringAsync().Result);
+
+            Task.Delay(1000).Wait();
             var items = _factory.sentItems;
             PrintItems(items);
             // 1 Trace from Ilogger, 1 Request
@@ -57,7 +65,7 @@ namespace TestApp30.Tests
             Assert.Contains("|4e3083444c10254ba40513c7316332eb.", req.Id);
             Assert.Equal(req.Id, trace.Context.Operation.ParentId);
 
-            Assert.Equal("http://localhost" + url, req.Url.ToString());
+            Assert.Equal("http://localhost/" + url, req.Url.ToString());
             Assert.True(req.Success);
         }
 
@@ -66,16 +74,23 @@ namespace TestApp30.Tests
         {
             // Arrange
             var client = _factory.CreateClient();
-            var url = "/Home/Error";
+            var url = "Home/Error";
 
             // Act
-            client.DefaultRequestHeaders.Add("traceparent", "00-4e3083444c10254ba40513c7316332eb-e2a5f830c0ee2c46-00");
-            var response = await client.GetAsync(url);
-            Task.Delay(3000).Wait();
+            Dictionary<string, string> requestHeaders = new Dictionary<string, string>()
+                {
+                    { "traceparent", "00-4e3083444c10254ba40513c7316332eb-e2a5f830c0ee2c46-00"}
+                };
+            var request = CreateRequestMessage(requestHeaders);
+            request.RequestUri = new Uri(client.BaseAddress + url);
+
+            var response = await client.SendAsync(request);
 
             // Assert
             Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
-            
+            this.output.WriteLine(response.Content.ReadAsStringAsync().Result);
+
+            Task.Delay(1000).Wait();
             var items = _factory.sentItems;
             PrintItems(items);
             Assert.Equal(2, items.Count);
@@ -91,7 +106,7 @@ namespace TestApp30.Tests
             Assert.Equal(req.Id, exc.Context.Operation.ParentId);
             Assert.Contains("|4e3083444c10254ba40513c7316332eb.", req.Id);
 
-            Assert.Equal("http://localhost" + url, req.Url.ToString());
+            Assert.Equal("http://localhost/" + url, req.Url.ToString());
             Assert.False(req.Success);
         }
 
@@ -100,18 +115,23 @@ namespace TestApp30.Tests
         {
             // Arrange
             var client = _factory.CreateClient();
-            var url = "/Home/Index";
+            var url = "Home/Index";
 
             // Act
-            client.DefaultRequestHeaders.Add("request-id", "|40d1a5a08a68c0998e4a3b7c91915ca6.b9e41c35_1.");
-            var response = await client.GetAsync(url);
-            Task.Delay(3000).Wait();
+            Dictionary<string, string> requestHeaders = new Dictionary<string, string>()
+                {
+                    { "Request-Id", "|40d1a5a08a68c0998e4a3b7c91915ca6.b9e41c35_1."}
+                };
+            var request = CreateRequestMessage(requestHeaders);
+            request.RequestUri = new Uri(client.BaseAddress + url);
+
+            var response = await client.SendAsync(request);
 
             // Assert
             response.EnsureSuccessStatusCode();
-            Assert.Equal("text/html; charset=utf-8",
-                response.Content.Headers.ContentType.ToString());
+            this.output.WriteLine(response.Content.ReadAsStringAsync().Result);
 
+            Task.Delay(1000).Wait();
             var items = _factory.sentItems;
             PrintItems(items);
             // 1 Trace from Ilogger, 1 Request
@@ -129,7 +149,7 @@ namespace TestApp30.Tests
             Assert.Contains("|40d1a5a08a68c0998e4a3b7c91915ca6.", req.Id);
             Assert.Equal(req.Id, trace.Context.Operation.ParentId);
 
-            Assert.Equal("http://localhost" + url, req.Url.ToString());
+            Assert.Equal("http://localhost/" + url, req.Url.ToString());
             Assert.True(req.Success);
         }
 
@@ -138,16 +158,23 @@ namespace TestApp30.Tests
         {
             // Arrange
             var client = _factory.CreateClient();
-            var url = "/Home/Error";
+            var url = "Home/Error";
 
-            // Act
-            client.DefaultRequestHeaders.Add("request-id", "|40d1a5a08a68c0998e4a3b7c91915ca6.b9e41c35_1.");
-            var response = await client.GetAsync(url);
-            Task.Delay(3000).Wait();
+            // Act            
+            Dictionary<string, string> requestHeaders = new Dictionary<string, string>()
+                {
+                    { "Request-Id", "|40d1a5a08a68c0998e4a3b7c91915ca6.b9e41c35_1."}
+                };
+            var request = CreateRequestMessage(requestHeaders);
+            request.RequestUri = new Uri(client.BaseAddress + url);
+
+            var response = await client.SendAsync(request);
 
             // Assert
             Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
+            this.output.WriteLine(response.Content.ReadAsStringAsync().Result);
 
+            Task.Delay(1000).Wait();
             var items = _factory.sentItems;
             PrintItems(items);
             Assert.Equal(2, items.Count);
@@ -164,27 +191,47 @@ namespace TestApp30.Tests
             Assert.Equal("|40d1a5a08a68c0998e4a3b7c91915ca6.b9e41c35_1.", req.Context.Operation.ParentId);
             Assert.Contains("|40d1a5a08a68c0998e4a3b7c91915ca6.", req.Id);
 
-            Assert.Equal("http://localhost" + url, req.Url.ToString());
+            Assert.Equal("http://localhost/" + url, req.Url.ToString());
             Assert.False(req.Success);
         }
 
+        private HttpRequestMessage CreateRequestMessage(Dictionary<string, string> requestHeaders)
+        {
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage();
+            httpRequestMessage.Method = HttpMethod.Get;
+            if (requestHeaders != null)
+            {
+                foreach (var h in requestHeaders)
+                {
+                    httpRequestMessage.Headers.Add(h.Key, h.Value);
+                }
+            }
+
+            return httpRequestMessage;
+        }
+
         [Fact]
-        public async Task RequestSuccessWithNonW3CCompatibleRequestId()
+        public async Task ARequestSuccessWithNonW3CCompatibleRequestId()
         {
             // Arrange
             var client = _factory.CreateClient();
-            var url = "/Home/Index";
+            var url = "Home/Index";
 
             // Act
-            client.DefaultRequestHeaders.Add("request-id", "|noncompatible.b9e41c35_1.");
-            var response = await client.GetAsync(url);
-            Task.Delay(3000).Wait();
+            Dictionary<string, string> requestHeaders = new Dictionary<string, string>()
+                {
+                    { "Request-Id", "|noncompatible.b9e41c35_1."}
+                };
+            var request = CreateRequestMessage(requestHeaders);
+            request.RequestUri = new Uri(client.BaseAddress + url);
+            
+            var response = await client.SendAsync(request);
 
             // Assert
             response.EnsureSuccessStatusCode();
-            Assert.Equal("text/html; charset=utf-8",
-                response.Content.Headers.ContentType.ToString());
+            this.output.WriteLine(response.Content.ReadAsStringAsync().Result);
 
+            Task.Delay(1000).Wait();
             var items = _factory.sentItems;
             PrintItems(items);
             // 1 Trace from Ilogger, 1 Request
@@ -203,11 +250,11 @@ namespace TestApp30.Tests
             Assert.Equal(req.Id, trace.Context.Operation.ParentId);
             Assert.Equal("noncompatible", req.Properties["ai_legacyRootId"]);
 
-            Assert.Equal("http://localhost" + url, req.Url.ToString());
+            Assert.Equal("http://localhost/" + url, req.Url.ToString());
             Assert.True(req.Success);
         }
 
-        private T GetFirstTelemetryOfType<T>(IList<ITelemetry> items)
+        private T GetFirstTelemetryOfType<T>(ConcurrentBag<ITelemetry> items)
         {
             foreach(var item in items)
             {
@@ -220,7 +267,7 @@ namespace TestApp30.Tests
             return default(T);
         }
 
-        private void PrintItems(IList<ITelemetry> items)
+        private void PrintItems(ConcurrentBag<ITelemetry> items)
         {
             int i = 1;
             foreach (var item in items)
@@ -231,6 +278,7 @@ namespace TestApp30.Tests
                 {
                     this.output.WriteLine("RequestTelemetry");
                     this.output.WriteLine(req.Name);
+                    this.output.WriteLine(req.Duration.ToString());
                 }
                 else if (item is DependencyTelemetry dep)
                 {

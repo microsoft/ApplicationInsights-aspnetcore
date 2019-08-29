@@ -21,7 +21,6 @@
     <None Update="App.config">
       <Generator>SettingsSingleFileGenerator</Generator>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      <LastGenOutput>App.Designer.cs</LastGenOutput>
     </None>
     <None Update="config.json;xunit.runner.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
