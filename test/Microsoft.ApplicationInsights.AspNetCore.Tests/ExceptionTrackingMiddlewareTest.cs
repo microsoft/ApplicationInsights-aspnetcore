@@ -22,7 +22,7 @@ namespace Microsoft.ApplicationInsights.AspNetCore.Tests
                 injectResponseHeaders: true,
                 trackExceptions: true,
                 enableW3CHeaders: false,
-                aspNetCoreMajorVersion: AspNetCoreMajorVersion.Two))
+                aspNetCoreMajorVersion: Microsoft.ApplicationInsights.AspNetCore.Implementation.AspNetCoreMajorVersion.Two))
             {
                 hostingListener.OnSubscribe();
                 hostingListener.OnHostingException(null, null);
@@ -42,7 +42,7 @@ namespace Microsoft.ApplicationInsights.AspNetCore.Tests
                 injectResponseHeaders: true,
                 trackExceptions: true,
                 enableW3CHeaders: false,
-                aspNetCoreMajorVersion: AspNetCoreMajorVersion.Two))
+                aspNetCoreMajorVersion: Microsoft.ApplicationInsights.AspNetCore.Implementation.AspNetCoreMajorVersion.Two))
             {
                 hostingListener.OnSubscribe();
                 hostingListener.OnHostingException(null, null);
