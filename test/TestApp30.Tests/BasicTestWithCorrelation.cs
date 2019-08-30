@@ -47,15 +47,20 @@ namespace TestApp30.Tests
             response.EnsureSuccessStatusCode();
             
             this.output.WriteLine(await response.Content.ReadAsStringAsync());
-
-            Task.Delay(1000).Wait();
+            
+            WaitForTelemetryToArrive();
+            
             var items = _factory.sentItems;
             PrintItems(items);
             // 1 Trace from Ilogger, 1 Request
             Assert.Equal(2, items.Count);
 
-            var req = GetFirstTelemetryOfType<RequestTelemetry>(items);
-            var trace = GetFirstTelemetryOfType<TraceTelemetry>(items);
+            var reqs = GetTelemetryOfType<RequestTelemetry>(items);
+            Assert.Single(reqs);
+            var req = reqs[0];
+            var traces = GetTelemetryOfType<TraceTelemetry>(items);
+            Assert.Single(traces);
+            var trace = traces[0];
             Assert.NotNull(req);
             Assert.NotNull(trace);
 
@@ -90,20 +95,24 @@ namespace TestApp30.Tests
             Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
             this.output.WriteLine(await response.Content.ReadAsStringAsync());
 
-            Task.Delay(1000).Wait();
+            WaitForTelemetryToArrive();
             var items = _factory.sentItems;
             PrintItems(items);
             Assert.Equal(2, items.Count);
 
-            var req = GetFirstTelemetryOfType<RequestTelemetry>(items);
-            var exc = GetFirstTelemetryOfType<ExceptionTelemetry>(items);
+            var reqs = GetTelemetryOfType<RequestTelemetry>(items);
+            Assert.Single(reqs);
+            var req = reqs[0];
+            var exceptions = GetTelemetryOfType<ExceptionTelemetry>(items);
+            Assert.Single(exceptions);
+            var exception = exceptions[0];
             Assert.NotNull(req);
-            Assert.NotNull(exc);
+            Assert.NotNull(exception);
 
             Assert.Equal("4e3083444c10254ba40513c7316332eb", req.Context.Operation.Id);
-            Assert.Equal("4e3083444c10254ba40513c7316332eb", exc.Context.Operation.Id);
+            Assert.Equal("4e3083444c10254ba40513c7316332eb", exception.Context.Operation.Id);
             Assert.Equal("00-4e3083444c10254ba40513c7316332eb-e2a5f830c0ee2c46-00", req.Context.Operation.ParentId);
-            Assert.Equal(req.Id, exc.Context.Operation.ParentId);
+            Assert.Equal(req.Id, exception.Context.Operation.ParentId);
             Assert.Contains("|4e3083444c10254ba40513c7316332eb.", req.Id);
 
             Assert.Equal("http://localhost/" + url, req.Url.ToString());
@@ -131,14 +140,18 @@ namespace TestApp30.Tests
             response.EnsureSuccessStatusCode();
             this.output.WriteLine(await response.Content.ReadAsStringAsync());
 
-            Task.Delay(1000).Wait();
+            WaitForTelemetryToArrive();
             var items = _factory.sentItems;
             PrintItems(items);
             // 1 Trace from Ilogger, 1 Request
             Assert.Equal(2, items.Count);
 
-            var req = GetFirstTelemetryOfType<RequestTelemetry>(items);
-            var trace = GetFirstTelemetryOfType<TraceTelemetry>(items);
+            var reqs = GetTelemetryOfType<RequestTelemetry>(items);
+            Assert.Single(reqs);
+            var req = reqs[0];
+            var traces = GetTelemetryOfType<TraceTelemetry>(items);
+            Assert.Single(traces);
+            var trace = traces[0];
             Assert.NotNull(req);
             Assert.NotNull(trace);
 
@@ -174,20 +187,24 @@ namespace TestApp30.Tests
             Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
             this.output.WriteLine(await response.Content.ReadAsStringAsync());
 
-            Task.Delay(1000).Wait();
+            WaitForTelemetryToArrive();
             var items = _factory.sentItems;
             PrintItems(items);
             Assert.Equal(2, items.Count);
 
-            var req = GetFirstTelemetryOfType<RequestTelemetry>(items);
-            var exc = GetFirstTelemetryOfType<ExceptionTelemetry>(items);
+            var reqs = GetTelemetryOfType<RequestTelemetry>(items);
+            Assert.Single(reqs);
+            var req = reqs[0];
+            var exceptions = GetTelemetryOfType<ExceptionTelemetry>(items);
+            Assert.Single(exceptions);
+            var exception = exceptions[0];
             Assert.NotNull(req);
-            Assert.NotNull(exc);
+            Assert.NotNull(exception);
 
             Assert.Equal("40d1a5a08a68c0998e4a3b7c91915ca6", req.Context.Operation.Id);
-            Assert.Equal("40d1a5a08a68c0998e4a3b7c91915ca6", exc.Context.Operation.Id);
+            Assert.Equal("40d1a5a08a68c0998e4a3b7c91915ca6", exception.Context.Operation.Id);
             
-            Assert.Equal(req.Id, exc.Context.Operation.ParentId);
+            Assert.Equal(req.Id, exception.Context.Operation.ParentId);
             Assert.Equal("|40d1a5a08a68c0998e4a3b7c91915ca6.b9e41c35_1.", req.Context.Operation.ParentId);
             Assert.Contains("|40d1a5a08a68c0998e4a3b7c91915ca6.", req.Id);
 
@@ -196,7 +213,7 @@ namespace TestApp30.Tests
         }        
 
         [Fact]
-        public async Task ARequestSuccessWithNonW3CCompatibleRequestId()
+        public async Task RequestSuccessWithNonW3CCompatibleRequestId()
         {
             // Arrange
             var client = _factory.CreateClient();
@@ -216,14 +233,18 @@ namespace TestApp30.Tests
             response.EnsureSuccessStatusCode();
             this.output.WriteLine(await response.Content.ReadAsStringAsync());
 
-            Task.Delay(1000).Wait();
+            WaitForTelemetryToArrive();
             var items = _factory.sentItems;
             PrintItems(items);
             // 1 Trace from Ilogger, 1 Request
             Assert.Equal(2, items.Count);
 
-            var req = GetFirstTelemetryOfType<RequestTelemetry>(items);
-            var trace = GetFirstTelemetryOfType<TraceTelemetry>(items);
+            var reqs = GetTelemetryOfType<RequestTelemetry>(items);
+            Assert.Single(reqs);
+            var req = reqs[0];
+            var traces = GetTelemetryOfType<TraceTelemetry>(items);
+            Assert.Single(traces);
+            var trace = traces[0];
             Assert.NotNull(req);
             Assert.NotNull(trace);
 
@@ -237,6 +258,17 @@ namespace TestApp30.Tests
 
             Assert.Equal("http://localhost/" + url, req.Url.ToString());
             Assert.True(req.Success);
+        }
+
+        private void WaitForTelemetryToArrive()
+        {
+            // The response to the test server request is completed
+            // before the actual telemetry is sent from HostingDiagnosticListener.
+            // This could be a TestServer issue/feature. (In a real application, the response is not
+            // sent to the user until TrackRequest() is called.)
+            // The simplest workaround is to do a wait here.
+            // This could be improved when entire functional tests are migrated to use this pattern.
+            Task.Delay(1000).Wait();
         }
 
         private HttpRequestMessage CreateRequestMessage(Dictionary<string, string> requestHeaders)
@@ -254,17 +286,18 @@ namespace TestApp30.Tests
             return httpRequestMessage;
         }
 
-        private T GetFirstTelemetryOfType<T>(ConcurrentBag<ITelemetry> items)
+        private List<T> GetTelemetryOfType<T>(ConcurrentBag<ITelemetry> items)
         {
+            List<T> foundItems = new List<T>();
             foreach(var item in items)
             {
                 if(item is T)
                 {
-                    return (T) item;
+                    foundItems.Add((T) item);
                 }
             }
 
-            return default(T);
+            return foundItems;
         }
 
         private void PrintItems(ConcurrentBag<ITelemetry> items)
