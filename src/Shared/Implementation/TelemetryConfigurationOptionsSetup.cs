@@ -93,7 +93,6 @@ namespace Microsoft.Extensions.DependencyInjection
                 this.AddSampling(configuration);
                 this.DisableHeartBeatIfConfigured();
 
-                configuration.EnableW3CCorrelation = this.applicationInsightsServiceOptions.RequestCollectionOptions.EnableW3CDistributedTracing;
                 configuration.DefaultTelemetrySink.TelemetryProcessorChainBuilder.Build();
                 configuration.TelemetryProcessorChainBuilder.Build();
 

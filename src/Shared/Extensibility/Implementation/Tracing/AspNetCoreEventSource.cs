@@ -6,7 +6,9 @@
 
 namespace Microsoft.ApplicationInsights.AspNetCore.Extensibility.Implementation.Tracing
 {
+#if AI_ASPNETCORE_WEB
     using Microsoft.ApplicationInsights.AspNetCore.Implementation;
+#endif
     using System;
     using System.Diagnostics.CodeAnalysis;
     using System.Diagnostics.Tracing;
@@ -208,6 +210,7 @@ namespace Microsoft.ApplicationInsights.AspNetCore.Extensibility.Implementation.
             this.WriteEvent(18, operationId, this.ApplicationName);
         }
 
+#if AI_ASPNETCORE_WEB
         /// <summary>
         /// Logs an informational event from Hosting listeners.
         /// </summary>
@@ -219,6 +222,7 @@ namespace Microsoft.ApplicationInsights.AspNetCore.Extensibility.Implementation.
         {
             this.WriteEvent(19, hostingVersion, message, this.ApplicationName);
         }
+#endif
 
         /// <summary>
         /// Logs a verbose event.

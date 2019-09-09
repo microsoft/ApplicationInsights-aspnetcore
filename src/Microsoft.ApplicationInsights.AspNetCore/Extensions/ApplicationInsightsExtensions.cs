@@ -64,80 +64,6 @@
         /// Adds Application Insights services into service collection.
         /// </summary>
         /// <param name="services">The <see cref="IServiceCollection"/> instance.</param>
-        /// <param name="instrumentationKey">Instrumentation key to use for telemetry.</param>
-        /// <returns>The <see cref="IServiceCollection"/>.</returns>
-        public static IServiceCollection AddApplicationInsightsTelemetry(
-            this IServiceCollection services,
-            string instrumentationKey)
-        {
-            services.AddApplicationInsightsTelemetry(options => options.InstrumentationKey = instrumentationKey);
-            return services;
-        }
-
-        /// <summary>
-        /// Adds Application Insights services into service collection.
-        /// </summary>
-        /// <param name="services">The <see cref="IServiceCollection"/> instance.</param>
-        /// <param name="configuration">Configuration to use for sending telemetry.</param>
-        /// <returns>The <see cref="IServiceCollection"/>.</returns>
-        public static IServiceCollection AddApplicationInsightsTelemetry(
-            this IServiceCollection services,
-            IConfiguration configuration)
-        {
-            services.AddApplicationInsightsTelemetry(options => AddTelemetryConfiguration(configuration, options));
-            return services;
-        }
-
-        /// <summary>
-        /// Adds Application Insights services into service collection.
-        /// </summary>
-        /// <param name="services">The <see cref="IServiceCollection"/> instance.</param>
-        /// <param name="options">The action used to configure the options.</param>
-        /// <returns>
-        /// The <see cref="IServiceCollection"/>.
-        /// </returns>
-        public static IServiceCollection AddApplicationInsightsTelemetry(
-            this IServiceCollection services,
-            Action<ApplicationInsightsServiceOptions> options)
-        {
-            services.AddApplicationInsightsTelemetry();
-            services.Configure(options);
-            return services;
-        }
-
-        /// <summary>
-        /// Adds Application Insights services into service collection.
-        /// </summary>
-        /// <param name="services">The <see cref="IServiceCollection"/> instance.</param>
-        /// <param name="options">The options instance used to configure with.</param>
-        /// <returns>
-        /// The <see cref="IServiceCollection"/>.
-        /// </returns>
-        public static IServiceCollection AddApplicationInsightsTelemetry(
-            this IServiceCollection services,
-            ApplicationInsightsServiceOptions options)
-        {
-            services.AddApplicationInsightsTelemetry();
-            services.Configure((ApplicationInsightsServiceOptions o) =>
-            {
-                o.ApplicationVersion = options.ApplicationVersion;
-                o.DeveloperMode = options.DeveloperMode;
-                o.EnableAdaptiveSampling = options.EnableAdaptiveSampling;
-                o.EnableAuthenticationTrackingJavaScript = options.EnableAuthenticationTrackingJavaScript;
-                o.EnableDebugLogger = options.EnableDebugLogger;
-                o.EnableQuickPulseMetricStream = options.EnableQuickPulseMetricStream;
-                o.EndpointAddress = options.EndpointAddress;
-                o.InstrumentationKey = options.InstrumentationKey;
-                o.EnableHeartbeat = options.EnableHeartbeat;
-                o.AddAutoCollectedMetricExtractor = options.AddAutoCollectedMetricExtractor;
-            });
-            return services;
-        }
-
-        /// <summary>
-        /// Adds Application Insights services into service collection.
-        /// </summary>
-        /// <param name="services">The <see cref="IServiceCollection"/> instance.</param>
         /// <returns>
         /// The <see cref="IServiceCollection"/>.
         /// </returns>
@@ -145,7 +71,7 @@
         {
             try
             {
-                if (!IsApplicationInsightsAdded(services))
+                if (!ApplicationInsightsExtensionsCommon.IsApplicationInsightsAdded(services))
                 {
                     services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
@@ -294,92 +220,7 @@
                 return services;
             }
         }
-
-        /// <summary>
-        /// Adds an Application Insights Telemetry Processor into a service collection via a <see cref="ITelemetryProcessorFactory"/>.
-        /// </summary>
-        /// <typeparam name="T">Type of the telemetry processor to add.</typeparam>
-        /// <param name="services">The <see cref="IServiceCollection"/> instance.</param>
-        /// <returns>
-        /// The <see cref="IServiceCollection"/>.
-        /// </returns>
-        public static IServiceCollection AddApplicationInsightsTelemetryProcessor<T>(this IServiceCollection services)
-            where T : ITelemetryProcessor
-        {
-            return services.AddSingleton<ITelemetryProcessorFactory>(serviceProvider =>
-                new TelemetryProcessorFactory(serviceProvider, typeof(T)));
-        }
-
-        /// <summary>
-        /// Adds an Application Insights Telemetry Processor into a service collection via a <see cref="ITelemetryProcessorFactory"/>.
-        /// </summary>
-        /// <param name="services">The <see cref="IServiceCollection"/> instance.</param>
-        /// <param name="telemetryProcessorType">Type of the telemetry processor to add.</param>
-        /// <returns>
-        /// The <see cref="IServiceCollection"/>.
-        /// </returns>
-        /// <exception cref="ArgumentNullException">The <paramref name="telemetryProcessorType"/> argument is null.</exception>
-        /// <exception cref="ArgumentException">The <paramref name="telemetryProcessorType"/> type does not implement <see cref="ITelemetryProcessor"/>.</exception>
-        public static IServiceCollection AddApplicationInsightsTelemetryProcessor(this IServiceCollection services,
-            Type telemetryProcessorType)
-        {
-            if (telemetryProcessorType == null)
-            {
-                throw new ArgumentNullException(nameof(telemetryProcessorType));
-            }
-
-            if (!telemetryProcessorType.GetTypeInfo().ImplementedInterfaces.Contains(typeof(ITelemetryProcessor)))
-            {
-                throw new ArgumentException(nameof(telemetryProcessorType) + "does not implement ITelemetryProcessor.");
-            }
-
-            return services.AddSingleton<ITelemetryProcessorFactory>(serviceProvider =>
-                new TelemetryProcessorFactory(serviceProvider, telemetryProcessorType));
-        }
-
-        /// <summary>
-        /// Extension method to provide configuration logic for application insights telemetry module.
-        /// </summary>
-        /// <param name="services">The <see cref="IServiceCollection"/> instance.</param>
-        /// <param name="configModule">Action used to configure the module.</param>
-        /// <returns>
-        /// The <see cref="IServiceCollection"/>.
-        /// </returns>
-        [Obsolete("Use ConfigureTelemetryModule overload that accepts ApplicationInsightsServiceOptions.")]
-        public static IServiceCollection ConfigureTelemetryModule<T>(this IServiceCollection services, Action<T> configModule)
-            where T : ITelemetryModule
-        {
-            if (configModule == null)
-            {
-                throw new ArgumentNullException(nameof(configModule));
-            }
-
-            return services.AddSingleton(typeof(ITelemetryModuleConfigurator),
-                new TelemetryModuleConfigurator((config, options) => configModule((T)config), typeof(T)));
-        }
-
-        /// <summary>
-        /// Extension method to provide configuration logic for application insights telemetry module.
-        /// </summary>
-        /// <param name="services">The <see cref="IServiceCollection"/> instance.</param>
-        /// <param name="configModule">Action used to configure the module.</param>
-        /// <returns>
-        /// The <see cref="IServiceCollection"/>.
-        /// </returns>
-        public static IServiceCollection ConfigureTelemetryModule<T>(
-            this IServiceCollection services,
-            Action<T, ApplicationInsightsServiceOptions> configModule)
-            where T : ITelemetryModule
-        {
-            if (configModule == null)
-            {
-                throw new ArgumentNullException(nameof(configModule));
-            }
-
-            return services.AddSingleton(typeof(ITelemetryModuleConfigurator),
-                new TelemetryModuleConfigurator((config, options) => configModule((T)config, options), typeof(T)));
-        }
-
+      
         /// <summary>
         /// Adds Application Insight specific configuration properties to <see cref="IConfigurationBuilder"/>.
         /// </summary>
@@ -493,12 +334,6 @@
             {
                 serviceOptions.ApplicationVersion = version;
             }
-        }
-
-        private static bool IsApplicationInsightsAdded(IServiceCollection services)
-        {
-            // We treat TelemetryClient as a marker that AI services were added to service collection
-            return services.Any(service => service.ServiceType == typeof(TelemetryClient));
         }
     }
 }
