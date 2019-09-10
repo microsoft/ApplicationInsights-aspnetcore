@@ -739,15 +739,15 @@
                 && this.configuration != null
                 && !string.IsNullOrEmpty(requestTelemetry.Context.Operation.Id)
                 && SamplingScoreGenerator.GetSamplingScore(requestTelemetry.Context.Operation.Id) >= this.configuration.GetLastObservedSamplingPercentage(requestTelemetry.ItemTypeFlag))
-            {
-                requestTelemetry.IsSampledOutAtHead = true;
+            {                
+                requestTelemetry.ProactiveSamplingDecision = SamplingDecision.SampledOut;
                 AspNetCoreEventSource.Instance.TelemetryItemWasSampledOutAtHead(requestTelemetry.Context.Operation.Id);
             }
 
             //// When the item is proactively sampled out, we can avoid heavy operations that do not have known dependency later in the pipeline.
             //// We mostly exclude operations that were deemed heavy as per the corresponding profiler trace of this code path.
 
-            if (!requestTelemetry.IsSampledOutAtHead)
+            if (requestTelemetry.ProactiveSamplingDecision != SamplingDecision.SampledOut)
             {
                 foreach (var prop in activity.Baggage)
                 {
@@ -865,7 +865,7 @@
                     telemetry.Name = httpContext.Request.Method + " " + httpContext.Request.Path.Value;
                 }
 
-                if (!telemetry.IsSampledOutAtHead)
+                if (telemetry.ProactiveSamplingDecision != SamplingDecision.SampledOut)
                 {
                     telemetry.Url = httpContext.Request.GetUri();
                     telemetry.Context.GetInternalContext().SdkVersion = this.sdkVersion;

@@ -1011,7 +1011,7 @@
 
                 var requestTelemetry = context.Features.Get<RequestTelemetry>();
                 Assert.NotNull(requestTelemetry);               
-                Assert.True(requestTelemetry.IsSampledOutAtHead);
+                Assert.True(requestTelemetry.ProactiveSamplingDecision == SamplingDecision.SampledOut);
                 ValidateRequestTelemetry(requestTelemetry, Activity.Current, true);
                 Assert.Null(requestTelemetry.Context.Operation.ParentId);
             }
@@ -1040,7 +1040,7 @@
 
                 var requestTelemetry = context.Features.Get<RequestTelemetry>();
                 Assert.NotNull(requestTelemetry);
-                Assert.False(requestTelemetry.IsSampledOutAtHead);
+                Assert.False(requestTelemetry.ProactiveSamplingDecision == SamplingDecision.SampledOut);
                 ValidateRequestTelemetry(requestTelemetry, Activity.Current, true, "|4e3083444c10254ba40513c7316332eb.e2a5f830c0ee2c46.");
             }
         }
@@ -1064,7 +1064,7 @@
 
                 var requestTelemetry = context.Features.Get<RequestTelemetry>();
                 Assert.NotNull(requestTelemetry);
-                Assert.False(requestTelemetry.IsSampledOutAtHead);
+                Assert.False(requestTelemetry.ProactiveSamplingDecision == SamplingDecision.SampledOut);
                 ValidateRequestTelemetry(requestTelemetry, Activity.Current, true);
                 Assert.Null(requestTelemetry.Context.Operation.ParentId);
             }
