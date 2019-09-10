@@ -3,9 +3,13 @@ namespace Microsoft.Extensions.DependencyInjection
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using Microsoft.ApplicationInsights.AspNetCore;
-    using Microsoft.ApplicationInsights.AspNetCore.Extensibility.Implementation.Tracing;
+#if AI_ASPNETCORE_WEB
     using Microsoft.ApplicationInsights.AspNetCore.Extensions;
+    using Microsoft.ApplicationInsights.AspNetCore;
+#else
+    using Microsoft.ApplicationInsights.WorkerService;
+#endif
+    using Microsoft.ApplicationInsights.AspNetCore.Extensibility.Implementation.Tracing;
     using Microsoft.ApplicationInsights.Channel;
     using Microsoft.ApplicationInsights.Extensibility;
     using Microsoft.ApplicationInsights.Extensibility.Implementation;

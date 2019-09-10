@@ -83,7 +83,7 @@
     <PackageReference Include="Microsoft.Extensions.Logging.ApplicationInsights" Version="2.11.0-beta1" />
     <PackageReference Include="Microsoft.ApplicationInsights.EventCounterCollector" Version="2.11.0-beta1" />
     
-    <PackageReference Include="Microsoft.AspNetCore.Hosting" Version="1.0.2" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="2.2.0" />
   </ItemGroup>
   
   <ImportGroup Condition=" '$(OS)' == 'Windows_NT' ">

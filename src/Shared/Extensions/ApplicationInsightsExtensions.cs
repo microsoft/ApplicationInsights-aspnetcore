@@ -7,8 +7,12 @@
     using System.Reflection;
 
     using Microsoft.ApplicationInsights;
+#if AI_ASPNETCORE_WEB
     using Microsoft.ApplicationInsights.AspNetCore;
     using Microsoft.ApplicationInsights.AspNetCore.Extensions;
+#else
+    using Microsoft.ApplicationInsights.WorkerService;
+#endif
     using Microsoft.ApplicationInsights.AspNetCore.TelemetryInitializers;
     using Microsoft.ApplicationInsights.Channel;
     using Microsoft.ApplicationInsights.DependencyCollector;
@@ -22,9 +26,6 @@
     using Microsoft.ApplicationInsights.Extensibility.PerfCounterCollector.QuickPulse;
     using Microsoft.ApplicationInsights.WindowsServer;
     using Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel;
-    using Microsoft.AspNetCore.Builder;
-    using Microsoft.AspNetCore.Hosting;
-    using Microsoft.AspNetCore.Http;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Configuration.Memory;
     using Microsoft.Extensions.DependencyInjection.Extensions;

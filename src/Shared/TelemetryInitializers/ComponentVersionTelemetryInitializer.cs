@@ -2,7 +2,11 @@
 {
     using ApplicationInsights.Extensibility;
     using Channel;
+#if AI_ASPNETCORE_WEB
     using Microsoft.ApplicationInsights.AspNetCore.Extensions;
+#else
+    using Microsoft.ApplicationInsights.WorkerService;
+#endif
     using Microsoft.Extensions.Options;
 
     /// <summary>

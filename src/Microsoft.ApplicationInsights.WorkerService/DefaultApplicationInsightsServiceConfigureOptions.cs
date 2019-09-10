@@ -3,8 +3,6 @@
     using System.Diagnostics;
     using System.Globalization;
     using System.IO;
-    using Microsoft.ApplicationInsights.AspNetCore.Extensions;
-    using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Options;
