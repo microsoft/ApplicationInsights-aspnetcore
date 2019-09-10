@@ -615,21 +615,24 @@
         {
             try
             {
-                string[] baggage = requestHeaders.GetCommaSeparatedValues(RequestResponseHeaders.CorrelationContextHeader);
-                if (baggage != StringValues.Empty && !activity.Baggage.Any())
+                if (!activity.Baggage.Any())
                 {
-                    foreach (var item in baggage)
+                    string[] baggage = requestHeaders.GetCommaSeparatedValues(RequestResponseHeaders.CorrelationContextHeader);
+                    if (baggage != StringValues.Empty)
                     {
-                        var parts = item.Split('=');
-                        if (parts.Length == 2)
+                        foreach (var item in baggage)
                         {
-                            var itemName = StringUtilities.EnforceMaxLength(parts[0], InjectionGuardConstants.ContextHeaderKeyMaxLength);
-                            var itemValue = StringUtilities.EnforceMaxLength(parts[1], InjectionGuardConstants.ContextHeaderValueMaxLength);
-                            activity.AddBaggage(itemName.Trim(), itemValue.Trim());
+                            var parts = item.Split('=');
+                            if (parts.Length == 2)
+                            {
+                                var itemName = StringUtilities.EnforceMaxLength(parts[0], InjectionGuardConstants.ContextHeaderKeyMaxLength);
+                                var itemValue = StringUtilities.EnforceMaxLength(parts[1], InjectionGuardConstants.ContextHeaderValueMaxLength);
+                                activity.AddBaggage(itemName.Trim(), itemValue.Trim());
+                            }
                         }
-                    }
 
-                    AspNetCoreEventSource.Instance.HostingListenerVerboe("Correlation-Context retrived from header and stored into activity baggage.");
+                        AspNetCoreEventSource.Instance.HostingListenerVerbose("Correlation-Context retrived from header and stored into activity baggage.");
+                    }
                 }
             }
             catch (Exception ex)
@@ -647,7 +650,7 @@
                 // make in the request context can continue propogation
                 // of tracestate.
                 activity.TraceStateString = traceState;
-                AspNetCoreEventSource.Instance.HostingListenerVerboe("TraceState retrived from header and stored into activity.TraceState");
+                AspNetCoreEventSource.Instance.HostingListenerVerbose("TraceState retrived from header and stored into activity.TraceState");
             }
         }
 
