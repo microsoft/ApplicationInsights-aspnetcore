@@ -231,7 +231,7 @@ namespace Microsoft.ApplicationInsights.AspNetCore.Extensibility.Implementation.
             20,
             Message = "Message: '{0}'.",
             Level = EventLevel.Verbose)]
-        public void HostingListenerVerboe(string message, string appDomainName = "Incorrect")
+        public void HostingListenerVerbose(string message, string appDomainName = "Incorrect")
         {
             this.WriteEvent(20, message, this.ApplicationName);
         }

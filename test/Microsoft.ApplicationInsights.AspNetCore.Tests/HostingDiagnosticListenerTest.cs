@@ -621,7 +621,7 @@
         [InlineData(AspNetCoreMajorVersion.One, false)]
         [InlineData(AspNetCoreMajorVersion.Two, false)]
         [InlineData(AspNetCoreMajorVersion.Three, false)]
-        public void RequestWithOutCorrelationHeaderStillReadsCorrelationContextIntoActivity(AspNetCoreMajorVersion aspNetCoreMajorVersion, bool IsW3C)
+        public void RequestWithOutCorrelationHeaderStillReadsCorrelationContextIntoActivity(AspNetCoreMajorVersion aspNetCoreMajorVersion, bool isW3C)
         {
             // Tests Correlation-Context is read and populated even when neither request-id nor traceparent is present.
             HttpContext context = CreateContext(HttpRequestScheme, HttpRequestHost, "/Test", method: "POST");
@@ -629,7 +629,7 @@
             // Just correlationcontext
             context.Request.Headers[RequestResponseHeaders.CorrelationContextHeader] = "prop1=value1, prop2=value2";
 
-            using (var hostingListener = CreateHostingListener(aspNetCoreMajorVersion, isW3C: IsW3C))
+            using (var hostingListener = CreateHostingListener(aspNetCoreMajorVersion, isW3C: isW3C))
             {
                 HandleRequestBegin(hostingListener, context, 0, aspNetCoreMajorVersion);
                 var activity = Activity.Current;
@@ -645,7 +645,7 @@
                 Assert.Single(sentTelemetry);
                 var requestTelemetry = (RequestTelemetry)this.sentTelemetry.Single();
 
-                ValidateRequestTelemetry(requestTelemetry, activity, IsW3C, expectedParentId: null, expectedSource: null);
+                ValidateRequestTelemetry(requestTelemetry, activity, isW3C, expectedParentId: null, expectedSource: null);
 
                 // Enriching telemetry from activity baggage is done by base sdk, still validating it here.
                 Assert.Equal("value1", requestTelemetry.Properties["prop1"]);
@@ -690,8 +690,6 @@
         [Theory]
         [InlineData("prop1=value1, prop2=")]
         [InlineData("prop1=value1, prop2")]
-        [InlineData("prop1=value1 , ")]
-        [InlineData(", , prop1=value1 ,,")]
         [InlineData("123, prop1=value1")]
         [InlineData("prop1=value1")]
         public void RequestPopulateCorrelationHeaderVariousInputsOne(string correlationcontext)
@@ -724,10 +722,8 @@
         }
 
         [Theory]
-        [InlineData("prop1=value1, prop2=value2")]
-        [InlineData("prop1=value1,, prop2=value2")]
-        [InlineData("prop1=value1 , prop2= value2, ")]
-        [InlineData(", , prop1=value1 ,, prop2= value2, ")]
+        [InlineData("prop1=value1,prop2=value2")]
+        [InlineData("prop1=value1 , prop2= value2")]
         [InlineData("123, prop1=value1, prop2=value2,567,=")]
         public void RequestPopulateCorrelationHeaderVariousInputsTwo(string correlationcontext)
         {
@@ -1156,7 +1152,7 @@
 
                 var requestTelemetry = context.Features.Get<RequestTelemetry>();
                 Assert.NotNull(requestTelemetry);               
-                Assert.True(requestTelemetry.ProactiveSamplingDecision == SamplingDecision.SampledOut);
+                Assert.Equal(SamplingDecision.SampledOut, requestTelemetry.ProactiveSamplingDecision);
                 ValidateRequestTelemetry(requestTelemetry, Activity.Current, true);
                 Assert.Null(requestTelemetry.Context.Operation.ParentId);
             }
@@ -1185,7 +1181,7 @@
 
                 var requestTelemetry = context.Features.Get<RequestTelemetry>();
                 Assert.NotNull(requestTelemetry);
-                Assert.False(requestTelemetry.ProactiveSamplingDecision == SamplingDecision.SampledOut);
+                Assert.NotEqual(SamplingDecision.SampledOut, requestTelemetry.ProactiveSamplingDecision);
                 ValidateRequestTelemetry(requestTelemetry, Activity.Current, true, "|4e3083444c10254ba40513c7316332eb.e2a5f830c0ee2c46.");
             }
         }
@@ -1209,7 +1205,7 @@
 
                 var requestTelemetry = context.Features.Get<RequestTelemetry>();
                 Assert.NotNull(requestTelemetry);
-                Assert.False(requestTelemetry.ProactiveSamplingDecision == SamplingDecision.SampledOut);
+                Assert.NotEqual(SamplingDecision.SampledOut, requestTelemetry.ProactiveSamplingDecision);
                 ValidateRequestTelemetry(requestTelemetry, Activity.Current, true);
                 Assert.Null(requestTelemetry.Context.Operation.ParentId);
             }
