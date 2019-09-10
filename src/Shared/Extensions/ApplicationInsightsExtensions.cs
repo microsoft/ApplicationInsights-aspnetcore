@@ -34,7 +34,7 @@
     /// <summary>
     /// Extension methods for <see cref="IServiceCollection"/> that allow adding Application Insights services to application.
     /// </summary>
-    internal static class ApplicationInsightsExtensionsCommon
+    public static partial class ApplicationInsightsExtensions
     {
         private const string VersionKeyFromConfig = "version";
         private const string InstrumentationKeyFromConfig = "ApplicationInsights:InstrumentationKey";
@@ -45,88 +45,6 @@
         private const string DeveloperModeForWebSites = "APPINSIGHTS_DEVELOPER_MODE";
         private const string EndpointAddressForWebSites = "APPINSIGHTS_ENDPOINTADDRESS";
 
-        /// <summary>
-        /// Adds Application Insights services into service collection.
-        /// </summary>
-        /// <param name="services">The <see cref="IServiceCollection"/> instance.</param>
-        /// <param name="instrumentationKey">Instrumentation key to use for telemetry.</param>
-        /// <returns>The <see cref="IServiceCollection"/>.</returns>
-        public static IServiceCollection AddApplicationInsightsTelemetry(
-            this IServiceCollection services,
-            string instrumentationKey)
-        {
-            services.AddApplicationInsightsTelemetry(options => options.InstrumentationKey = instrumentationKey);
-            return services;
-        }
-
-        /// <summary>
-        /// Adds Application Insights services into service collection.
-        /// </summary>
-        /// <param name="services">The <see cref="IServiceCollection"/> instance.</param>
-        /// <param name="configuration">Configuration to use for sending telemetry.</param>
-        /// <returns>The <see cref="IServiceCollection"/>.</returns>
-        public static IServiceCollection AddApplicationInsightsTelemetry(
-            this IServiceCollection services,
-            IConfiguration configuration)
-        {
-            services.AddApplicationInsightsTelemetry(options => AddTelemetryConfiguration(configuration, options));
-            return services;
-        }
-
-        /// <summary>
-        /// Adds Application Insights services into service collection.
-        /// </summary>
-        /// <param name="services">The <see cref="IServiceCollection"/> instance.</param>
-        /// <param name="options">The action used to configure the options.</param>
-        /// <returns>
-        /// The <see cref="IServiceCollection"/>.
-        /// </returns>
-        public static IServiceCollection AddApplicationInsightsTelemetry(
-            this IServiceCollection services,
-            Action<ApplicationInsightsServiceOptions> options)
-        {
-#if AI_ASPNETCORE_WORKER
-            services.AddApplicationInsightsTelemetryNonWeb();
-#else
-            services.AddApplicationInsightsTelemetry();
-#endif
-
-            services.Configure(options);
-            return services;
-        }
-
-        /// <summary>
-        /// Adds Application Insights services into service collection.
-        /// </summary>
-        /// <param name="services">The <see cref="IServiceCollection"/> instance.</param>
-        /// <param name="options">The options instance used to configure with.</param>
-        /// <returns>
-        /// The <see cref="IServiceCollection"/>.
-        /// </returns>
-        public static IServiceCollection AddApplicationInsightsTelemetry(
-            this IServiceCollection services,
-            ApplicationInsightsServiceOptions options)
-        {
-#if AI_ASPNETCORE_WORKER
-            services.AddApplicationInsightsTelemetryNonWeb();
-#else
-            services.AddApplicationInsightsTelemetry();
-#endif
-            services.Configure((ApplicationInsightsServiceOptions o) =>
-            {
-                o.ApplicationVersion = options.ApplicationVersion;
-                o.DeveloperMode = options.DeveloperMode;
-                o.EnableAdaptiveSampling = options.EnableAdaptiveSampling;
-                o.EnableAuthenticationTrackingJavaScript = options.EnableAuthenticationTrackingJavaScript;
-                o.EnableDebugLogger = options.EnableDebugLogger;
-                o.EnableQuickPulseMetricStream = options.EnableQuickPulseMetricStream;
-                o.EndpointAddress = options.EndpointAddress;
-                o.InstrumentationKey = options.InstrumentationKey;
-                o.EnableHeartbeat = options.EnableHeartbeat;
-                o.AddAutoCollectedMetricExtractor = options.AddAutoCollectedMetricExtractor;
-            });
-            return services;
-        }
 
         /// <summary>
         /// Adds an Application Insights Telemetry Processor into a service collection via a <see cref="ITelemetryProcessorFactory"/>.

@@ -1,5 +1,7 @@
 ﻿using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.AspNetCore.Extensions;
 using Microsoft.ApplicationInsights.AspNetCore.TelemetryInitializers;
+using Microsoft.ApplicationInsights.WorkerService;
 using Microsoft.ApplicationInsights.Channel;
 using Microsoft.ApplicationInsights.DependencyCollector;
 using Microsoft.ApplicationInsights.Extensibility;
@@ -9,6 +11,7 @@ using Microsoft.ApplicationInsights.Extensibility.PerfCounterCollector;
 using Microsoft.ApplicationInsights.Extensibility.PerfCounterCollector.QuickPulse;
 using Microsoft.ApplicationInsights.WindowsServer;
 using Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
@@ -22,8 +25,82 @@ namespace Microsoft.Extensions.DependencyInjection
     /// <summary>
     /// Extension methods for <see cref="IServiceCollection"/> that allow adding Application Insights services to application.
     /// </summary>
-    public static class ApplicationInsightsWorkerExtensions
+    public static partial class ApplicationInsightsExtensions
     {
+        /// <summary>
+        /// Adds Application Insights services into service collection.
+        /// </summary>
+        /// <param name="services">The <see cref="IServiceCollection"/> instance.</param>
+        /// <param name="instrumentationKey">Instrumentation key to use for telemetry.</param>
+        /// <returns>The <see cref="IServiceCollection"/>.</returns>
+        public static IServiceCollection AddApplicationInsightsTelemetryWorkerService(
+            this IServiceCollection services,
+            string instrumentationKey)
+        {
+            services.AddApplicationInsightsTelemetryWorkerService(options => options.InstrumentationKey = instrumentationKey);
+            return services;
+        }
+
+        /// <summary>
+        /// Adds Application Insights services into service collection.
+        /// </summary>
+        /// <param name="services">The <see cref="IServiceCollection"/> instance.</param>
+        /// <param name="configuration">Configuration to use for sending telemetry.</param>
+        /// <returns>The <see cref="IServiceCollection"/>.</returns>
+        public static IServiceCollection AddApplicationInsightsTelemetryWorkerService(
+            this IServiceCollection services,
+            IConfiguration configuration)
+        {
+            services.AddApplicationInsightsTelemetryWorkerService(options => AddTelemetryConfiguration(configuration, options));
+            return services;
+        }
+
+        /// <summary>
+        /// Adds Application Insights services into service collection.
+        /// </summary>
+        /// <param name="services">The <see cref="IServiceCollection"/> instance.</param>
+        /// <param name="options">The action used to configure the options.</param>
+        /// <returns>
+        /// The <see cref="IServiceCollection"/>.
+        /// </returns>
+        public static IServiceCollection AddApplicationInsightsTelemetryWorkerService(
+            this IServiceCollection services,
+            Action<ApplicationInsightsServiceOptions> options)
+        {
+            services.AddApplicationInsightsTelemetryWorkerService();
+            services.Configure(options);
+            return services;
+        }
+
+        /// <summary>
+        /// Adds Application Insights services into service collection.
+        /// </summary>
+        /// <param name="services">The <see cref="IServiceCollection"/> instance.</param>
+        /// <param name="options">The options instance used to configure with.</param>
+        /// <returns>
+        /// The <see cref="IServiceCollection"/>.
+        /// </returns>
+        public static IServiceCollection AddApplicationInsightsTelemetryWorkerService(
+            this IServiceCollection services,
+            ApplicationInsightsServiceOptions options)
+        {
+            services.AddApplicationInsightsTelemetryWorkerService();
+            services.Configure((ApplicationInsightsServiceOptions o) =>
+            {
+                o.ApplicationVersion = options.ApplicationVersion;
+                o.DeveloperMode = options.DeveloperMode;
+                o.EnableAdaptiveSampling = options.EnableAdaptiveSampling;
+                o.EnableAuthenticationTrackingJavaScript = options.EnableAuthenticationTrackingJavaScript;
+                o.EnableDebugLogger = options.EnableDebugLogger;
+                o.EnableQuickPulseMetricStream = options.EnableQuickPulseMetricStream;
+                o.EndpointAddress = options.EndpointAddress;
+                o.InstrumentationKey = options.InstrumentationKey;
+                o.EnableHeartbeat = options.EnableHeartbeat;
+                o.AddAutoCollectedMetricExtractor = options.AddAutoCollectedMetricExtractor;
+            });
+            return services;
+        }
+
         /// <summary>
         /// Adds Application Insights services into service collection.
         /// </summary>
@@ -31,11 +108,11 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <returns>
         /// The <see cref="IServiceCollection"/>.
         /// </returns>
-        public static IServiceCollection AddApplicationInsightsTelemetryNonWeb(this IServiceCollection services)
+        public static IServiceCollection AddApplicationInsightsTelemetryWorkerService(this IServiceCollection services)
         {
             try
             {
-                if (!ApplicationInsightsExtensionsCommon.IsApplicationInsightsAdded(services))
+                if (!IsApplicationInsightsAdded(services))
                 {
                     services
                         .AddSingleton<ITelemetryInitializer, ApplicationInsights.AspNetCore.TelemetryInitializers.
@@ -97,12 +174,6 @@ namespace Microsoft.Extensions.DependencyInjection
                         eventCounterModule.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "threadpool-queue-length"));
                         eventCounterModule.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "threadpool-completed-items-count"));
                         eventCounterModule.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "active-timer-count"));
-
-                        // Ref this code for actual names. https://github.com/aspnet/AspNetCore/blob/f3f9a1cdbcd06b298035b523732b9f45b1408461/src/Hosting/Hosting/src/Internal/HostingEventSource.cs
-                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("Microsoft.AspNetCore.Hosting", "requests-per-second"));
-                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("Microsoft.AspNetCore.Hosting", "total-requests"));
-                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("Microsoft.AspNetCore.Hosting", "current-requests"));
-                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("Microsoft.AspNetCore.Hosting", "failed-requests"));
                     });
                     services.AddSingleton<TelemetryConfiguration>(provider =>
                         provider.GetService<IOptions<TelemetryConfiguration>>().Value);
@@ -111,10 +182,10 @@ namespace Microsoft.Extensions.DependencyInjection
 
                     services.AddSingleton<TelemetryClient>();
 
-                    /*services
+                    services
                         .TryAddSingleton<IConfigureOptions<ApplicationInsightsServiceOptions>,
                             DefaultApplicationInsightsServiceConfigureOptions>();
-                            */
+                            
 
                     services.AddOptions();
                     services.AddSingleton<IOptions<TelemetryConfiguration>, TelemetryConfigurationOptions>();
@@ -153,6 +224,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 return services;
             }
             catch (Exception e)
+
             {
                 // AspNetCoreEventSource.Instance.LogError(e.ToInvariantString());
                 return services;

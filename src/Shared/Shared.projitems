@@ -10,7 +10,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)Extensibility\Implementation\Tracing\AspNetCoreEventSource.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ApplicationInsightsExtensionsCommon.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ApplicationInsightsExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ApplicationInsightsServiceOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\DependencyCollectionOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Implementation\ITelemetryModuleConfigurator.cs" />
