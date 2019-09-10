@@ -1348,6 +1348,8 @@
             {
                 Activity.Current.Stop();
             }
+
+            this.output.WriteLine("cleanup");
         }
     }
 }
