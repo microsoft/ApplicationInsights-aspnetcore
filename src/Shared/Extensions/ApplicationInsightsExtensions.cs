@@ -247,10 +247,43 @@
             }
         }
 
-        internal static bool IsApplicationInsightsAdded(IServiceCollection services)
+        private static bool IsApplicationInsightsAdded(IServiceCollection services)
         {
             // We treat TelemetryClient as a marker that AI services were added to service collection
             return services.Any(service => service.ServiceType == typeof(TelemetryClient));
+        }
+
+        private static void AddApplicationInsightsLoggerProvider(IServiceCollection services)
+        {
+#if NETSTANDARD2_0
+            services.AddLogging(loggingBuilder =>
+            {
+                loggingBuilder.AddApplicationInsights();
+
+                // The default behavior is to capture only logs above Warning level from all categories.
+                // This can achieved with this code level filter -> loggingBuilder.AddFilter<Microsoft.Extensions.Logging.ApplicationInsights.ApplicationInsightsLoggerProvider>("",LogLevel.Warning);
+                // However, this will make it impossible to override this behavior from Configuration like below using appsettings.json:
+                // {
+                //   "Logging": {
+                //     "ApplicationInsights": {
+                //       "LogLevel": {
+                //         "": "Error"
+                //       }
+                //     }
+                //   },
+                //   ...
+                // }
+                // The reason is as both rules will match the filter, the last one added wins.
+                // To ensure that the default filter is in the beginning of filter rules, so that user override from Configuration will always win,
+                // we add code filter rule to the 0th position as below.
+                loggingBuilder.Services.Configure<LoggerFilterOptions>(
+                    options => options.Rules.Insert(
+                        0,
+                        new LoggerFilterRule(
+                            "Microsoft.Extensions.Logging.ApplicationInsights.ApplicationInsightsLoggerProvider", null,
+                            LogLevel.Warning, null)));
+            });
+#endif
         }
     }
 }
