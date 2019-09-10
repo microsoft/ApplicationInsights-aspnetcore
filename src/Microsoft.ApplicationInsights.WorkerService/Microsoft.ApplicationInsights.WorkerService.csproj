@@ -16,7 +16,7 @@
     <PackageId>Microsoft.ApplicationInsights.WorkerService</PackageId>
     <AssemblyTitle>Application Insights for .NET Core Worker Service Applications</AssemblyTitle>
     <Title>Application Insights for .NET Core Worker Service Applications</Title>
-    <Description>Application Insights for .NET Core Worker Service applications. See https://azure.microsoft.com/documentation/articles/app-insights-asp-net-five/ for more information. Privacy statement: https://go.microsoft.com/fwlink/?LinkId=512156</Description>
+    <Description>Application Insights for .NET Core Worker Service (messaging, background tasks, and any non-HTTP workloads) applications. See https://azure.microsoft.com/documentation/articles/app-insights-asp-net-five/ for more information. Privacy statement: https://go.microsoft.com/fwlink/?LinkId=512156</Description>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -28,7 +28,7 @@
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <IncludeSymbols>True</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-    <PackageTags>Azure;Monitoring;Analytics;ApplicationInsights;Telemetry;AppInsights;aspnetcore;worker</PackageTags>
+    <PackageTags>Azure;Monitoring;Analytics;ApplicationInsights;Telemetry;AppInsights;aspnetcore;worker;console;backgroundtasks</PackageTags>
     <PackageIconUrl>https://appanacdn.blob.core.windows.net/cdn/icons/aic.png</PackageIconUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://go.microsoft.com/fwlink/?LinkId=392727</PackageProjectUrl>
