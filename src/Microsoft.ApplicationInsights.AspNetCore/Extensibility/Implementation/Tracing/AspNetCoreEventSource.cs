@@ -245,6 +245,18 @@ namespace Microsoft.ApplicationInsights.AspNetCore.Extensibility.Implementation.
         }
 
         /// <summary>
+        /// Logs a verbose event.
+        /// </summary>
+        [Event(
+            22,
+            Message = "Message: '{0}'. Exception: '{1}'",
+            Level = EventLevel.Warning)]
+        public void HostingListenerWarning(string message, string exception, string appDomainName = "Incorrect")
+        {
+            this.WriteEvent(22, message, exception, this.ApplicationName);
+        }
+
+        /// <summary>
         /// Keywords for the AspNetEventSource.
         /// </summary>
         public sealed class Keywords
