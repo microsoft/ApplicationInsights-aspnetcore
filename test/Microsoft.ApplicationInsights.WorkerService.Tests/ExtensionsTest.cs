@@ -16,7 +16,7 @@ namespace Microsoft.ApplicationInsights.WorkerService.Tests
     {
         private readonly ITestOutputHelper output;
         public const string TestInstrumentationKey = "11111111-2222-3333-4444-555555555555";
-        public const string TestEndPoint = "http://testendpoint";
+        public const string TestEndPoint = "http://testendpoint/v2/track";
         public ExtensionsTests(ITestOutputHelper output)
         {
             this.output = output;
