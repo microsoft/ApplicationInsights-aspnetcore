@@ -31,13 +31,14 @@
         private string GetMachineName()
         {
             string hostName = Dns.GetHostName();
-
+            // Issue #61: For dnxcore machine name does not have domain name like in full framework
+#if NET451 || NET46
             string domainName = IPGlobalProperties.GetIPGlobalProperties().DomainName;
             if (!hostName.EndsWith(domainName, StringComparison.OrdinalIgnoreCase))
             {
                 hostName = string.Format(CultureInfo.InvariantCulture, "{0}.{1}", hostName, domainName);
             }
-
+#endif
             return hostName;
         }
     }
