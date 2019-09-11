@@ -9,13 +9,11 @@
     <Import_RootNamespace>Shared</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)Extensibility\Implementation\Tracing\AspNetCoreEventSource.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ApplicationInsightsExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ApplicationInsightsServiceOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\DependencyCollectionOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Implementation\ITelemetryModuleConfigurator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Implementation\ITelemetryProcessorFactory.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Implementation\TelemetryConfigurationOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Implementation\TelemetryConfigurationOptionsSetup.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Implementation\TelemetryModuleConfigurator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Implementation\TelemetryProcessorFactory.cs" />

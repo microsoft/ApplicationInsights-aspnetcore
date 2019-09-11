@@ -117,19 +117,10 @@ namespace Microsoft.ApplicationInsights.AspNetCore.Extensibility.Implementation.
         /// <summary>
         /// Logs an event when a TelemetryModule is not found to configure.
         /// </summary>
-        [Event(11, Message = "Unable to configure module {0} as it is not found in service collection.", Level = EventLevel.Warning, Keywords = Keywords.Diagnostics)]
+        [Event(11, Message = "Unable to configure module {0} as it is not found in service collection.", Level = EventLevel.Error, Keywords = Keywords.Diagnostics)]
         public void UnableToFindModuleToConfigure(string moduleType, string appDomainName = "Incorrect")
         {
             this.WriteEvent(11, moduleType, this.ApplicationName);
-        }
-
-        /// <summary>
-        /// Logs an event when QuickPulseTelemetryModule is not found in service collection.
-        /// </summary>
-        [Event(12, Message = "Unable to find QuickPulseTelemetryModule in service collection. LiveMetrics feature will not be available. Please add QuickPulseTelemetryModule to services collection in the ConfigureServices method of your application Startup class.", Level = EventLevel.Error, Keywords = Keywords.Diagnostics)]
-        public void UnableToFindQuickPulseModuleInDI(string appDomainName = "Incorrect")
-        {
-            this.WriteEvent(12, this.ApplicationName);
         }
 
         /// <summary>
@@ -210,7 +201,6 @@ namespace Microsoft.ApplicationInsights.AspNetCore.Extensibility.Implementation.
             this.WriteEvent(18, operationId, this.ApplicationName);
         }
 
-#if AI_ASPNETCORE_WEB
         /// <summary>
         /// Logs an informational event from Hosting listeners.
         /// </summary>
@@ -222,7 +212,6 @@ namespace Microsoft.ApplicationInsights.AspNetCore.Extensibility.Implementation.
         {
             this.WriteEvent(19, hostingVersion, message, this.ApplicationName);
         }
-#endif
 
         /// <summary>
         /// Logs a verbose event.
@@ -258,6 +247,18 @@ namespace Microsoft.ApplicationInsights.AspNetCore.Extensibility.Implementation.
         public void HostingListenerWarning(string message, string exception, string appDomainName = "Incorrect")
         {
             this.WriteEvent(22, message, exception, this.ApplicationName);
+        }
+
+        /// <summary>
+        /// Logs an informational event.
+        /// </summary>
+        [Event(
+            23,
+            Message = "Message : {0}",
+            Level = EventLevel.Informational)]
+        public void LogInformational(string message, string appDomainName = "Incorrect")
+        {
+            this.WriteEvent(23, message, this.ApplicationName);
         }
 
         /// <summary>

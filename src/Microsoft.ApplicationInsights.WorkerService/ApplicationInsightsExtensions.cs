@@ -18,6 +18,8 @@ using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Microsoft.ApplicationInsights.Extensibility.Implementation.Tracing;
+using Microsoft.ApplicationInsights.WorkerService.Implementation.Tracing;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -197,9 +199,8 @@ namespace Microsoft.Extensions.DependencyInjection
                 return services;
             }
             catch (Exception e)
-
             {
-                // AspNetCoreEventSource.Instance.LogError(e.ToInvariantString());
+                WorkerServiceEventSource.Instance.LogError(e.ToInvariantString());
                 return services;
             }
         }

@@ -2,35 +2,23 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Diagnostics.CodeAnalysis;
     using System.Linq;
     using System.Reflection;
 
     using Microsoft.ApplicationInsights;
 #if AI_ASPNETCORE_WEB
     using Microsoft.ApplicationInsights.AspNetCore;
+    using Microsoft.ApplicationInsights.AspNetCore.Extensibility.Implementation.Tracing;
     using Microsoft.ApplicationInsights.AspNetCore.Extensions;
 #else
     using Microsoft.ApplicationInsights.WorkerService;
+    using Microsoft.ApplicationInsights.WorkerService.Implementation.Tracing;
 #endif
-    using Microsoft.ApplicationInsights.AspNetCore.TelemetryInitializers;
-    using Microsoft.ApplicationInsights.Channel;
-    using Microsoft.ApplicationInsights.DependencyCollector;
     using Microsoft.ApplicationInsights.Extensibility;
-#if NETSTANDARD2_0
-    using Microsoft.ApplicationInsights.Extensibility.EventCounterCollector;
-#endif
-    using Microsoft.ApplicationInsights.Extensibility.Implementation.ApplicationId;
     using Microsoft.ApplicationInsights.Extensibility.Implementation.Tracing;
-    using Microsoft.ApplicationInsights.Extensibility.PerfCounterCollector;
-    using Microsoft.ApplicationInsights.Extensibility.PerfCounterCollector.QuickPulse;
-    using Microsoft.ApplicationInsights.WindowsServer;
-    using Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Configuration.Memory;
-    using Microsoft.Extensions.DependencyInjection.Extensions;
     using Microsoft.Extensions.Logging;
-    using Microsoft.Extensions.Options;
 
     /// <summary>
     /// Extension methods for <see cref="IServiceCollection"/> that allow adding Application Insights services to application.
@@ -203,47 +191,58 @@
         internal static void AddTelemetryConfiguration(IConfiguration config,
             ApplicationInsightsServiceOptions serviceOptions)
         {
-            string instrumentationKey = config[InstrumentationKeyForWebSites];
-            if (string.IsNullOrWhiteSpace(instrumentationKey))
+            try
             {
-                instrumentationKey = config[InstrumentationKeyFromConfig];
-            }
-
-            if (!string.IsNullOrWhiteSpace(instrumentationKey))
-            {
-                serviceOptions.InstrumentationKey = instrumentationKey;
-            }
-
-            string developerModeValue = config[DeveloperModeForWebSites];
-            if (string.IsNullOrWhiteSpace(developerModeValue))
-            {
-                developerModeValue = config[DeveloperModeFromConfig];
-            }
-
-            if (!string.IsNullOrWhiteSpace(developerModeValue))
-            {
-                bool developerMode = false;
-                if (bool.TryParse(developerModeValue, out developerMode))
+                string instrumentationKey = config[InstrumentationKeyForWebSites];
+                if (string.IsNullOrWhiteSpace(instrumentationKey))
                 {
-                    serviceOptions.DeveloperMode = developerMode;
+                    instrumentationKey = config[InstrumentationKeyFromConfig];
+                }
+
+                if (!string.IsNullOrWhiteSpace(instrumentationKey))
+                {
+                    serviceOptions.InstrumentationKey = instrumentationKey;
+                }
+
+                string developerModeValue = config[DeveloperModeForWebSites];
+                if (string.IsNullOrWhiteSpace(developerModeValue))
+                {
+                    developerModeValue = config[DeveloperModeFromConfig];
+                }
+
+                if (!string.IsNullOrWhiteSpace(developerModeValue))
+                {
+                    bool developerMode = false;
+                    if (bool.TryParse(developerModeValue, out developerMode))
+                    {
+                        serviceOptions.DeveloperMode = developerMode;
+                    }
+                }
+
+                string endpointAddress = config[EndpointAddressForWebSites];
+                if (string.IsNullOrWhiteSpace(endpointAddress))
+                {
+                    endpointAddress = config[EndpointAddressFromConfig];
+                }
+
+                if (!string.IsNullOrWhiteSpace(endpointAddress))
+                {
+                    serviceOptions.EndpointAddress = endpointAddress;
+                }
+
+                var version = config[VersionKeyFromConfig];
+                if (!string.IsNullOrWhiteSpace(version))
+                {
+                    serviceOptions.ApplicationVersion = version;
                 }
             }
-
-            string endpointAddress = config[EndpointAddressForWebSites];
-            if (string.IsNullOrWhiteSpace(endpointAddress))
+            catch(Exception ex)
             {
-                endpointAddress = config[EndpointAddressFromConfig];
-            }
-
-            if (!string.IsNullOrWhiteSpace(endpointAddress))
-            {
-                serviceOptions.EndpointAddress = endpointAddress;
-            }
-
-            var version = config[VersionKeyFromConfig];
-            if (!string.IsNullOrWhiteSpace(version))
-            {
-                serviceOptions.ApplicationVersion = version;
+#if AI_ASPNETCORE_WEB
+                AspNetCoreEventSource.Instance.LogError(ex.ToInvariantString());
+#else
+                WorkerServiceEventSource.Instance.LogError(ex.ToInvariantString());
+#endif
             }
         }
 

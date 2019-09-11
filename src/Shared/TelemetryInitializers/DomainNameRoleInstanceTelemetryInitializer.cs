@@ -7,7 +7,6 @@
     using System.Threading;
     using Channel;
     using Microsoft.ApplicationInsights.Extensibility;
-    using Microsoft.ApplicationInsights.Extensibility.Implementation;
 
     /// <summary>
     /// A telemetry initializer that populates cloud context role instance.
@@ -33,14 +32,12 @@
         {
             string hostName = Dns.GetHostName();
 
-            // Issue #61: For dnxcore machine name does not have domain name like in full framework
-#if NET451 || NET46
             string domainName = IPGlobalProperties.GetIPGlobalProperties().DomainName;
             if (!hostName.EndsWith(domainName, StringComparison.OrdinalIgnoreCase))
             {
                 hostName = string.Format(CultureInfo.InvariantCulture, "{0}.{1}", hostName, domainName);
             }
-#endif
+
             return hostName;
         }
     }
