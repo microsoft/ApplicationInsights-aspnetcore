@@ -52,11 +52,11 @@ namespace Microsoft.ApplicationInsights.WorkerService.Tests
 
             // Validate
             var reqs = GetTelemetryOfType<RequestTelemetry>(sentItems);
-            Assert.NotNull(reqs);
+            Assert.True(reqs.Count >= 1);
             var traces = GetTelemetryOfType<TraceTelemetry>(sentItems);
-            Assert.NotNull(traces);
+            Assert.True(traces.Count >= 1);
             var deps = GetTelemetryOfType<DependencyTelemetry>(sentItems);
-            Assert.NotNull(deps);
+            Assert.True(deps.Count >= 1);
 
             // Pick one RequestTelemetry and validate that trace/deps are found which are child of the parent request.
             var reqOperationId = reqs[0].Context.Operation.Id;
