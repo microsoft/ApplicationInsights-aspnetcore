@@ -118,7 +118,6 @@ namespace Microsoft.Extensions.DependencyInjection
                             DomainNameRoleInstanceTelemetryInitializer>();
                     services.AddSingleton<ITelemetryInitializer, ComponentVersionTelemetryInitializer>();
                     services.AddSingleton<ITelemetryInitializer, AzureWebAppRoleEnvironmentTelemetryInitializer>();
-                    // services.AddSingleton<ITelemetryInitializer, AspNetCoreEnvironmentTelemetryInitializer>();
                     services.AddSingleton<ITelemetryInitializer, HttpDependenciesParsingTelemetryInitializer>();
                     services.TryAddSingleton<ITelemetryChannel, ServerTelemetryChannel>();
 
