@@ -56,6 +56,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.ApplicationInsigh
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "Shared", "src\Shared\Shared.shproj", "{D56F2979-D6BC-4EF2-BB9B-4077B3290599}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.ApplicationInsights.WorkerService.Tests", "test\Microsoft.ApplicationInsights.WorkerService.Tests\Microsoft.ApplicationInsights.WorkerService.Tests.csproj", "{A41D3299-5E41-4B73-8C8E-DD64824BC9E6}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		src\Shared\Shared.projitems*{d56f2979-d6bc-4ef2-bb9b-4077b3290599}*SharedItemsImports = 13
@@ -121,6 +123,10 @@ Global
 		{AECEE8DD-09AE-4DEA-8690-F76A37C0534B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AECEE8DD-09AE-4DEA-8690-F76A37C0534B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AECEE8DD-09AE-4DEA-8690-F76A37C0534B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A41D3299-5E41-4B73-8C8E-DD64824BC9E6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A41D3299-5E41-4B73-8C8E-DD64824BC9E6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A41D3299-5E41-4B73-8C8E-DD64824BC9E6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A41D3299-5E41-4B73-8C8E-DD64824BC9E6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -142,6 +148,7 @@ Global
 		{FE9DB9A7-D9AE-4188-945C-393D70022D9A} = {8B5230E5-8138-44D6-839F-DF9248F195EE}
 		{AECEE8DD-09AE-4DEA-8690-F76A37C0534B} = {2E6DDE9E-8C75-4F9C-8906-08EBDD6E73EF}
 		{D56F2979-D6BC-4EF2-BB9B-4077B3290599} = {2E6DDE9E-8C75-4F9C-8906-08EBDD6E73EF}
+		{A41D3299-5E41-4B73-8C8E-DD64824BC9E6} = {8B5230E5-8138-44D6-839F-DF9248F195EE}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {047855A4-470F-43B1-8B74-69651DD6B8A6}

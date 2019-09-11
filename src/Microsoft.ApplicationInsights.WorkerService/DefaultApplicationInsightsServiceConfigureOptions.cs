@@ -19,7 +19,7 @@
         /// Creates a new instance of <see cref="DefaultApplicationInsightsServiceConfigureOptions"/>
         /// </summary>
         /// <param name="configuration"><see cref="IConfiguration"/> from which configuraion for ApplicationInsights can be retrieved.</param>
-        public DefaultApplicationInsightsServiceConfigureOptions(IConfiguration configuration)
+        public DefaultApplicationInsightsServiceConfigureOptions(IConfiguration configuration = null)
         {
             this.configuration = configuration;
         }
@@ -27,7 +27,10 @@
         /// <inheritdoc />
         public void Configure(ApplicationInsightsServiceOptions options)
         {
-            ApplicationInsightsExtensions.AddTelemetryConfiguration(configuration, options);
+            if (configuration != null)
+            {
+                ApplicationInsightsExtensions.AddTelemetryConfiguration(configuration, options);
+            }
 
             if (Debugger.IsAttached)
             {
