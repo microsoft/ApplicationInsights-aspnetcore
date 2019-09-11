@@ -47,8 +47,6 @@ namespace Microsoft.Extensions.DependencyInjection.Test
         public static ServiceCollection GetServiceCollectionWithContextAccessor()
         {
             var services = new ServiceCollection();
-            IHttpContextAccessor contextAccessor = new HttpContextAccessor();
-            // services.AddSingleton<IHttpContextAccessor>(contextAccessor);
             services.AddSingleton<IHostingEnvironment>(new HostingEnvironment() { ContentRootPath = Directory.GetCurrentDirectory()});
             services.AddSingleton<DiagnosticListener>(new DiagnosticListener("TestListener"));
             return services;

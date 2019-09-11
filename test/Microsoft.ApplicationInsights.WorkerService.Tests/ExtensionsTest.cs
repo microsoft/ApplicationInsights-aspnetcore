@@ -79,12 +79,60 @@ namespace Microsoft.ApplicationInsights.WorkerService.Tests
             var services = new ServiceCollection();
             
             services.AddApplicationInsightsTelemetryWorkerService(config);
-
             IServiceProvider serviceProvider = services.BuildServiceProvider();
             var telemetryConfiguration = serviceProvider.GetRequiredService<TelemetryConfiguration>();
             Assert.Equal(TestInstrumentationKey, telemetryConfiguration.InstrumentationKey);
             Assert.Equal(TestEndPoint, telemetryConfiguration.TelemetryChannel.EndpointAddress);
             Assert.Equal(true, telemetryConfiguration.TelemetryChannel.DeveloperMode);
+        }
+
+        [Fact]
+        public void ReadsSettingsFromDefaultConfiguration()
+        {
+            // Host.CreateDefaultBuilder() in .NET Core 3.0  adds appsetting.json and env variable
+            // to configuration and is made available for constructor injection.
+            // this test validates that SDK reads settings from this configuration by default.
+            // ARRANGE
+            var jsonFullPath = Path.Combine(Directory.GetCurrentDirectory(), "content", "sample-appsettings.json");
+            this.output.WriteLine("json:" + jsonFullPath);
+            var config = new ConfigurationBuilder().AddJsonFile(jsonFullPath).Build();
+            var services = new ServiceCollection();
+            // This line mimics the default behavior by CreateDefaultBuilder
+            services.AddSingleton<IConfiguration>(config);
+
+            // ACT             
+            services.AddApplicationInsightsTelemetryWorkerService();
+            
+            // VALIDATE
+            IServiceProvider serviceProvider = services.BuildServiceProvider();
+            var telemetryConfiguration = serviceProvider.GetRequiredService<TelemetryConfiguration>();
+            Assert.Equal(TestInstrumentationKey, telemetryConfiguration.InstrumentationKey);
+            Assert.Equal(TestEndPoint, telemetryConfiguration.TelemetryChannel.EndpointAddress);
+            Assert.Equal(true, telemetryConfiguration.TelemetryChannel.DeveloperMode);
+        }
+
+        [Fact]
+        public void DoesNoThrowIfNoSettingsFound()
+        {
+            // Host.CreateDefaultBuilder() in .NET Core 3.0  adds appsetting.json and env variable
+            // to configuration and is made available for constructor injection.
+            // This test validates that SDK does not throw any error if it cannot find 
+            // application insights configuration in default IConfiguration.
+            // ARRANGE
+            var jsonFullPath = Path.Combine(Directory.GetCurrentDirectory(), "content", "sample-appsettings_dontexist.json");
+            this.output.WriteLine("json:" + jsonFullPath);
+            var config = new ConfigurationBuilder().AddJsonFile(jsonFullPath, true).Build();
+            var services = new ServiceCollection();
+            // This line mimics the default behavior by CreateDefaultBuilder
+            services.AddSingleton<IConfiguration>(config);
+
+            // ACT             
+            services.AddApplicationInsightsTelemetryWorkerService();
+
+            // VALIDATE
+            IServiceProvider serviceProvider = services.BuildServiceProvider();
+            var telemetryConfiguration = serviceProvider.GetRequiredService<TelemetryConfiguration>();
+            Assert.True(string.IsNullOrEmpty(telemetryConfiguration.InstrumentationKey));
         }
     }
 }
