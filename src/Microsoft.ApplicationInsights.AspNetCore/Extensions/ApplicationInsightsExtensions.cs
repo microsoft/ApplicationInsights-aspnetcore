@@ -175,8 +175,6 @@
                         var includedActivities = module.IncludeDiagnosticSourceActivities;
                         includedActivities.Add("Microsoft.Azure.EventHubs");
                         includedActivities.Add("Microsoft.Azure.ServiceBus");
-
-                        module.EnableW3CHeadersInjection = o.RequestCollectionOptions.EnableW3CDistributedTracing;
                     });
 
                     services.ConfigureTelemetryModule<RequestTrackingTelemetryModule>((module, options) =>

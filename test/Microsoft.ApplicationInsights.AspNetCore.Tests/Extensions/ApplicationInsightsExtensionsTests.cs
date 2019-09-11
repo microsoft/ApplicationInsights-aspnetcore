@@ -1066,8 +1066,8 @@ namespace Microsoft.Extensions.DependencyInjection.Test
                 Assert.Single(requestTracking);
                 Assert.Single(dependencyTracking);
 
-                Assert.True(requestTracking.Single().CollectionOptions.EnableW3CDistributedTracing);
-                Assert.True(dependencyTracking.Single().EnableW3CHeadersInjection);
+                Assert.True(Activity.DefaultIdFormat == ActivityIdFormat.W3C);
+                Assert.True(Activity.ForceDefaultIdFormat);
             }
 
             private static int GetTelemetryProcessorsCountInConfiguration<T>(TelemetryConfiguration telemetryConfiguration)

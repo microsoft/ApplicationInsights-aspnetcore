@@ -144,8 +144,6 @@ namespace Microsoft.Extensions.DependencyInjection
                         var includedActivities = module.IncludeDiagnosticSourceActivities;
                         includedActivities.Add("Microsoft.Azure.EventHubs");
                         includedActivities.Add("Microsoft.Azure.ServiceBus");
-
-                        module.EnableW3CHeadersInjection = true;
                     });
 
                     services.AddSingleton<ITelemetryModule, PerformanceCollectorModule>();
