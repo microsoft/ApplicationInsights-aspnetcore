@@ -1,4 +1,4 @@
-﻿using Microsoft.ApplicationInsights.AspNetCore.TelemetryInitializers;
+﻿using Microsoft.ApplicationInsights.WorkerService.TelemetryInitializers;
 using Microsoft.ApplicationInsights.Channel;
 using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.ApplicationInsights.DependencyCollector;
@@ -44,7 +44,7 @@ namespace Microsoft.ApplicationInsights.WorkerService.Tests
         }
 
         [Theory]
-        [InlineData(typeof(ITelemetryInitializer), typeof(ApplicationInsights.AspNetCore.TelemetryInitializers.DomainNameRoleInstanceTelemetryInitializer), ServiceLifetime.Singleton)]
+        [InlineData(typeof(ITelemetryInitializer), typeof(ApplicationInsights.WorkerService.TelemetryInitializers.DomainNameRoleInstanceTelemetryInitializer), ServiceLifetime.Singleton)]
         [InlineData(typeof(ITelemetryInitializer), typeof(AzureWebAppRoleEnvironmentTelemetryInitializer), ServiceLifetime.Singleton)]
         [InlineData(typeof(ITelemetryInitializer), typeof(ComponentVersionTelemetryInitializer), ServiceLifetime.Singleton)]
         [InlineData(typeof(ITelemetryInitializer), typeof(HttpDependenciesParsingTelemetryInitializer), ServiceLifetime.Singleton)]
@@ -59,7 +59,7 @@ namespace Microsoft.ApplicationInsights.WorkerService.Tests
         }
 
         [Theory]
-        [InlineData(typeof(ITelemetryInitializer), typeof(ApplicationInsights.AspNetCore.TelemetryInitializers.DomainNameRoleInstanceTelemetryInitializer), ServiceLifetime.Singleton)]
+        [InlineData(typeof(ITelemetryInitializer), typeof(ApplicationInsights.WorkerService.TelemetryInitializers.DomainNameRoleInstanceTelemetryInitializer), ServiceLifetime.Singleton)]
         [InlineData(typeof(ITelemetryInitializer), typeof(AzureWebAppRoleEnvironmentTelemetryInitializer), ServiceLifetime.Singleton)]
         [InlineData(typeof(ITelemetryInitializer), typeof(ComponentVersionTelemetryInitializer), ServiceLifetime.Singleton)]
         [InlineData(typeof(ITelemetryInitializer), typeof(HttpDependenciesParsingTelemetryInitializer), ServiceLifetime.Singleton)]
@@ -280,6 +280,34 @@ namespace Microsoft.ApplicationInsights.WorkerService.Tests
             // TelemetryClient
             var tc = serviceProvider.GetRequiredService<TelemetryClient>();
             Assert.NotNull(tc);
+        }
+
+        [Fact]
+        public static void RegistersTelemetryConfigurationFactoryMethodThatPopulatesEventCounterCollectorWithDefaultListOfCounters()
+        {
+            //ARRANGE
+            var services = new ServiceCollection();
+            services.AddApplicationInsightsTelemetryWorkerService();
+
+            //ACT
+            IServiceProvider serviceProvider = services.BuildServiceProvider();
+            var modules = serviceProvider.GetServices<ITelemetryModule>();            
+            var telemetryConfiguration = serviceProvider.GetRequiredService<TelemetryConfiguration>();
+            var eventCounterModule = modules.OfType<EventCounterCollectionModule>().Single();
+
+            //VALIDATE
+            Assert.Equal(19, eventCounterModule.Counters.Count);
+
+            // sanity check with a sample counter.
+            var cpuCounterRequest = eventCounterModule.Counters.FirstOrDefault<EventCounterCollectionRequest>(
+                eventCounterCollectionRequest => eventCounterCollectionRequest.EventSourceName == "System.Runtime"
+                && eventCounterCollectionRequest.EventCounterName == "cpu-usage");
+            Assert.NotNull(cpuCounterRequest);
+
+            // sanity check - no asp.net counters should be added
+            var aspnetCounterRequest = eventCounterModule.Counters.FirstOrDefault<EventCounterCollectionRequest>(
+                eventCounterCollectionRequest => eventCounterCollectionRequest.EventSourceName == "Microsoft.AspNetCore");
+            Assert.Null(aspnetCounterRequest);
         }
 
         [Fact]

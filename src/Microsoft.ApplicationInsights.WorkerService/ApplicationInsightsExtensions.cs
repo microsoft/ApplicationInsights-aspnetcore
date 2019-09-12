@@ -1,5 +1,5 @@
 ﻿using Microsoft.ApplicationInsights;
-using Microsoft.ApplicationInsights.AspNetCore.TelemetryInitializers;
+using Microsoft.ApplicationInsights.WorkerService.TelemetryInitializers;
 using Microsoft.ApplicationInsights.WorkerService;
 using Microsoft.ApplicationInsights.Channel;
 using Microsoft.ApplicationInsights.DependencyCollector;
@@ -115,82 +115,19 @@ namespace Microsoft.Extensions.DependencyInjection
             {
                 if (!IsApplicationInsightsAdded(services))
                 {
-                    services
-                        .AddSingleton<ITelemetryInitializer, ApplicationInsights.AspNetCore.TelemetryInitializers.
-                            DomainNameRoleInstanceTelemetryInitializer>();
-                    services.AddSingleton<ITelemetryInitializer, ComponentVersionTelemetryInitializer>();
-                    services.AddSingleton<ITelemetryInitializer, AzureWebAppRoleEnvironmentTelemetryInitializer>();
-                    services.AddSingleton<ITelemetryInitializer, HttpDependenciesParsingTelemetryInitializer>();
-                    services.TryAddSingleton<ITelemetryChannel, ServerTelemetryChannel>();
+                    AddCommonInitializers(services);                    
+                    AddCommonTelemetryModules(services);
+                    AddTelemetryChannel(services);
 
-                    services.AddSingleton<ITelemetryModule, DependencyTrackingTelemetryModule>();
-                    services.ConfigureTelemetryModule<DependencyTrackingTelemetryModule>((module, o) =>
-                    {
-                        module.EnableLegacyCorrelationHeadersInjection =
-                            o.DependencyCollectionOptions.EnableLegacyCorrelationHeadersInjection;
+                    ConfigureEventCounterModuleWithSystemCounters(services);
 
-                        var excludedDomains = module.ExcludeComponentCorrelationHttpHeadersOnDomains;
-                        excludedDomains.Add("core.windows.net");
-                        excludedDomains.Add("core.chinacloudapi.cn");
-                        excludedDomains.Add("core.cloudapi.de");
-                        excludedDomains.Add("core.usgovcloudapi.net");
-
-                        if (module.EnableLegacyCorrelationHeadersInjection)
-                        {
-                            excludedDomains.Add("localhost");
-                            excludedDomains.Add("127.0.0.1");
-                        }
-
-                        var includedActivities = module.IncludeDiagnosticSourceActivities;
-                        includedActivities.Add("Microsoft.Azure.EventHubs");
-                        includedActivities.Add("Microsoft.Azure.ServiceBus");
-                    });
-
-                    services.AddSingleton<ITelemetryModule, PerformanceCollectorModule>();
-                    services.AddSingleton<ITelemetryModule, AppServicesHeartbeatTelemetryModule>();
-                    services.AddSingleton<ITelemetryModule, AzureInstanceMetadataTelemetryModule>();
-                    services.AddSingleton<ITelemetryModule, QuickPulseTelemetryModule>();
-                    services.AddSingleton<ITelemetryModule, EventCounterCollectionModule>();
-                    services.ConfigureTelemetryModule<EventCounterCollectionModule>((eventCounterModule, options) =>
-                    {
-                        // Ref this code for actual names. https://github.com/dotnet/coreclr/blob/dbc5b56c48ce30635ee8192c9814c7de998043d5/src/System.Private.CoreLib/src/System/Diagnostics/Eventing/RuntimeEventSource.cs
-                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "cpu-usage"));
-                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "working-set"));
-                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "gc-heap-size"));
-                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "gen-0-gc-count"));
-                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "gen-1-gc-count"));
-                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "gen-2-gc-count"));
-                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "time-in-gc"));
-                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "gen-0-size"));
-                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "gen-1-size"));
-                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "gen-2-size"));
-                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "loh-size"));
-                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "alloc-rate"));
-                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "assembly-count"));
-                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "exception-count"));
-                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "threadpool-thread-count"));
-                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "monitor-lock-contention-count"));
-                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "threadpool-queue-length"));
-                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "threadpool-completed-items-count"));
-                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "active-timer-count"));
-                    });
-                    services.AddSingleton<TelemetryConfiguration>(provider =>
-                        provider.GetService<IOptions<TelemetryConfiguration>>().Value);
-
-                    services.TryAddSingleton<IApplicationIdProvider, ApplicationInsightsApplicationIdProvider>();
-
-                    services.AddSingleton<TelemetryClient>();
 
                     services
                         .TryAddSingleton<IConfigureOptions<ApplicationInsightsServiceOptions>,
                             DefaultApplicationInsightsServiceConfigureOptions>();
-                            
 
-                    services.AddOptions();
-                    services.AddSingleton<IOptions<TelemetryConfiguration>, TelemetryConfigurationOptions>();
-                    services
-                        .AddSingleton<IConfigureOptions<TelemetryConfiguration>, TelemetryConfigurationOptionsSetup>();
-
+                    AddDefaultApplicationIdProvider(services);
+                    AddTelemetryConfigAndClient(services);
                     AddApplicationInsightsLoggerProvider(services);
                 }
 

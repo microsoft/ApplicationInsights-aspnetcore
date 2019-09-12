@@ -4,21 +4,34 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
-
     using Microsoft.ApplicationInsights;
 #if AI_ASPNETCORE_WEB
     using Microsoft.ApplicationInsights.AspNetCore;
+    using Microsoft.ApplicationInsights.AspNetCore.TelemetryInitializers;
     using Microsoft.ApplicationInsights.AspNetCore.Extensibility.Implementation.Tracing;
     using Microsoft.ApplicationInsights.AspNetCore.Extensions;
 #else
     using Microsoft.ApplicationInsights.WorkerService;
+    using Microsoft.ApplicationInsights.WorkerService.TelemetryInitializers;
     using Microsoft.ApplicationInsights.WorkerService.Implementation.Tracing;
 #endif
     using Microsoft.ApplicationInsights.Extensibility;
     using Microsoft.ApplicationInsights.Extensibility.Implementation.Tracing;
+    using Microsoft.ApplicationInsights.WindowsServer;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Configuration.Memory;
     using Microsoft.Extensions.Logging;
+    using Microsoft.ApplicationInsights.DependencyCollector;
+    using Microsoft.ApplicationInsights.Channel;
+    using Microsoft.Extensions.DependencyInjection.Extensions;
+    using Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel;
+    using Microsoft.ApplicationInsights.Extensibility.PerfCounterCollector;
+    using Microsoft.ApplicationInsights.Extensibility.PerfCounterCollector.QuickPulse;
+#if NETSTANDARD2_0
+    using Microsoft.ApplicationInsights.Extensibility.EventCounterCollector;
+#endif
+    using Microsoft.Extensions.Options;
+    using Microsoft.ApplicationInsights.Extensibility.Implementation.ApplicationId;
 
     /// <summary>
     /// Extension methods for <see cref="IServiceCollection"/> that allow adding Application Insights services to application.
@@ -250,6 +263,119 @@
         {
             // We treat TelemetryClient as a marker that AI services were added to service collection
             return services.Any(service => service.ServiceType == typeof(TelemetryClient));
+        }
+
+        private static void AddCommonInitializers(IServiceCollection services)
+        {
+#if AI_ASPNETCORE_WEB
+            services.AddSingleton<ITelemetryInitializer, Microsoft.ApplicationInsights.AspNetCore.TelemetryInitializers.DomainNameRoleInstanceTelemetryInitializer>();
+#else
+            services.AddSingleton<ITelemetryInitializer, Microsoft.ApplicationInsights.WorkerService.TelemetryInitializers.DomainNameRoleInstanceTelemetryInitializer>();
+#endif
+            services.AddSingleton<ITelemetryInitializer, AzureWebAppRoleEnvironmentTelemetryInitializer>();
+            services.AddSingleton<ITelemetryInitializer, HttpDependenciesParsingTelemetryInitializer>();
+            services.AddSingleton<ITelemetryInitializer, ComponentVersionTelemetryInitializer>();
+        }
+
+        private static void AddCommonTelemetryModules(IServiceCollection services)
+        {
+            services.AddSingleton<ITelemetryModule, PerformanceCollectorModule>();
+            services.AddSingleton<ITelemetryModule, AppServicesHeartbeatTelemetryModule>();
+            services.AddSingleton<ITelemetryModule, AzureInstanceMetadataTelemetryModule>();
+            services.AddSingleton<ITelemetryModule, QuickPulseTelemetryModule>();
+            AddAndConfigureDependencyTracking(services);
+#if NETSTANDARD2_0
+            services.AddSingleton<ITelemetryModule, EventCounterCollectionModule>();
+#endif
+        }
+
+        private static void AddTelemetryChannel(IServiceCollection services)
+        {
+            services.TryAddSingleton<ITelemetryChannel, ServerTelemetryChannel>();
+        }
+
+        private static void AddDefaultApplicationIdProvider(IServiceCollection services)
+        {
+            services.TryAddSingleton<IApplicationIdProvider, ApplicationInsightsApplicationIdProvider>();
+        }
+
+        private static void AddTelemetryConfigAndClient(IServiceCollection services)
+        {
+            services.AddOptions();
+            services.AddSingleton<IOptions<TelemetryConfiguration>, TelemetryConfigurationOptions>();
+            services.AddSingleton<IConfigureOptions<TelemetryConfiguration>, TelemetryConfigurationOptionsSetup>();
+            services.AddSingleton<TelemetryConfiguration>(provider =>
+                provider.GetService<IOptions<TelemetryConfiguration>>().Value);
+            services.AddSingleton<TelemetryClient>();
+        }
+
+        private static void AddAndConfigureDependencyTracking(IServiceCollection services)
+        {
+            services.AddSingleton<ITelemetryModule, DependencyTrackingTelemetryModule>();
+            services.ConfigureTelemetryModule<DependencyTrackingTelemetryModule>((module, o) =>
+            {
+                module.EnableLegacyCorrelationHeadersInjection =
+                    o.DependencyCollectionOptions.EnableLegacyCorrelationHeadersInjection;
+
+                var excludedDomains = module.ExcludeComponentCorrelationHttpHeadersOnDomains;
+                excludedDomains.Add("core.windows.net");
+                excludedDomains.Add("core.chinacloudapi.cn");
+                excludedDomains.Add("core.cloudapi.de");
+                excludedDomains.Add("core.usgovcloudapi.net");
+
+                if (module.EnableLegacyCorrelationHeadersInjection)
+                {
+                    excludedDomains.Add("localhost");
+                    excludedDomains.Add("127.0.0.1");
+                }
+
+                var includedActivities = module.IncludeDiagnosticSourceActivities;
+                includedActivities.Add("Microsoft.Azure.EventHubs");
+                includedActivities.Add("Microsoft.Azure.ServiceBus");
+            });
+        }
+
+        private static void ConfigureEventCounterModuleWithSystemCounters(IServiceCollection services)
+        {
+#if NETSTANDARD2_0
+                    services.ConfigureTelemetryModule<EventCounterCollectionModule>((eventCounterModule, options) =>
+                    {
+                        // Ref this code for actual names. https://github.com/dotnet/coreclr/blob/dbc5b56c48ce30635ee8192c9814c7de998043d5/src/System.Private.CoreLib/src/System/Diagnostics/Eventing/RuntimeEventSource.cs
+                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "cpu-usage"));
+                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "working-set"));
+                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "gc-heap-size"));
+                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "gen-0-gc-count"));
+                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "gen-1-gc-count"));
+                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "gen-2-gc-count"));
+                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "time-in-gc"));
+                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "gen-0-size"));
+                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "gen-1-size"));
+                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "gen-2-size"));
+                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "loh-size"));
+                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "alloc-rate"));
+                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "assembly-count"));
+                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "exception-count"));
+                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "threadpool-thread-count"));
+                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "monitor-lock-contention-count"));
+                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "threadpool-queue-length"));
+                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "threadpool-completed-items-count"));
+                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "active-timer-count"));
+                    });
+#endif
+        }
+
+        private static void ConfigureEventCounterModuleWithAspNetCounters(IServiceCollection services)
+        {
+#if NETSTANDARD2_0
+                    services.ConfigureTelemetryModule<EventCounterCollectionModule>((eventCounterModule, options) =>
+                    {
+                        // Ref this code for actual names. https://github.com/aspnet/AspNetCore/blob/f3f9a1cdbcd06b298035b523732b9f45b1408461/src/Hosting/Hosting/src/Internal/HostingEventSource.cs
+                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("Microsoft.AspNetCore.Hosting", "requests-per-second"));
+                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("Microsoft.AspNetCore.Hosting", "total-requests"));
+                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("Microsoft.AspNetCore.Hosting", "current-requests"));
+                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("Microsoft.AspNetCore.Hosting", "failed-requests"));
+                    });
+#endif
         }
 
         private static void AddApplicationInsightsLoggerProvider(IServiceCollection services)

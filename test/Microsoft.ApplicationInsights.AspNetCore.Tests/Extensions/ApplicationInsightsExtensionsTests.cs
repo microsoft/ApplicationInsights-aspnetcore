@@ -542,13 +542,18 @@ namespace Microsoft.Extensions.DependencyInjection.Test
 
                 //VALIDATE
                 Assert.Equal(23, eventCounterModule.Counters.Count);
-                eventCounterModule.Counters.FirstOrDefault<EventCounterCollectionRequest>(
-                    eventCounterCollectionRequest => eventCounterCollectionRequest.EventSourceName == "System.Runtime" 
+                
+                // sanity check with a sample counter.
+                var cpuCounterRequest = eventCounterModule.Counters.FirstOrDefault<EventCounterCollectionRequest>(
+                    eventCounterCollectionRequest => eventCounterCollectionRequest.EventSourceName == "System.Runtime"
                     && eventCounterCollectionRequest.EventCounterName == "cpu-usage");
+                Assert.NotNull(cpuCounterRequest);
 
-                eventCounterModule.Counters.FirstOrDefault<EventCounterCollectionRequest>(
-                    eventCounterCollectionRequest => eventCounterCollectionRequest.EventSourceName == "Microsoft.AspNetCore"
-                    && eventCounterCollectionRequest.EventCounterName == "requests-per-second");
+                // sanity check - asp.net counters should be added
+                var aspnetCounterRequest = eventCounterModule.Counters.Where<EventCounterCollectionRequest>(
+                    eventCounterCollectionRequest => eventCounterCollectionRequest.EventSourceName == "Microsoft.AspNetCore");
+                Assert.NotNull(aspnetCounterRequest);
+                Assert.True(aspnetCounterRequest.Count() == 4);
             }
 #endif
 

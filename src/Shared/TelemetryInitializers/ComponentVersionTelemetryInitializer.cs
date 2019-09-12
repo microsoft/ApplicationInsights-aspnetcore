@@ -1,4 +1,8 @@
-﻿namespace Microsoft.ApplicationInsights.AspNetCore.TelemetryInitializers
+﻿#if AI_ASPNETCORE_WEB
+namespace Microsoft.ApplicationInsights.AspNetCore.TelemetryInitializers
+#else
+namespace Microsoft.ApplicationInsights.WorkerService.TelemetryInitializers
+#endif
 {
     using ApplicationInsights.Extensibility;
     using Channel;
