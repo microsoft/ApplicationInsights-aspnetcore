@@ -1050,7 +1050,7 @@ namespace Microsoft.Extensions.DependencyInjection.Test
             }
 
             [Fact]
-            public static void W3CIsDisabledByDefault()
+            public static void W3CIsEnabledByDefault()
             {
                 var services = CreateServicesAndAddApplicationinsightsTelemetry(null, "http://localhost:1234/v2/track/");
                 IServiceProvider serviceProvider = services.BuildServiceProvider();
@@ -1058,28 +1058,6 @@ namespace Microsoft.Extensions.DependencyInjection.Test
 
                 Assert.DoesNotContain(telemetryConfiguration.TelemetryInitializers, t => t is W3COperationCorrelationTelemetryInitializer);
                 Assert.DoesNotContain(TelemetryConfiguration.Active.TelemetryInitializers, t => t is W3COperationCorrelationTelemetryInitializer);
-
-                var modules = serviceProvider.GetServices<ITelemetryModule>().ToList();
-
-                var requestTracking = modules.OfType<RequestTrackingTelemetryModule>().ToList();
-                var dependencyTracking = modules.OfType<DependencyTrackingTelemetryModule>().ToList();
-                Assert.Single(requestTracking);
-                Assert.Single(dependencyTracking);
-
-                Assert.False(requestTracking.Single().CollectionOptions.EnableW3CDistributedTracing);
-                Assert.False(dependencyTracking.Single().EnableW3CHeadersInjection);
-            }
-
-            [Fact]
-            public static void W3CIsEnabledWhenConfiguredInOptions()
-            {
-                var services = CreateServicesAndAddApplicationinsightsTelemetry(null, 
-                    "http://localhost:1234/v2/track/", 
-                    o => o.RequestCollectionOptions.EnableW3CDistributedTracing = true);
-                IServiceProvider serviceProvider = services.BuildServiceProvider();
-                var telemetryConfiguration = serviceProvider.GetTelemetryConfiguration();
-
-                Assert.Contains(telemetryConfiguration.TelemetryInitializers, t => t is W3COperationCorrelationTelemetryInitializer);
 
                 var modules = serviceProvider.GetServices<ITelemetryModule>().ToList();
 
