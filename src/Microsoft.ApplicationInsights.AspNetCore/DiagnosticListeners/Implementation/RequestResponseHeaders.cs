@@ -21,16 +21,6 @@
         public const string RequestContextTargetKey = "appId"; // Although the name of Source and Target key is the same - appId. Conceptually they are different and hence, we intentionally have two constants here. Makes for better reading of the code.
 
         /// <summary>
-        /// Standard parent Id header.
-        /// </summary>
-        public const string StandardParentIdHeader = "x-ms-request-id";
-
-        /// <summary>
-        /// Standard root id header.
-        /// </summary>
-        public const string StandardRootIdHeader = "x-ms-request-root-id";
-
-        /// <summary>
         /// Request-Id header.
         /// </summary>
         public const string RequestIdHeader = "Request-Id";
@@ -39,5 +29,14 @@
         /// Correlation-Context header.
         /// </summary>
         public const string CorrelationContextHeader = "Correlation-Context";
+
+        //
+        // Summary:
+        //     W3C traceparent header name.
+        public const string TraceParentHeader = "traceparent";
+        //
+        // Summary:
+        //     W3C tracestate header name.
+        public const string TraceStateHeader = "tracestate";
     }
 }

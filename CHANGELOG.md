@@ -1,13 +1,34 @@
 # Changelog
 
+## Version 2.8.0-beta3
+- [Make W3C Correlation default and leverage native W3C support from Activity.](https://github.com/microsoft/ApplicationInsights-aspnetcore/pull/958)
+- [Make W3C Correlation default and leverage native W3C support from Activity for Asp.Net Core 3.0.](https://github.com/microsoft/ApplicationInsights-aspnetcore/pull/958)
+- [Fix: Azure Functions performance degradation when W3C enabled.](https://github.com/microsoft/ApplicationInsights-aspnetcore/issues/900)
+- [Fix: AppId is never set is Response Headers.](https://github.com/microsoft/ApplicationInsights-aspnetcore/issues/956)
+- [Support correlation-context in absence of request-id or traceparent.](https://github.com/microsoft/ApplicationInsights-aspnetcore/issues/901)
+- [Non Product - Asp.Net Core 3.0 Functional Tests Added. This leverages the built-in integration test capability of ASP.NET Core via Microsoft.AspNetCore.MVC.Testing](https://github.com/microsoft/ApplicationInsights-aspnetcore/issues/539)
+- [Fix: System.NullReferenceException in WebSessionTelemetryInitializer.](https://github.com/microsoft/ApplicationInsights-aspnetcore/issues/903)
+- Updated Base SDK/Web SDK/Logging Adaptor SDK version dependency to 2.11.0-beta2
+- Updated System.Diagnostics.DiagnosticSource to 4.6.0-preview8.
+
+- [Add new package for .NET Core WorkerServices (Adds GenericHost support)](https://github.com/microsoft/ApplicationInsights-aspnetcore/issues/708)
+
 ## Version 2.8.0-beta2
+- [Fix MVCBeforeAction property fetcher to work with .NET Core 3.0 changes.](https://github.com/microsoft/ApplicationInsights-aspnetcore/issues/936)
+- [Catch generic exception from DiagnosticSourceListeners and log instead of failing user request.](https://github.com/microsoft/ApplicationInsights-aspnetcore/issues/957)
+- [Correct names for Asp.Net Core EventCounters.](https://github.com/microsoft/ApplicationInsights-aspnetcore/issues/945)
 - [Obsolete extension methods on IWebHostBuilder in favor of AddApplicationInsights extension method on IServiceCollection.](https://github.com/microsoft/ApplicationInsights-aspnetcore/issues/919)
+- [Remove support for deprecated x-ms based correlation headers.](https://github.com/microsoft/ApplicationInsights-aspnetcore/issues/939)
+- [Uri for multiple hosts headers is set to "Multiple-Host".](https://github.com/Microsoft/ApplicationInsights-aspnetcore/issues/862)
+- [LogLevel changed to Error and stack trace added for generic unknown exception within SDK.](https://github.com/microsoft/ApplicationInsights-aspnetcore/pull/946)
 
 ## Version 2.8.0-beta1
 - [Add EventCounter collection.](https://github.com/microsoft/ApplicationInsights-aspnetcore/issues/913)
 - [Performance fixes: One DiagSource Listener; Head Sampling Feature; No Concurrent Dictionary; etc...](https://github.com/microsoft/ApplicationInsights-aspnetcore/pull/907)
 - [Fix: Add `IJavaScriptSnippet` service interface and update the `IServiceCollection` extension to register it for `JavaScriptSnippet`.](https://github.com/microsoft/ApplicationInsights-aspnetcore/issues/890)
 - [Make JavaScriptEncoder optional and Fallback to JavaScriptEncoder.Default.](https://github.com/microsoft/ApplicationInsights-aspnetcore/pull/918)
+- Updated Web/Base SDK version dependency to 2.10.0-beta4
+- Updated Microsoft.Extensions.Logging.ApplicationInsights to 2.10.0-beta4
 
 ## Version 2.7.1
 - [Fix - ApplicationInsights StartupFilter should not swallow exceptions from downstream ApplicationBuilder.](https://github.com/microsoft/ApplicationInsights-aspnetcore/issues/897)
