@@ -46,6 +46,8 @@
         private const string InstrumentationKeyForWebSites = "APPINSIGHTS_INSTRUMENTATIONKEY";
         private const string DeveloperModeForWebSites = "APPINSIGHTS_DEVELOPER_MODE";
         private const string EndpointAddressForWebSites = "APPINSIGHTS_ENDPOINTADDRESS";
+        private const string EventSourceNameForSystemRuntime = "System.Runtime";
+        private const string EventSourceNameForAspNetCoreHosting = "Microsoft.AspNetCore.Hosting";
 
 
         /// <summary>
@@ -335,48 +337,53 @@
             });
         }
 
+#if NETSTANDARD2_0
+        private static void AddEventCounterIfNotExist(EventCounterCollectionModule eventCounterModule, string eventSource, string eventCounterName)
+        {
+            if (!eventCounterModule.Counters.Any(req => req.EventSourceName.Equals(eventSource) && req.EventCounterName.Equals(eventCounterName)))
+            {
+                eventCounterModule.Counters.Add(new EventCounterCollectionRequest(eventSource, eventCounterName));
+            }
+        }
         private static void ConfigureEventCounterModuleWithSystemCounters(IServiceCollection services)
         {
-#if NETSTANDARD2_0
-                    services.ConfigureTelemetryModule<EventCounterCollectionModule>((eventCounterModule, options) =>
+            services.ConfigureTelemetryModule<EventCounterCollectionModule>((eventCounterModule, options) =>
                     {
                         // Ref this code for actual names. https://github.com/dotnet/coreclr/blob/dbc5b56c48ce30635ee8192c9814c7de998043d5/src/System.Private.CoreLib/src/System/Diagnostics/Eventing/RuntimeEventSource.cs
-                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "cpu-usage"));
-                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "working-set"));
-                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "gc-heap-size"));
-                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "gen-0-gc-count"));
-                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "gen-1-gc-count"));
-                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "gen-2-gc-count"));
-                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "time-in-gc"));
-                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "gen-0-size"));
-                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "gen-1-size"));
-                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "gen-2-size"));
-                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "loh-size"));
-                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "alloc-rate"));
-                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "assembly-count"));
-                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "exception-count"));
-                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "threadpool-thread-count"));
-                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "monitor-lock-contention-count"));
-                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "threadpool-queue-length"));
-                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "threadpool-completed-items-count"));
-                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("System.Runtime", "active-timer-count"));
+                        AddEventCounterIfNotExist(eventCounterModule, EventSourceNameForSystemRuntime, "cpu-usage");
+                        AddEventCounterIfNotExist(eventCounterModule, EventSourceNameForSystemRuntime, "working-set");
+                        AddEventCounterIfNotExist(eventCounterModule, EventSourceNameForSystemRuntime, "gc-heap-size");
+                        AddEventCounterIfNotExist(eventCounterModule, EventSourceNameForSystemRuntime, "gen-0-gc-count");
+                        AddEventCounterIfNotExist(eventCounterModule, EventSourceNameForSystemRuntime, "gen-1-gc-count");
+                        AddEventCounterIfNotExist(eventCounterModule, EventSourceNameForSystemRuntime, "gen-2-gc-count");
+                        AddEventCounterIfNotExist(eventCounterModule, EventSourceNameForSystemRuntime, "time-in-gc");
+                        AddEventCounterIfNotExist(eventCounterModule, EventSourceNameForSystemRuntime, "gen-0-size");
+                        AddEventCounterIfNotExist(eventCounterModule, EventSourceNameForSystemRuntime, "gen-1-size");
+                        AddEventCounterIfNotExist(eventCounterModule, EventSourceNameForSystemRuntime, "gen-2-size");
+                        AddEventCounterIfNotExist(eventCounterModule, EventSourceNameForSystemRuntime, "loh-size");
+                        AddEventCounterIfNotExist(eventCounterModule, EventSourceNameForSystemRuntime, "alloc-rate");
+                        AddEventCounterIfNotExist(eventCounterModule, EventSourceNameForSystemRuntime, "assembly-count");
+                        AddEventCounterIfNotExist(eventCounterModule, EventSourceNameForSystemRuntime, "exception-count");
+                        AddEventCounterIfNotExist(eventCounterModule, EventSourceNameForSystemRuntime, "threadpool-thread-count");
+                        AddEventCounterIfNotExist(eventCounterModule, EventSourceNameForSystemRuntime, "monitor-lock-contention-count");
+                        AddEventCounterIfNotExist(eventCounterModule, EventSourceNameForSystemRuntime, "threadpool-queue-length");
+                        AddEventCounterIfNotExist(eventCounterModule, EventSourceNameForSystemRuntime, "threadpool-completed-items-count");
+                        AddEventCounterIfNotExist(eventCounterModule, EventSourceNameForSystemRuntime, "active-timer-count");
                     });
-#endif
         }
 
         private static void ConfigureEventCounterModuleWithAspNetCounters(IServiceCollection services)
         {
-#if NETSTANDARD2_0
                     services.ConfigureTelemetryModule<EventCounterCollectionModule>((eventCounterModule, options) =>
                     {
                         // Ref this code for actual names. https://github.com/aspnet/AspNetCore/blob/f3f9a1cdbcd06b298035b523732b9f45b1408461/src/Hosting/Hosting/src/Internal/HostingEventSource.cs
-                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("Microsoft.AspNetCore.Hosting", "requests-per-second"));
-                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("Microsoft.AspNetCore.Hosting", "total-requests"));
-                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("Microsoft.AspNetCore.Hosting", "current-requests"));
-                        eventCounterModule.Counters.Add(new EventCounterCollectionRequest("Microsoft.AspNetCore.Hosting", "failed-requests"));
+                        AddEventCounterIfNotExist(eventCounterModule, EventSourceNameForAspNetCoreHosting, "requests-per-second");
+                        AddEventCounterIfNotExist(eventCounterModule, EventSourceNameForAspNetCoreHosting, "total-requests");
+                        AddEventCounterIfNotExist(eventCounterModule, EventSourceNameForAspNetCoreHosting, "current-requests");
+                        AddEventCounterIfNotExist(eventCounterModule, EventSourceNameForAspNetCoreHosting, "failed-requests");
                     });
-#endif
         }
+#endif
 
         private static void AddApplicationInsightsLoggerProvider(IServiceCollection services)
         {

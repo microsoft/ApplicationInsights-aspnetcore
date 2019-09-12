@@ -306,7 +306,7 @@ namespace Microsoft.ApplicationInsights.WorkerService.Tests
 
             // sanity check - no asp.net counters should be added
             var aspnetCounterRequest = eventCounterModule.Counters.FirstOrDefault<EventCounterCollectionRequest>(
-                eventCounterCollectionRequest => eventCounterCollectionRequest.EventSourceName == "Microsoft.AspNetCore");
+                eventCounterCollectionRequest => eventCounterCollectionRequest.EventSourceName == "Microsoft.AspNetCore.Hosting");
             Assert.Null(aspnetCounterRequest);
         }
 

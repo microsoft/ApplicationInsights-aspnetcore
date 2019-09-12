@@ -551,7 +551,7 @@ namespace Microsoft.Extensions.DependencyInjection.Test
 
                 // sanity check - asp.net counters should be added
                 var aspnetCounterRequest = eventCounterModule.Counters.Where<EventCounterCollectionRequest>(
-                    eventCounterCollectionRequest => eventCounterCollectionRequest.EventSourceName == "Microsoft.AspNetCore");
+                    eventCounterCollectionRequest => eventCounterCollectionRequest.EventSourceName == "Microsoft.AspNetCore.Hosting");
                 Assert.NotNull(aspnetCounterRequest);
                 Assert.True(aspnetCounterRequest.Count() == 4);
             }
