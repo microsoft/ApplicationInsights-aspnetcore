@@ -37,8 +37,9 @@ namespace Microsoft.ApplicationInsights.WorkerService.Tests
             using (tc.StartOperation<RequestTelemetry>("myoperation"))
             {
                 _logger.LogInformation("information level log - running");
-                _logger.LogWarning("warning level log - running");
-                httpClient.GetStringAsync("http://bing.com").Wait();
+                _logger.LogWarning("warning level log - calling bing");
+               var res =  httpClient.GetAsync("http://bing.com").Result.StatusCode;
+                _logger.LogWarning("warning level log - calling bing completed with status:" + res);
             }
         }
 
