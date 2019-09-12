@@ -94,8 +94,8 @@
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">  
   <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.1.0" />  
-  <PackageReference Include="Microsoft.Extensions.Logging.ApplicationInsights" Version="2.11.0-beta1" />
-  <PackageReference Include="Microsoft.ApplicationInsights.EventCounterCollector" Version="2.11.0-beta1" />
+  <PackageReference Include="Microsoft.Extensions.Logging.ApplicationInsights" Version="2.11.0-beta2" />
+  <PackageReference Include="Microsoft.ApplicationInsights.EventCounterCollector" Version="2.11.0-beta@" />
   <PackageReference Include="System.Text.Encodings.Web" Version="4.3.1" />
   </ItemGroup>
 
