@@ -20,6 +20,7 @@
     <AssemblyTitle>Application Insights for ASP.NET Core Web Applications</AssemblyTitle>
     <Title>Application Insights for ASP.NET Core Web Applications</Title>
     <Description>Application Insights for ASP.NET Core web applications. See https://azure.microsoft.com/documentation/articles/app-insights-asp-net-five/ for more information. Privacy statement: https://go.microsoft.com/fwlink/?LinkId=512156</Description>
+    <PackageTags>$(PackageTags)aspnetcore;</PackageTags>
   </PropertyGroup>
 
   <PropertyGroup>

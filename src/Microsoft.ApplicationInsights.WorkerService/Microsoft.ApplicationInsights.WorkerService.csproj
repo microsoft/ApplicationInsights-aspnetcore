@@ -18,7 +18,7 @@
     <AssemblyTitle>Application Insights for .NET Core Worker Service Applications</AssemblyTitle>
     <Title>Application Insights for .NET Core Worker Service Applications</Title>
     <Description>Application Insights for .NET Core Worker Service (messaging, background tasks, and any non-HTTP workloads) applications. See https://azure.microsoft.com/documentation/articles/app-insights-asp-net-five/ for more information. Privacy statement: https://go.microsoft.com/fwlink/?LinkId=512156</Description>
-    <PackageTags>$(PackageTags)worker;console;backgroundtasks</PackageTags>
+    <PackageTags>$(PackageTags)worker;console;backgroundtasks;</PackageTags>
   </PropertyGroup>
 
   <PropertyGroup>
