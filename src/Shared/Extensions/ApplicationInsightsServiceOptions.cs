@@ -49,6 +49,11 @@
         public string InstrumentationKey { get; set; }
 
         /// <summary>
+        /// Gets or sets the connection string for the application.
+        /// </summary>
+        public string ConnectionString { get; set; }
+
+        /// <summary>
         /// Gets or sets the application version reported with telemetries.
         /// </summary>
         public string ApplicationVersion { get; set; }
