@@ -31,6 +31,7 @@
     using Microsoft.Extensions.DependencyInjection.Extensions;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
+    using Shared.Implementation;
 
     /// <summary>
     /// Extension methods for <see cref="IServiceCollection"/> that allow adding Application Insights services to application.
@@ -131,10 +132,27 @@
                     AddCommonInitializers(services);
 
                     // Request Tracking.
-                    services.AddSingleton<ITelemetryModule, RequestTrackingTelemetryModule>();
+                    services.AddSingleton<ITelemetryModule>(provider =>
+                    {
+                        var options = provider.GetRequiredService<IOptions<ApplicationInsightsServiceOptions>>().Value;
+                        var appIdProvider = provider.GetService<IApplicationIdProvider>();
+
+                        if (options.EnableRequestTrackingTelemetryModule)
+                        {
+                            return new RequestTrackingTelemetryModule(appIdProvider);
+                        }
+                        else
+                        {
+                            return new NoOpTelemetryModule();
+                        }
+                    });
+
                     services.ConfigureTelemetryModule<RequestTrackingTelemetryModule>((module, options) =>
                     {
-                        module.CollectionOptions = options.RequestCollectionOptions;
+                        if(options.EnableRequestTrackingTelemetryModule)
+                        {
+                            module.CollectionOptions = options.RequestCollectionOptions;
+                        }                        
                     });
 
                     AddCommonTelemetryModules(services);
