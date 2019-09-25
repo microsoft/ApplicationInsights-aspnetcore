@@ -67,9 +67,10 @@
             {
                 return builder.ConfigureServices(services =>
                 {
-                    services.AddApplicationInsightsTelemetry();
+                    var aiOptions = new ApplicationInsightsServiceOptions();
                     // disable Dependency tracking (i.e. header injection)
-                    services.Remove(services.FirstOrDefault(sd => sd.ImplementationType == typeof(DependencyTrackingTelemetryModule)));
+                    aiOptions.EnableDependencyTrackingTelemetryModule = false;
+                    services.AddApplicationInsightsTelemetry(aiOptions);
                 });
             }
 
@@ -107,9 +108,10 @@
             {
                 return builder.ConfigureServices(services =>
                 {
-                    services.AddApplicationInsightsTelemetry();
+                    var aiOptions = new ApplicationInsightsServiceOptions();
                     // disable Dependency tracking (i.e. header injection)
-                    services.Remove(services.FirstOrDefault(sd => sd.ImplementationType == typeof(DependencyTrackingTelemetryModule)));
+                    aiOptions.EnableDependencyTrackingTelemetryModule = false;
+                    services.AddApplicationInsightsTelemetry(aiOptions);
                 });
             }
 
@@ -148,9 +150,10 @@
             {
                 return builder.ConfigureServices(services =>
                 {
-                    services.AddApplicationInsightsTelemetry();
+                    var aiOptions = new ApplicationInsightsServiceOptions();
                     // disable Dependency tracking (i.e. header injection)
-                    services.Remove(services.FirstOrDefault(sd => sd.ImplementationType == typeof(DependencyTrackingTelemetryModule)));
+                    aiOptions.EnableDependencyTrackingTelemetryModule = false;
+                    services.AddApplicationInsightsTelemetry(aiOptions);
                 });
             }
 
