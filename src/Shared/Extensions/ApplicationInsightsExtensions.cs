@@ -49,6 +49,7 @@
         private const string ConnectionStringEnvironmentVariable = "APPLICATIONINSIGHTS_CONNECTION_STRING";
         private const string DeveloperModeForWebSites = "APPINSIGHTS_DEVELOPER_MODE";
         private const string EndpointAddressForWebSites = "APPINSIGHTS_ENDPOINTADDRESS";
+
         private const string EventSourceNameForSystemRuntime = "System.Runtime";
         private const string EventSourceNameForAspNetCoreHosting = "Microsoft.AspNetCore.Hosting";
 
@@ -152,6 +153,8 @@
             string endpointAddress = null,
             string instrumentationKey = null)
         {
+            // TODO: CONSIDER ADDING CONNECTION STRING HERE. ASK CIJO. If i add here, should do so using an overload method that removes endpoint address and Ikey.
+
             var telemetryConfigValues = new List<KeyValuePair<string, string>>();
 
             bool wasAnythingSet = false;
@@ -195,9 +198,18 @@
         /// Config.json will look like this:
         /// <para>
         ///      "ApplicationInsights": {
-        ///          "InstrumentationKey": "11111111-2222-3333-4444-555555555555"
+        ///          "InstrumentationKey": "11111111-2222-3333-4444-555555555555",
         ///          "TelemetryChannel": {
         ///              "EndpointAddress": "http://dc.services.visualstudio.com/v2/track",
+        ///              "DeveloperMode": true
+        ///          }
+        ///      }.
+        /// </para>
+        /// Or
+        /// <para>
+        ///      "ApplicationInsights": {
+        ///          "ConnectionString" : "InstrumentationKey=11111111-2222-3333-4444-555555555555;IngestionEndpoint=http://dc.services.visualstudio.com"
+        ///          "TelemetryChannel": {
         ///              "DeveloperMode": true
         ///          }
         ///      }.
