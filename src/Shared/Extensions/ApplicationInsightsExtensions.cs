@@ -146,15 +146,15 @@
         /// <param name="developerMode">Enables or disables developer mode.</param>
         /// <param name="endpointAddress">Sets telemetry endpoint address.</param>
         /// <param name="instrumentationKey">Sets instrumentation key.</param>
+        /// <param name="connectionString">Sets connection string.</param>
         /// <returns>The <see cref="IConfigurationBuilder"/>.</returns>
         public static IConfigurationBuilder AddApplicationInsightsSettings(
             this IConfigurationBuilder configurationSourceRoot,
             bool? developerMode = null,
             string endpointAddress = null,
-            string instrumentationKey = null)
+            string instrumentationKey = null,
+            string connectionString = null)
         {
-            // TODO: CONSIDER ADDING CONNECTION STRING HERE. ASK CIJO. If i add here, should do so using an overload method that removes endpoint address and Ikey.
-
             var telemetryConfigValues = new List<KeyValuePair<string, string>>();
 
             bool wasAnythingSet = false;
@@ -170,18 +170,21 @@
                 wasAnythingSet = true;
             }
 
+            if (connectionString != null)
+            {
+                telemetryConfigValues.Add(new KeyValuePair<string, string>(ConnectionStringEnvironmentVariable, connectionString));
+                wasAnythingSet = true;
+            }
+
             if (instrumentationKey != null)
             {
-                telemetryConfigValues.Add(new KeyValuePair<string, string>(InstrumentationKeyForWebSites,
-                    instrumentationKey));
+                telemetryConfigValues.Add(new KeyValuePair<string, string>(InstrumentationKeyForWebSites, instrumentationKey));
                 wasAnythingSet = true;
             }
 
             if (endpointAddress != null)
             {
-                telemetryConfigValues.Add(new KeyValuePair<string, string>(
-                    EndpointAddressForWebSites,
-                    endpointAddress));
+                telemetryConfigValues.Add(new KeyValuePair<string, string>(EndpointAddressForWebSites, endpointAddress));
                 wasAnythingSet = true;
             }
 

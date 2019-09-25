@@ -1040,24 +1040,44 @@ namespace Microsoft.Extensions.DependencyInjection.Test
             }
 
             [Fact]
-            public static void DoesNotOverWriteExistingChannel()
+            [Trait("Trait", "ConnectionString")]
+            public static void AddApplicationInsightsSettings_SetsDeveloperMode()
             {
                 var services = ApplicationInsightsExtensionsTests.GetServiceCollectionWithContextAccessor();
+                services.AddSingleton<ITelemetryChannel>(new InMemoryChannel());
+                var config = new ConfigurationBuilder().AddApplicationInsightsSettings(connectionString: TestConnectionString).Build();
+                services.AddApplicationInsightsTelemetry(config);
+
+                IServiceProvider serviceProvider = services.BuildServiceProvider();
+                var telemetryConfiguration = serviceProvider.GetTelemetryConfiguration();
+                Assert.Equal(TestConnectionString, telemetryConfiguration.ConnectionString);
+            }
+
+            [Fact]
+            [Trait("Trait", "Endpoints")]
+            public static void DoesNotOverWriteExistingChannel()
+            {
+                var testEndpoint = "http://localhost:1234/v2/track/";
+
+                var services = ApplicationInsightsExtensionsTests.GetServiceCollectionWithContextAccessor();
                 services.AddSingleton<ITelemetryChannel, InMemoryChannel>();
-                var config = new ConfigurationBuilder().AddApplicationInsightsSettings(endpointAddress: "http://localhost:1234/v2/track/").Build();
+                var config = new ConfigurationBuilder().AddApplicationInsightsSettings(endpointAddress: testEndpoint).Build();
                 services.AddApplicationInsightsTelemetry(config);
 
                 IServiceProvider serviceProvider = services.BuildServiceProvider();
                 var telemetryConfiguration = serviceProvider.GetTelemetryConfiguration();
                 Assert.Equal(typeof(InMemoryChannel), telemetryConfiguration.TelemetryChannel.GetType());
+                Assert.Equal(testEndpoint, telemetryConfiguration.TelemetryChannel.EndpointAddress);
             }
 
             [Fact]
             public static void FallbacktoDefaultChannelWhenNoChannelFoundInDI()
             {
+                var testEndpoint = "http://localhost:1234/v2/track/";
+
                 // ARRANGE
                 var services = ApplicationInsightsExtensionsTests.GetServiceCollectionWithContextAccessor();                                
-                var config = new ConfigurationBuilder().AddApplicationInsightsSettings(endpointAddress: "http://localhost:1234/v2/track/").Build();
+                var config = new ConfigurationBuilder().AddApplicationInsightsSettings(endpointAddress: testEndpoint).Build();
                 services.AddApplicationInsightsTelemetry(config);
 
                 // Remove all ITelemetryChannel to simulate scenario where customer remove all channel from DI but forgot to add new one.
@@ -1075,6 +1095,7 @@ namespace Microsoft.Extensions.DependencyInjection.Test
                 IServiceProvider serviceProvider = services.BuildServiceProvider();
                 var telemetryConfiguration = serviceProvider.GetTelemetryConfiguration();
                 Assert.Equal(typeof(InMemoryChannel), telemetryConfiguration.TelemetryChannel.GetType());
+                Assert.Equal(testEndpoint, telemetryConfiguration.TelemetryChannel.EndpointAddress);
             }
 
             [Fact]
