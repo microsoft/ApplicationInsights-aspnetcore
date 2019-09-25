@@ -495,7 +495,8 @@ namespace Microsoft.Extensions.DependencyInjection.Test
                     EnableQuickPulseMetricStream = false,
                     EndpointAddress = "http://test",
                     EnableHeartbeat = false,
-                    InstrumentationKey = "test"
+                    InstrumentationKey = "test",
+                    ConnectionString = "InstrumentationKey=00000000-0000-0000-0000-000000000000"
                 };
                 services.AddApplicationInsightsTelemetry(options);
                 ApplicationInsightsServiceOptions servicesOptions = null;

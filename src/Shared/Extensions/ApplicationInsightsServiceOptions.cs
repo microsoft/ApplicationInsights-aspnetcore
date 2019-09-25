@@ -165,6 +165,7 @@
                 target.InstrumentationKey = this.InstrumentationKey;
             }
 
+            target.ConnectionString = this.ConnectionString;
             target.ApplicationVersion = this.ApplicationVersion;
             target.EnableAdaptiveSampling = this.EnableAdaptiveSampling;
             target.EnableDebugLogger = this.EnableDebugLogger;
