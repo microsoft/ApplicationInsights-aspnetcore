@@ -65,6 +65,11 @@ namespace Microsoft.Extensions.DependencyInjection
                     configuration.InstrumentationKey = this.applicationInsightsServiceOptions.InstrumentationKey;
                 }
 
+                if (this.applicationInsightsServiceOptions.ConnectionString != null)
+                {
+                    configuration.ConnectionString = this.applicationInsightsServiceOptions.ConnectionString;
+                }
+
                 if (this.telemetryModuleConfigurators.Any())
                 {
                     foreach (ITelemetryModuleConfigurator telemetryModuleConfigurator in this.telemetryModuleConfigurators)

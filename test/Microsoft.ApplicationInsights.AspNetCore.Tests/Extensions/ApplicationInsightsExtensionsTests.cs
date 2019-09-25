@@ -42,6 +42,7 @@ namespace Microsoft.Extensions.DependencyInjection.Test
     {
         /// <summary>Constant instrumentation key value for testintg.</summary>
         public const string TestInstrumentationKey = "11111111-2222-3333-4444-555555555555";
+        private const string TestConnectionString = "InstrumentationKey=11111111-2222-3333-4444-555555555555;IngestionEndpoint=http://127.0.0.1";
         private const string InstrumentationKeyFromConfig = "ApplicationInsights:InstrumentationKey";
 
         public static ServiceCollection GetServiceCollectionWithContextAccessor()
@@ -114,7 +115,6 @@ namespace Microsoft.Extensions.DependencyInjection.Test
             /// Tests that the instrumentation key configuration can be read from a JSON file by the configuration factory.            
             /// </summary>
             [Fact]
-            
             public static void RegistersTelemetryConfigurationFactoryMethodThatReadsInstrumentationKeyFromConfiguration()
             {                
                 var services = CreateServicesAndAddApplicationinsightsTelemetry(Path.Combine("content", "config-instrumentation-key.json"), null);
@@ -122,6 +122,21 @@ namespace Microsoft.Extensions.DependencyInjection.Test
                 IServiceProvider serviceProvider = services.BuildServiceProvider();
                 var telemetryConfiguration = serviceProvider.GetTelemetryConfiguration();
                 Assert.Equal(TestInstrumentationKey, telemetryConfiguration.InstrumentationKey);
+            }
+
+
+            /// <summary>
+            /// Tests that the instrumentation key configuration can be read from a JSON file by the configuration factory.            
+            /// </summary>
+            [Fact]
+            [Trait("Category", "ConnectionString")]
+            public static void RegistersTelemetryConfigurationFactoryMethodThatReadsConnectionStringFromConfiguration()
+            {
+                var services = CreateServicesAndAddApplicationinsightsTelemetry(Path.Combine("content", "config-connection-string.json"), null);
+
+                IServiceProvider serviceProvider = services.BuildServiceProvider();
+                var telemetryConfiguration = serviceProvider.GetTelemetryConfiguration();
+                Assert.Equal(TestConnectionString, telemetryConfiguration.ConnectionString);
             }
 
             /// <summary>
