@@ -44,6 +44,7 @@ namespace Microsoft.Extensions.DependencyInjection.Test
         public const string TestInstrumentationKey = "11111111-2222-3333-4444-555555555555";
         private const string TestConnectionString = "InstrumentationKey=11111111-2222-3333-4444-555555555555;IngestionEndpoint=http://127.0.0.1";
         private const string InstrumentationKeyFromConfig = "ApplicationInsights:InstrumentationKey";
+        private const string ConnectionStringEnvironmentVariable = "APPLICATIONINSIGHTS_CONNECTION_STRING";
 
         public static ServiceCollection GetServiceCollectionWithContextAccessor()
         {
@@ -129,7 +130,7 @@ namespace Microsoft.Extensions.DependencyInjection.Test
             /// Tests that the instrumentation key configuration can be read from a JSON file by the configuration factory.            
             /// </summary>
             [Fact]
-            [Trait("Category", "ConnectionString")]
+            [Trait("Trait", "ConnectionString")]
             public static void RegistersTelemetryConfigurationFactoryMethodThatReadsConnectionStringFromConfiguration()
             {
                 var services = CreateServicesAndAddApplicationinsightsTelemetry(Path.Combine("content", "config-connection-string.json"), null);
@@ -162,7 +163,7 @@ namespace Microsoft.Extensions.DependencyInjection.Test
             }
 
             /// <summary>
-            /// We determine if Active telemtery needs to be configured based on the assumptions that 'default' configuration
+            /// We determine if Active telemetry needs to be configured based on the assumptions that 'default' configuration
             // created by base SDK has single preset ITelemetryInitializer. If it ever changes, change TelemetryConfigurationOptions.IsActiveConfigured method as well.
             /// </summary>
             [Fact]
@@ -174,7 +175,6 @@ namespace Microsoft.Extensions.DependencyInjection.Test
             }
 
             [Fact]
-            
             public static void RegistersTelemetryConfigurationFactoryMethodThatReadsDeveloperModeFromConfiguration()
             {
                 var services = CreateServicesAndAddApplicationinsightsTelemetry(Path.Combine("content", "config-developer-mode.json"), null);                
@@ -185,7 +185,6 @@ namespace Microsoft.Extensions.DependencyInjection.Test
             }
 
             [Fact]
-            
             public static void RegistersTelemetryConfigurationFactoryMethodThatReadsEndpointAddressFromConfiguration()
             {
                 var services = CreateServicesAndAddApplicationinsightsTelemetry(Path.Combine("content", "config-endpoint-address.json"), null);                
@@ -221,10 +220,33 @@ namespace Microsoft.Extensions.DependencyInjection.Test
             /// Environment
             /// </summary>
             [Fact]
+            [Trait("Trait", "ConnectionString")]
+            public static void AddApplicationInsightsTelemetry_ReadsConnectionString_FromEnvironment()
+            {
+                var services = ApplicationInsightsExtensionsTests.GetServiceCollectionWithContextAccessor();
+                Environment.SetEnvironmentVariable(ConnectionStringEnvironmentVariable, TestConnectionString);
+                try
+                {
+                    services.AddApplicationInsightsTelemetry();
+                    IServiceProvider serviceProvider = services.BuildServiceProvider();
+                    var telemetryConfiguration = serviceProvider.GetTelemetryConfiguration();
+                    Assert.Equal(TestConnectionString, telemetryConfiguration.ConnectionString);
+                }
+                finally
+                {
+                    Environment.SetEnvironmentVariable(ConnectionStringEnvironmentVariable, null);
+                }
+            }
+
+            /// <summary>
+            /// Validates that while using services.AddApplicationInsightsTelemetry(); ikey is read from
+            /// Environment
+            /// </summary>
+            [Fact]
             public static void AddApplicationInsightsTelemetryReadsInstrumentationKeyFromEnvironment()
             {
-                var services = ApplicationInsightsExtensionsTests.GetServiceCollectionWithContextAccessor();                
-                Environment.SetEnvironmentVariable("APPINSIGHTS_INSTRUMENTATIONKEY", TestInstrumentationKey);                
+                var services = ApplicationInsightsExtensionsTests.GetServiceCollectionWithContextAccessor();
+                Environment.SetEnvironmentVariable("APPINSIGHTS_INSTRUMENTATIONKEY", TestInstrumentationKey);
                 try
                 {
                     services.AddApplicationInsightsTelemetry();
