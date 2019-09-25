@@ -135,10 +135,11 @@
                     services.AddSingleton<ITelemetryModule>(provider =>
                     {
                         var options = provider.GetRequiredService<IOptions<ApplicationInsightsServiceOptions>>().Value;
+                        var appIdProvider = provider.GetService<IApplicationIdProvider>();
 
                         if (options.EnableRequestTrackingTelemetryModule)
                         {
-                            return new RequestTrackingTelemetryModule();
+                            return new RequestTrackingTelemetryModule(appIdProvider);
                         }
                         else
                         {
