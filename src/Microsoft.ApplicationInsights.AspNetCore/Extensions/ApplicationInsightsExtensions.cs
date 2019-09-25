@@ -109,19 +109,7 @@
             ApplicationInsightsServiceOptions options)
         {
             services.AddApplicationInsightsTelemetry();
-            services.Configure((ApplicationInsightsServiceOptions o) =>
-            {
-                o.ApplicationVersion = options.ApplicationVersion;
-                o.DeveloperMode = options.DeveloperMode;
-                o.EnableAdaptiveSampling = options.EnableAdaptiveSampling;
-                o.EnableAuthenticationTrackingJavaScript = options.EnableAuthenticationTrackingJavaScript;
-                o.EnableDebugLogger = options.EnableDebugLogger;
-                o.EnableQuickPulseMetricStream = options.EnableQuickPulseMetricStream;
-                o.EndpointAddress = options.EndpointAddress;
-                o.InstrumentationKey = options.InstrumentationKey;
-                o.EnableHeartbeat = options.EnableHeartbeat;
-                o.AddAutoCollectedMetricExtractor = options.AddAutoCollectedMetricExtractor;
-            });
+            services.Configure((ApplicationInsightsServiceOptions o) => options.CopyPropertiesTo(o));
             return services;
         }
 

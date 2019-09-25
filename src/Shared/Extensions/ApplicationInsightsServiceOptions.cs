@@ -91,10 +91,23 @@
         public RequestCollectionOptions RequestCollectionOptions { get; }
 #endif
 
-
         /// <summary>
         /// Gets <see cref="DependencyCollectionOptions"/> that allow to manage <see cref="DependencyTrackingTelemetryModule"/>
         /// </summary>
         public DependencyCollectionOptions DependencyCollectionOptions { get; }
+
+        internal void CopyPropertiesTo(ApplicationInsightsServiceOptions target)
+        {
+            target.ApplicationVersion = this.ApplicationVersion;
+            target.DeveloperMode = this.DeveloperMode;
+            target.EnableAdaptiveSampling = this.EnableAdaptiveSampling;
+            target.EnableAuthenticationTrackingJavaScript = this.EnableAuthenticationTrackingJavaScript;
+            target.EnableDebugLogger = this.EnableDebugLogger;
+            target.EnableQuickPulseMetricStream = this.EnableQuickPulseMetricStream;
+            target.EndpointAddress = this.EndpointAddress;
+            target.InstrumentationKey = this.InstrumentationKey;
+            target.EnableHeartbeat = this.EnableHeartbeat;
+            target.AddAutoCollectedMetricExtractor = this.AddAutoCollectedMetricExtractor;
+        }
     }
 }
