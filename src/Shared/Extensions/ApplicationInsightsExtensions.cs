@@ -205,7 +205,8 @@
         /// </summary>
         /// <param name="config">Configuration to read variables from.</param>
         /// <param name="serviceOptions">Telemetry configuration to populate.</param>
-        internal static void AddTelemetryConfiguration(IConfiguration config,
+        internal static void AddTelemetryConfiguration(
+            IConfiguration config,
             ApplicationInsightsServiceOptions serviceOptions)
         {
             try
@@ -232,13 +233,13 @@
                 {
                     serviceOptions.EndpointAddress = endpointAddress;
                 }
-                
+
                 if (config.TryGetValue(primaryKey: VersionKeyFromConfig, value: out string version))
                 {
                     serviceOptions.ApplicationVersion = version;
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
 #if AI_ASPNETCORE_WEB
                 AspNetCoreEventSource.Instance.LogError(ex.ToInvariantString());
