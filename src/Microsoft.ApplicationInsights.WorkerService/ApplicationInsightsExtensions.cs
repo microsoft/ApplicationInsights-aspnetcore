@@ -103,12 +103,11 @@ namespace Microsoft.Extensions.DependencyInjection
             {
                 if (!IsApplicationInsightsAdded(services))
                 {
-                    AddCommonInitializers(services);                    
+                    AddCommonInitializers(services);
                     AddCommonTelemetryModules(services);
                     AddTelemetryChannel(services);
 
                     ConfigureEventCounterModuleWithSystemCounters(services);
-
 
                     services
                         .TryAddSingleton<IConfigureOptions<ApplicationInsightsServiceOptions>,

@@ -23,7 +23,7 @@
         Type TelemetryModuleType { get; }
 
         /// <summary>
-        /// Configures the given <see cref="ITelemetryModule"/>
+        /// Configures the given <see cref="ITelemetryModule"/>.
         /// </summary>
         [Obsolete("Use Configure(ITelemetryModule telemetryModule, ApplicationInsightsServiceOptions options) instead.")]
         void Configure(ITelemetryModule telemetryModule);
