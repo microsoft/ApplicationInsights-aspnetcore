@@ -655,7 +655,7 @@
             }
         }
 
-        private string GetNameFromRouteContext(IDictionary<string, object> routeValues)
+        private static string GetNameFromRouteContext(IDictionary<string, object> routeValues)
         {
             string name = null;
 

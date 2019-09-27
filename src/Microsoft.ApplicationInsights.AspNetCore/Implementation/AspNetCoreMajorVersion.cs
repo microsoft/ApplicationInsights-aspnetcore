@@ -4,6 +4,6 @@
     {
         One,
         Two,
-        Three
+        Three,
     };
 }
