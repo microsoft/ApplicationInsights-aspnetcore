@@ -174,7 +174,7 @@
                     // that requires IOptions infrastructure to run and initialize
                     services.AddSingleton<IStartupFilter, ApplicationInsightsStartupFilter>();
                     services.AddSingleton<IJavaScriptSnippet, JavaScriptSnippet>();
-                    
+
                     // Add 'JavaScriptSnippet' "Service" for backwards compatibility. To remove in favour of 'IJavaScriptSnippet'.
                     services.AddSingleton<JavaScriptSnippet>();
 

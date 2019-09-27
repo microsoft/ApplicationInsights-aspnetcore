@@ -1,6 +1,6 @@
 ﻿namespace Microsoft.ApplicationInsights.AspNetCore.Implementation
 {
-    internal enum AspNetCoreMajorVersion 
+    internal enum AspNetCoreMajorVersion
     {
         One,
         Two,

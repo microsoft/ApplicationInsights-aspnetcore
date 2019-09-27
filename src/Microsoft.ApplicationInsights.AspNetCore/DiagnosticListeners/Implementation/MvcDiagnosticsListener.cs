@@ -30,8 +30,7 @@ namespace Microsoft.ApplicationInsights.AspNetCore.DiagnosticListeners
 
             if (telemetry != null && string.IsNullOrEmpty(telemetry.Name))
             {
-                string name = this.GetNameFromRouteContext(routeValues);
-
+                string name = GetNameFromRouteContext(routeValues);
                 if (!string.IsNullOrEmpty(name))
                 {
                     name = httpContext.Request.Method + " " + name;

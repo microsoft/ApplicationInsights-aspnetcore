@@ -19,11 +19,11 @@
         /// <summary>JavaScript authenticated user tracking snippet.</summary>
         private static readonly string AuthSnippet = Resources.JavaScriptAuthSnippet;
 
-        /// <summary>Configuration instance.</summary>
-        private TelemetryConfiguration telemetryConfiguration;
-
         /// <summary> Http context accessor.</summary>
         private readonly IHttpContextAccessor httpContextAccessor;
+
+        /// <summary>Configuration instance.</summary>
+        private TelemetryConfiguration telemetryConfiguration;
 
         /// <summary> Weather to print authenticated user tracking snippet.</summary>
         private bool enableAuthSnippet;

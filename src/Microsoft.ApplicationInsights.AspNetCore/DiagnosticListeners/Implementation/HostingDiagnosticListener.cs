@@ -153,8 +153,7 @@
 
             if (telemetry != null && string.IsNullOrEmpty(telemetry.Name))
             {
-                string name = this.GetNameFromRouteContext(routeValues);
-
+                string name = GetNameFromRouteContext(routeValues);
                 if (!string.IsNullOrEmpty(name))
                 {
                     name = httpContext.Request.Method + " " + name;
@@ -240,7 +239,7 @@
                 else if (this.aspNetCoreMajorVersion == AspNetCoreMajorVersion.Three && headers.ContainsKey(W3CConstants.TraceParentHeader))
                 {
                     AspNetCoreEventSource.Instance.HostingListenerInformational(this.aspNetCoreMajorVersion, "Incoming request has traceparent. Using Activity created from Hosting.");
-                    
+
                     // scenario #3b Use Activity created by Hosting layer when W3C Headers Present.
                     // but ignore parent if user disabled w3c.
                     if (currentActivity.IdFormat != ActivityIdFormat.W3C)
