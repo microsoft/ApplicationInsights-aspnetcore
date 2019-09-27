@@ -65,11 +65,6 @@ namespace Microsoft.Extensions.DependencyInjection
                     configuration.InstrumentationKey = this.applicationInsightsServiceOptions.InstrumentationKey;
                 }
 
-                if (this.applicationInsightsServiceOptions.ConnectionString != null)
-                {
-                    configuration.ConnectionString = this.applicationInsightsServiceOptions.ConnectionString;
-                }
-
                 if (this.telemetryModuleConfigurators.Any())
                 {
                     foreach (ITelemetryModuleConfigurator telemetryModuleConfigurator in this.telemetryModuleConfigurators)
@@ -120,6 +115,12 @@ namespace Microsoft.Extensions.DependencyInjection
                     configuration.TelemetryChannel.EndpointAddress = this.applicationInsightsServiceOptions.EndpointAddress;
                 }
 
+                // Need to set connection string before calling Initialize() on the Modules and Processors.
+                if (this.applicationInsightsServiceOptions.ConnectionString != null)
+                {
+                    configuration.ConnectionString = this.applicationInsightsServiceOptions.ConnectionString;
+                }
+
                 foreach (ITelemetryInitializer initializer in this.initializers)
                 {
                     configuration.TelemetryInitializers.Add(initializer);
@@ -132,8 +133,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
                 foreach (ITelemetryProcessor processor in configuration.TelemetryProcessors)
                 {
-                    ITelemetryModule module = processor as ITelemetryModule;
-                    if (module != null)
+                    if (processor is ITelemetryModule module)
                     {
                         module.Initialize(configuration);
                     }

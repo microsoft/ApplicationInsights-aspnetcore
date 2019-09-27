@@ -125,9 +125,8 @@ namespace Microsoft.Extensions.DependencyInjection.Test
                 Assert.Equal(TestInstrumentationKey, telemetryConfiguration.InstrumentationKey);
             }
 
-
             /// <summary>
-            /// Tests that the instrumentation key configuration can be read from a JSON file by the configuration factory.            
+            /// Tests that the connection string can be read from a JSON file by the configuration factory.            
             /// </summary>
             [Fact]
             [Trait("Trait", "ConnectionString")]
@@ -138,6 +137,22 @@ namespace Microsoft.Extensions.DependencyInjection.Test
                 IServiceProvider serviceProvider = services.BuildServiceProvider();
                 var telemetryConfiguration = serviceProvider.GetTelemetryConfiguration();
                 Assert.Equal(TestConnectionString, telemetryConfiguration.ConnectionString);
+            }
+
+            /// <summary>
+            /// Tests that the connection string can be read from a JSON file by the configuration factory.            
+            /// This config has both a connection string and an instrumentation key. It is expected to use the ikey from the connection string.
+            /// </summary>
+            [Fact]
+            [Trait("Trait", "ConnectionString")]
+            public static void RegistersTelemetryConfigurationFactoryMethodThatReadsConnectionStringAndInstrumentationKeyFromConfiguration()
+            {
+                var services = CreateServicesAndAddApplicationinsightsTelemetry(Path.Combine("content", "config-connection-string-and-instrumentation-key.json"), null);
+
+                IServiceProvider serviceProvider = services.BuildServiceProvider();
+                var telemetryConfiguration = serviceProvider.GetTelemetryConfiguration();
+                Assert.Equal(TestConnectionString, telemetryConfiguration.ConnectionString);
+                Assert.Equal(TestInstrumentationKey, telemetryConfiguration.InstrumentationKey);
             }
 
             /// <summary>
@@ -231,6 +246,8 @@ namespace Microsoft.Extensions.DependencyInjection.Test
                     IServiceProvider serviceProvider = services.BuildServiceProvider();
                     var telemetryConfiguration = serviceProvider.GetTelemetryConfiguration();
                     Assert.Equal(TestConnectionString, telemetryConfiguration.ConnectionString);
+                    Assert.Equal(TestInstrumentationKey, telemetryConfiguration.InstrumentationKey);
+                    Assert.Equal("http://127.0.0.1/", telemetryConfiguration.Endpoint.Ingestion.AbsoluteUri);
                 }
                 finally
                 {
