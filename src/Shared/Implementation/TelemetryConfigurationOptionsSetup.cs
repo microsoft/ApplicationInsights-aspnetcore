@@ -133,7 +133,8 @@ namespace Microsoft.Extensions.DependencyInjection
 
                 foreach (ITelemetryProcessor processor in configuration.TelemetryProcessors)
                 {
-                    if (processor is ITelemetryModule module)
+                    ITelemetryModule module = processor as ITelemetryModule;
+                    if (module != null)
                     {
                         module.Initialize(configuration);
                     }
