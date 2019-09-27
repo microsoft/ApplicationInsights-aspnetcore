@@ -1061,7 +1061,7 @@ namespace Microsoft.Extensions.DependencyInjection.Test
 
             [Fact]
             [Trait("Trait", "ConnectionString")]
-            public static void AddApplicationInsightsSettings_SetsDeveloperMode()
+            public static void AddApplicationInsightsSettings_SetsConnectionString()
             {
                 var services = ApplicationInsightsExtensionsTests.GetServiceCollectionWithContextAccessor();
                 services.AddSingleton<ITelemetryChannel>(new InMemoryChannel());
@@ -1071,6 +1071,8 @@ namespace Microsoft.Extensions.DependencyInjection.Test
                 IServiceProvider serviceProvider = services.BuildServiceProvider();
                 var telemetryConfiguration = serviceProvider.GetTelemetryConfiguration();
                 Assert.Equal(TestConnectionString, telemetryConfiguration.ConnectionString);
+                Assert.Equal(TestInstrumentationKey, telemetryConfiguration.InstrumentationKey);
+                Assert.Equal("http://127.0.0.1", telemetryConfiguration.Endpoint.Ingestion.AbsoluteUri);
             }
 
             [Fact]
