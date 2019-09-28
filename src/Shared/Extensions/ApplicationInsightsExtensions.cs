@@ -164,7 +164,8 @@
 
             if (developerMode != null)
             {
-                telemetryConfigValues.Add(new KeyValuePair<string, string>(DeveloperModeForWebSites,
+                telemetryConfigValues.Add(new KeyValuePair<string, string>(
+                    DeveloperModeForWebSites,
 #if !NETSTANDARD1_6
                     developerMode.Value.ToString(System.Globalization.CultureInfo.InvariantCulture)));
 #else

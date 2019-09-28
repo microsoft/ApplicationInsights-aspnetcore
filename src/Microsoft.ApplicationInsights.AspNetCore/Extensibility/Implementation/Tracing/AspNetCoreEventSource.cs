@@ -1,10 +1,4 @@
-﻿//-----------------------------------------------------------------------
-// <copyright file="AspNetCoreEventSource.cs" company="Microsoft">
-//     Copyright (c) Microsoft Corporation. All rights reserved.
-// </copyright>
-//-----------------------------------------------------------------------
-
-namespace Microsoft.ApplicationInsights.AspNetCore.Extensibility.Implementation.Tracing
+﻿namespace Microsoft.ApplicationInsights.AspNetCore.Extensibility.Implementation.Tracing
 {
 #if AI_ASPNETCORE_WEB
     using Microsoft.ApplicationInsights.AspNetCore.Implementation;
