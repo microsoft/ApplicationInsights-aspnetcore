@@ -8,31 +8,37 @@
     using Microsoft.ApplicationInsights;
 #if AI_ASPNETCORE_WEB
     using Microsoft.ApplicationInsights.AspNetCore;
-    using Microsoft.ApplicationInsights.AspNetCore.TelemetryInitializers;
     using Microsoft.ApplicationInsights.AspNetCore.Extensibility.Implementation.Tracing;
     using Microsoft.ApplicationInsights.AspNetCore.Extensions;
-#else
+    using Microsoft.ApplicationInsights.AspNetCore.TelemetryInitializers;
+#endif
+
+    using Microsoft.ApplicationInsights.Channel;
+    using Microsoft.ApplicationInsights.DependencyCollector;
+    using Microsoft.ApplicationInsights.Extensibility;
+
+#if NETSTANDARD2_0
+    using Microsoft.ApplicationInsights.Extensibility.EventCounterCollector;
+#endif
+
+    using Microsoft.ApplicationInsights.Extensibility.Implementation.ApplicationId;
+    using Microsoft.ApplicationInsights.Extensibility.Implementation.Tracing;
+    using Microsoft.ApplicationInsights.Extensibility.PerfCounterCollector;
+    using Microsoft.ApplicationInsights.Extensibility.PerfCounterCollector.QuickPulse;
+    using Microsoft.ApplicationInsights.WindowsServer;
+    using Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel;
+
+#if AI_ASPNETCORE_WORKER
     using Microsoft.ApplicationInsights.WorkerService;
     using Microsoft.ApplicationInsights.WorkerService.TelemetryInitializers;
     using Microsoft.ApplicationInsights.WorkerService.Implementation.Tracing;
 #endif
-    using Microsoft.ApplicationInsights.Extensibility;
-    using Microsoft.ApplicationInsights.Extensibility.Implementation.Tracing;
-    using Microsoft.ApplicationInsights.WindowsServer;
+
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Configuration.Memory;
-    using Microsoft.Extensions.Logging;
-    using Microsoft.ApplicationInsights.DependencyCollector;
-    using Microsoft.ApplicationInsights.Channel;
     using Microsoft.Extensions.DependencyInjection.Extensions;
-    using Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel;
-    using Microsoft.ApplicationInsights.Extensibility.PerfCounterCollector;
-    using Microsoft.ApplicationInsights.Extensibility.PerfCounterCollector.QuickPulse;
-#if NETSTANDARD2_0
-    using Microsoft.ApplicationInsights.Extensibility.EventCounterCollector;
-#endif
+    using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
-    using Microsoft.ApplicationInsights.Extensibility.Implementation.ApplicationId;
 
     using Shared.Implementation;
 
