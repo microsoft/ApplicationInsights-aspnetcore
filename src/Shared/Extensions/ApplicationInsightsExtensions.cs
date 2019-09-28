@@ -30,8 +30,8 @@
 
 #if AI_ASPNETCORE_WORKER
     using Microsoft.ApplicationInsights.WorkerService;
-    using Microsoft.ApplicationInsights.WorkerService.TelemetryInitializers;
     using Microsoft.ApplicationInsights.WorkerService.Implementation.Tracing;
+    using Microsoft.ApplicationInsights.WorkerService.TelemetryInitializers;
 #endif
 
     using Microsoft.Extensions.Configuration;
