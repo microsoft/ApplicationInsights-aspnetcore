@@ -1,16 +1,17 @@
 ﻿#if AI_ASPNETCORE_WEB
     namespace Microsoft.ApplicationInsights.AspNetCore
 #else
-    namespace Microsoft.ApplicationInsights.WorkerService
+namespace Microsoft.ApplicationInsights.WorkerService
 #endif
 {
+    using System;
+
 #if AI_ASPNETCORE_WEB
     using Microsoft.ApplicationInsights.AspNetCore.Extensions;
 #else
     using Microsoft.ApplicationInsights.WorkerService;
 #endif
     using Microsoft.ApplicationInsights.Extensibility;
-    using System;
 
     /// <summary>
     /// Represents method used to configure <see cref="ITelemetryModule"/> with dependency injection support.
@@ -23,7 +24,7 @@
         Type TelemetryModuleType { get; }
 
         /// <summary>
-        /// Configures the given <see cref="ITelemetryModule"/>
+        /// Configures the given <see cref="ITelemetryModule"/>.
         /// </summary>
         [Obsolete("Use Configure(ITelemetryModule telemetryModule, ApplicationInsightsServiceOptions options) instead.")]
         void Configure(ITelemetryModule telemetryModule);
