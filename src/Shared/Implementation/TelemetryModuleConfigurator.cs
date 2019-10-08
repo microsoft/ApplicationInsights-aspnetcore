@@ -11,6 +11,7 @@
     using Microsoft.ApplicationInsights.WorkerService;
 #endif
     using Microsoft.ApplicationInsights.Extensibility;
+    using System.Diagnostics.CodeAnalysis;
 
     /// <summary>
     /// Represents method used to configure <see cref="ITelemetryModule"/> with dependency injection support.
@@ -36,6 +37,7 @@
         public Type TelemetryModuleType { get; }
 
         [Obsolete("Use Configure(ITelemetryModule telemetryModule, ApplicationInsightsServiceOptions options) instead.", true)]
+        [SuppressMessage("Documentation Rules", "SA1600:ElementsMustBeDocumented", Justification = "This method is obsolete.")]
         public void Configure(ITelemetryModule telemetryModule)
         {
             this.configure?.Invoke(telemetryModule, null);

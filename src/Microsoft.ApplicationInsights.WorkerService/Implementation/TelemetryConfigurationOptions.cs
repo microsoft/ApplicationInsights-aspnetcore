@@ -15,7 +15,7 @@
         /// <summary>
         /// Initializes a new instance of the <see cref="TelemetryConfigurationOptions"/> class.
         /// </summary>
-        /// <param name="configureOptions"></param>
+        /// <param name="configureOptions">Collection of options to be configured.</param>
         public TelemetryConfigurationOptions(IEnumerable<IConfigureOptions<TelemetryConfiguration>> configureOptions)
         {
             this.Value = TelemetryConfiguration.CreateDefault();
