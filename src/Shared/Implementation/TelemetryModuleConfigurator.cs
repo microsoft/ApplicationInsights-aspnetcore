@@ -5,13 +5,14 @@
 #endif
 {
     using System;
+    using System.Diagnostics.CodeAnalysis;
+
 #if AI_ASPNETCORE_WEB
     using Microsoft.ApplicationInsights.AspNetCore.Extensions;
 #else
     using Microsoft.ApplicationInsights.WorkerService;
 #endif
     using Microsoft.ApplicationInsights.Extensibility;
-    using System.Diagnostics.CodeAnalysis;
 
     /// <summary>
     /// Represents method used to configure <see cref="ITelemetryModule"/> with dependency injection support.

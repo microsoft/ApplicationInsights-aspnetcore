@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics.CodeAnalysis;
     using System.Linq;
     using System.Reflection;
 
@@ -472,6 +473,7 @@
         }
 #endif
 
+        [SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", Justification = "services parameter is used in only NetStandard 2.0 build.")]
         private static void AddApplicationInsightsLoggerProvider(IServiceCollection services)
         {
 #if NETSTANDARD2_0

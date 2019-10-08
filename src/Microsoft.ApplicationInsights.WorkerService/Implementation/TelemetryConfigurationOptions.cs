@@ -1,6 +1,7 @@
 ﻿namespace Microsoft.Extensions.DependencyInjection
 {
     using System.Collections.Generic;
+    using System.Diagnostics.CodeAnalysis;
     using System.Linq;
     using Microsoft.ApplicationInsights.Extensibility;
     using Microsoft.Extensions.Options;
@@ -8,10 +9,9 @@
     /// <summary>
     /// The <see cref="IOptions{TelemetryConfiguration}"/> implementation that create new <see cref="TelemetryConfiguration"/> every time when called".
     /// </summary>
+    [SuppressMessage("Microsoft.Performance", "CA1812:AvoidUninstantiatedInternalClasses", Justification = "This class is instantiated by Dependency Injection.")]
     internal class TelemetryConfigurationOptions : IOptions<TelemetryConfiguration>
     {
-        private static readonly object lockObject = new object();
-
         /// <summary>
         /// Initializes a new instance of the <see cref="TelemetryConfigurationOptions"/> class.
         /// </summary>
