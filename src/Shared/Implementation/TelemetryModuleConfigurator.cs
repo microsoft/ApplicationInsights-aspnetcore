@@ -47,6 +47,8 @@
         /// <summary>
         /// Configures telemetry module.
         /// </summary>
+        /// <param name="telemetryModule">Module to be configured.</param>
+        /// <param name="options">Configuration options.</param>
         public void Configure(ITelemetryModule telemetryModule, ApplicationInsightsServiceOptions options)
         {
             this.configure?.Invoke(telemetryModule, options);

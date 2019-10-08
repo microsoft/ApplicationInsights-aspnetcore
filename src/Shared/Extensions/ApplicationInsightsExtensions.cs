@@ -56,7 +56,11 @@
         private const string InstrumentationKeyForWebSites = "APPINSIGHTS_INSTRUMENTATIONKEY";
         private const string DeveloperModeForWebSites = "APPINSIGHTS_DEVELOPER_MODE";
         private const string EndpointAddressForWebSites = "APPINSIGHTS_ENDPOINTADDRESS";
+
+        [SuppressMessage("Microsoft.Performance", "CA1823:AvoidUnusedPrivateFields", Justification = "Used in NetStandard2.0 build.")]
         private const string EventSourceNameForSystemRuntime = "System.Runtime";
+
+        [SuppressMessage("Microsoft.Performance", "CA1823:AvoidUnusedPrivateFields", Justification = "Used in NetStandard2.0 build.")]
         private const string EventSourceNameForAspNetCoreHosting = "Microsoft.AspNetCore.Hosting";
 
         /// <summary>
@@ -421,7 +425,7 @@
 #if NETSTANDARD2_0
         private static void AddEventCounterIfNotExist(EventCounterCollectionModule eventCounterModule, string eventSource, string eventCounterName)
         {
-            if (!eventCounterModule.Counters.Any(req => req.EventSourceName.Equals(eventSource) && req.EventCounterName.Equals(eventCounterName)))
+            if (!eventCounterModule.Counters.Any(req => req.EventSourceName.Equals(eventSource, StringComparison.Ordinal) && req.EventCounterName.Equals(eventCounterName, StringComparison.Ordinal)))
             {
                 eventCounterModule.Counters.Add(new EventCounterCollectionRequest(eventSource, eventCounterName));
             }
