@@ -16,6 +16,8 @@ namespace Microsoft.ApplicationInsights.WorkerService
         /// Returns a <see cref="ITelemetryProcessor"/>,
         /// given the next <see cref="ITelemetryProcessor"/> in the call chain.
         /// </summary>
+        /// <param name="nextProcessor"></param>
+        /// <returns></returns>
         ITelemetryProcessor Create(ITelemetryProcessor nextProcessor);
     }
 }
