@@ -250,7 +250,7 @@ namespace Microsoft.Extensions.DependencyInjection.Test
                     var telemetryConfiguration = serviceProvider.GetTelemetryConfiguration();
                     Assert.Equal(TestConnectionString, telemetryConfiguration.ConnectionString);
                     Assert.Equal(TestInstrumentationKey, telemetryConfiguration.InstrumentationKey);
-                    Assert.Equal("http://127.0.0.1", telemetryConfiguration.EndpointContainer.Ingestion.AbsoluteUri);
+                    Assert.Equal("http://127.0.0.1/", telemetryConfiguration.EndpointContainer.Ingestion.AbsoluteUri);
                 }
                 finally
                 {
@@ -1072,7 +1072,7 @@ namespace Microsoft.Extensions.DependencyInjection.Test
                 var telemetryConfiguration = serviceProvider.GetTelemetryConfiguration();
                 Assert.Equal(TestConnectionString, telemetryConfiguration.ConnectionString);
                 Assert.Equal(TestInstrumentationKey, telemetryConfiguration.InstrumentationKey);
-                Assert.Equal("http://127.0.0.1", telemetryConfiguration.EndpointContainer.Ingestion.AbsoluteUri);
+                Assert.Equal("http://127.0.0.1/", telemetryConfiguration.EndpointContainer.Ingestion.AbsoluteUri);
             }
 
             [Fact]
