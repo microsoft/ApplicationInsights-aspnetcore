@@ -141,7 +141,7 @@ namespace Microsoft.ApplicationInsights.WorkerService.Tests
             var telemetryConfiguration = serviceProvider.GetRequiredService<TelemetryConfiguration>();
             Assert.Equal(TestConnectionString, telemetryConfiguration.ConnectionString);
             Assert.Equal(TestInstrumentationKey, telemetryConfiguration.InstrumentationKey);
-            Assert.Equal("http://127.0.0.1/", telemetryConfiguration.Endpoint.Ingestion.AbsoluteUri);
+            Assert.Equal("http://127.0.0.1/", telemetryConfiguration.EndpointContainer.Ingestion.AbsoluteUri);
         }
 
         [Fact]
