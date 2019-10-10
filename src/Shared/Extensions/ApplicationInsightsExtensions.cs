@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics.CodeAnalysis;
     using System.Linq;
     using System.Reflection;
 
@@ -58,7 +59,10 @@
         private const string DeveloperModeForWebSites = "APPINSIGHTS_DEVELOPER_MODE";
         private const string EndpointAddressForWebSites = "APPINSIGHTS_ENDPOINTADDRESS";
 
+        [SuppressMessage("Microsoft.Performance", "CA1823:AvoidUnusedPrivateFields", Justification = "Used in NetStandard2.0 build.")]
         private const string EventSourceNameForSystemRuntime = "System.Runtime";
+
+        [SuppressMessage("Microsoft.Performance", "CA1823:AvoidUnusedPrivateFields", Justification = "Used in NetStandard2.0 build.")]
         private const string EventSourceNameForAspNetCoreHosting = "Microsoft.AspNetCore.Hosting";
 
         /// <summary>
@@ -445,7 +449,7 @@
 #if NETSTANDARD2_0
         private static void AddEventCounterIfNotExist(EventCounterCollectionModule eventCounterModule, string eventSource, string eventCounterName)
         {
-            if (!eventCounterModule.Counters.Any(req => req.EventSourceName.Equals(eventSource) && req.EventCounterName.Equals(eventCounterName)))
+            if (!eventCounterModule.Counters.Any(req => req.EventSourceName.Equals(eventSource, StringComparison.Ordinal) && req.EventCounterName.Equals(eventCounterName, StringComparison.Ordinal)))
             {
                 eventCounterModule.Counters.Add(new EventCounterCollectionRequest(eventSource, eventCounterName));
             }
@@ -497,6 +501,7 @@
         }
 #endif
 
+        [SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", Justification = "services parameter is used in only NetStandard 2.0 build.")]
         private static void AddApplicationInsightsLoggerProvider(IServiceCollection services)
         {
 #if NETSTANDARD2_0
