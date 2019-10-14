@@ -2,6 +2,7 @@ namespace Microsoft.Extensions.DependencyInjection
 {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics.CodeAnalysis;
     using System.Linq;
 
 #if AI_ASPNETCORE_WEB
@@ -25,6 +26,7 @@ namespace Microsoft.Extensions.DependencyInjection
     /// Initializes TelemetryConfiguration based on values in <see cref="ApplicationInsightsServiceOptions"/>
     /// and registered <see cref="ITelemetryInitializer"/>s and <see cref="ITelemetryModule"/>s.
     /// </summary>
+    [SuppressMessage("Microsoft.Performance", "CA1812:AvoidUninstantiatedInternalClasses", Justification = "This class is instantiated by Dependency Injection.")]
     internal class TelemetryConfigurationOptionsSetup : IConfigureOptions<TelemetryConfiguration>
     {
         private readonly ApplicationInsightsServiceOptions applicationInsightsServiceOptions;
@@ -113,6 +115,12 @@ namespace Microsoft.Extensions.DependencyInjection
                 if (this.applicationInsightsServiceOptions.EndpointAddress != null)
                 {
                     configuration.TelemetryChannel.EndpointAddress = this.applicationInsightsServiceOptions.EndpointAddress;
+                }
+
+                // Need to set connection string before calling Initialize() on the Modules and Processors.
+                if (this.applicationInsightsServiceOptions.ConnectionString != null)
+                {
+                    configuration.ConnectionString = this.applicationInsightsServiceOptions.ConnectionString;
                 }
 
                 foreach (ITelemetryInitializer initializer in this.initializers)
