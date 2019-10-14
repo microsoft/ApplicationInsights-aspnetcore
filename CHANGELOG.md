@@ -4,6 +4,7 @@
 - Skipping version numbers to keep in sync with Base SDK.
 - [Fix Null/Empty Ikey from ApplicationInsightsServiceOptions overrding one from appsettings.json](https://github.com/microsoft/ApplicationInsights-aspnetcore/issues/989)
 - [Provide ApplicationInsightsServiceOptions for easy disabling of any default TelemetryModules](https://github.com/microsoft/ApplicationInsights-aspnetcore/issues/988)
+- [New RoleName initializer for Azure Web App to accurately populate RoleName.](https://github.com/microsoft/ApplicationInsights-dotnet-server/issues/1207)
 
 ## Version 2.8.0
 - Updated Bask SDK/Web SDK/Logging Adaptor SDK to 2.11.0
