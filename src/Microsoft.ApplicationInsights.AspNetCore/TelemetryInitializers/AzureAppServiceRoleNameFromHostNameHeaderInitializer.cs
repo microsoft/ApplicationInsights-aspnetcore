@@ -94,8 +94,7 @@
                         {
                             if (string.IsNullOrEmpty(request.Context.Cloud.RoleName))
                             {
-                                roleName = this.GetRoleNameFromHeader(context);
-                                if (!string.IsNullOrEmpty(roleName))
+                                if (this.TryGetRoleNameFromHeader(context, out roleName))
                                 {
                                     request.Context.Cloud.RoleName = roleName;
                                 }
@@ -107,7 +106,10 @@
                         }
                         else
                         {
-                            roleName = this.GetRoleNameFromHeader(context);
+                            if (!this.TryGetRoleNameFromHeader(context, out roleName))
+                            {
+                                roleName = this.roleName;
+                            }
                         }
                     }
                 }
@@ -126,9 +128,10 @@
             }
         }
 
-        private string GetRoleNameFromHeader(HttpContext context)
+        private bool TryGetRoleNameFromHeader(HttpContext context, out string roleName)
         {
-            string roleName = string.Empty;
+            roleName = string.Empty;
+
             if (context.Request?.Headers != null)
             {
                 string headerValue = context.Request.Headers[WebAppHostNameHeaderName];
@@ -140,10 +143,11 @@
                     }
 
                     roleName = headerValue;
+                    return true;
                 }
             }
 
-            return roleName;
+            return false;
         }
     }
 }
