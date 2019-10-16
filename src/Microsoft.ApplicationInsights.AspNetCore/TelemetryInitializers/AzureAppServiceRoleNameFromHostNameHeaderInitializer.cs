@@ -33,8 +33,19 @@
         /// </summary>
         /// <param name="httpContextAccessor">Accessor to provide HttpContext if available.</param>
         public AzureAppServiceRoleNameFromHostNameHeaderInitializer(IHttpContextAccessor httpContextAccessor)
+            : this(httpContextAccessor, ".azurewebsites.net")
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AzureAppServiceRoleNameFromHostNameHeaderInitializer" /> class.
+        /// </summary>
+        /// <param name="httpContextAccessor">Accessor to provide HttpContext if available.</param>
+        /// <param name="webAppSuffix">WebApp name suffix.</param>
+        public AzureAppServiceRoleNameFromHostNameHeaderInitializer(IHttpContextAccessor httpContextAccessor, string webAppSuffix)
         {
             this.httpContextAccessor = httpContextAccessor ?? throw new ArgumentNullException(nameof(httpContextAccessor));
+            this.WebAppSuffix = webAppSuffix;
 
             try
             {
@@ -59,7 +70,7 @@
         /// For US Gov Cloud: ".azurewebsites.us"
         /// For Azure Germany: ".azurewebsites.de".
         /// </summary>
-        public string WebAppSuffix { get; set; } = ".azurewebsites.net";
+        public string WebAppSuffix { get; set; }
 
         /// <summary>
         /// Populates RoleName from the request telemetry associated with the http context.

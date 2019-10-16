@@ -170,8 +170,6 @@
             var requestTelemetry = new RequestTelemetry();
             var contextAccessor = HttpContextAccessorHelper.CreateHttpContextAccessor(requestTelemetry);
 
-            contextAccessor.HttpContext.Features.Set<IHttpConnectionFeature>(new HttpConnectionFeature());
-           
             var initializer = new AzureAppServiceRoleNameFromHostNameHeaderInitializer(contextAccessor);
 
             initializer.Initialize(requestTelemetry);
@@ -184,8 +182,6 @@
             {
                 Environment.SetEnvironmentVariable("WEBSITE_HOSTNAME", "RoleNameEnv");
                 var contextAccessor = HttpContextAccessorHelper.CreateHttpContextAccessor();
-
-                contextAccessor.HttpContext.Features.Set<IHttpConnectionFeature>(new HttpConnectionFeature());
 
                 var initializer = new AzureAppServiceRoleNameFromHostNameHeaderInitializer(contextAccessor);
                 var req = new RequestTelemetry();
@@ -300,6 +296,26 @@
             initializer.Initialize(requestTelemetry);
 
             Assert.Equal("appserviceslottest-ppe", requestTelemetry.Context.Cloud.RoleName);
+        }
+
+        [Fact]
+        public void InitializeSetsRoleNameFromEnvWithAzureWebsitesCustom()
+        {
+            try
+            {
+                Environment.SetEnvironmentVariable("WEBSITE_HOSTNAME", "appserviceslottest-ppe.azurewebsites.us");
+                var requestTelemetry = new RequestTelemetry();
+                var contextAccessor = HttpContextAccessorHelper.CreateHttpContextAccessor(requestTelemetry);
+                var initializer = new AzureAppServiceRoleNameFromHostNameHeaderInitializer(contextAccessor, ".azurewebsites.us");
+
+                initializer.Initialize(requestTelemetry);
+
+                Assert.Equal("appserviceslottest-ppe", requestTelemetry.Context.Cloud.RoleName);
+            }
+            finally
+            {
+                Environment.SetEnvironmentVariable("WEBSITE_HOSTNAME", null);
+            }
         }
 
         [Fact]
