@@ -10,8 +10,13 @@
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Http.Features;
 
-    public class AzureAppServiceRoleNameFromHostNameHeaderInitializerTests
+    public class AzureAppServiceRoleNameFromHostNameHeaderInitializerTests : IDisposable
     {
+        public AzureAppServiceRoleNameFromHostNameHeaderInitializerTests()
+        {
+            Environment.SetEnvironmentVariable("WEBSITE_HOSTNAME", "SomeName");
+        }
+
         [Fact]
         public void InitializeThrowIfHttpContextAccessorIsNull()
         {
@@ -337,6 +342,7 @@
         [Fact]
         public void InitializewithNoEnvToHostNameHeader()
         {
+            Environment.SetEnvironmentVariable("WEBSITE_HOSTNAME", null);
             var ac = new HttpContextAccessor { HttpContext = null };
 
             var initializer = new AzureAppServiceRoleNameFromHostNameHeaderInitializer(ac);
@@ -344,6 +350,11 @@
             var requestTelemetry = new RequestTelemetry();
             initializer.Initialize(requestTelemetry);
             Assert.Null(requestTelemetry.Context.Cloud.RoleName);
+        }
+
+        public void Dispose()
+        {
+            Environment.SetEnvironmentVariable("WEBSITE_HOSTNAME", null);
         }
     }
 }
