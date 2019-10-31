@@ -1,3 +1,13 @@
+# This repo is in the process of being migrated
+
+Please pardon our progress...
+We are currently in the process of consolidating our github repos.
+See https://github.com/microsoft/ApplicationInsights-dotnet/issues/1214
+
+
+
+
+
 ## NuGet packages
 
 - [Microsoft.ApplicationInsights.AspNetCore](https://www.nuget.org/packages/Microsoft.ApplicationInsights.AspNetCore/)
